@@ -1,0 +1,79 @@
+/* Card Component Styles - iOS 26 Liqueed */
+
+.card {
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+/* ========== PADDING SIZES ========== */
+.card-padding-sm {
+    padding: var(--space-md);
+}
+
+.card-padding-md {
+    padding: var(--space-lg);
+}
+
+.card-padding-lg {
+    padding: var(--space-xl);
+}
+
+/* ========== VARIANTS ========== */
+
+/* Elevated Card - Standard shadow */
+.card-elevated {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--glass-border);
+}
+
+/* Outlined Card - Border only */
+.card-outlined {
+    background: var(--bg-primary);
+    border: 1.5px solid var(--glass-border);
+}
+
+/* Glass Card - Glassmorphism effect */
+.card-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-sm);
+}
+
+/* ========== STATES ========== */
+
+/* Hoverable */
+.card-hoverable:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+/* Clickable */
+.card-clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-clickable:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-clickable:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* ========== DARK MODE SPECIFIC ========== */
+[data-theme="dark"] .card-elevated {
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .card-outlined {
+    background: var(--bg-secondary);
+    border-color: rgba(255, 255, 255, 0.15);
+}
