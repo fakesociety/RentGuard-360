@@ -1,0 +1,221 @@
+.upload-page {
+    min-height: 100vh;
+    padding: var(--space-xl) var(--space-md);
+    background: var(--bg-secondary);
+}
+
+.upload-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.upload-header h1 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.upload-header p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-lg);
+}
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* Drop Zone */
+.drop-zone {
+    border: 2px dashed var(--glass-border);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.drop-zone.dragging {
+    border-color: var(--accent-primary);
+    background: rgba(0, 122, 255, 0.05);
+    transform: scale(1.01);
+}
+
+.drop-zone.has-file {
+    border-style: solid;
+    border-color: var(--accent-success);
+}
+
+.drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.drop-icon {
+    font-size: 48px;
+    opacity: 0.8;
+}
+
+.drop-content h3 {
+    font-size: var(--font-size-xl);
+    color: var(--text-primary);
+}
+
+.drop-content p {
+    color: var(--text-secondary);
+}
+
+.drop-hint {
+    font-size: var(--font-size-sm);
+    opacity: 0.7;
+    margin-top: var(--space-sm);
+}
+
+/* File Preview */
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.file-icon {
+    font-size: 32px;
+}
+
+.file-info {
+    flex: 1;
+    text-align: left;
+}
+
+.file-info h4 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 4px;
+    word-break: break-all;
+}
+
+.file-info p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Upload Progress */
+.upload-progress {
+    margin-top: var(--space-lg);
+    width: 100%;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.upload-progress p {
+    text-align: center;
+    margin-top: var(--space-sm);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Success Card */
+.success-card {
+    background: rgba(52, 199, 89, 0.1);
+    border: 1px solid var(--accent-success);
+}
+
+.success-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.success-icon {
+    font-size: 32px;
+}
+
+.success-content h3 {
+    color: var(--accent-success);
+    margin-bottom: var(--space-xs);
+}
+
+.success-content p {
+    color: var(--text-secondary);
+}
+
+.contract-id {
+    font-size: var(--font-size-xs);
+    font-family: var(--font-mono);
+    margin-top: var(--space-sm);
+    opacity: 0.7;
+}
+
+.success-actions {
+    display: flex;
+    gap: var(--space-md);
+}
+
+/* Metadata Card */
+.metadata-card h3 {
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+}
+
+/* Error Message */
+.error-message {
+    padding: var(--space-md);
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid var(--accent-danger);
+    border-radius: var(--radius-md);
+    color: var(--accent-danger);
+    text-align: center;
+}
+
+/* Upload Button */
+.upload-button {
+    margin-top: var(--space-md);
+}
+
+/* Animations */
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideUp {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
