@@ -1,63 +1,69 @@
 import json
 import boto3
-import datetime
+from datetime import datetime
+from decimal import Decimal
 
 # חיבור ל-DynamoDB
 dynamodb = boto3.resource('dynamodb')
-# וודא שהשם כאן זהה בדיוק לשם הטבלה שיצרת!
 table = dynamodb.Table('RentGuard-Analysis')
+
+# פונקציית עזר להמרת מספרים עשרוניים (חובה ל-DynamoDB)
+def convert_floats_to_decimals(obj):
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {k: convert_floats_to_decimals(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats_to_decimals(i) for i in obj]
+    return obj
 
 def lambda_handler(event, context):
     try:
         print("Received event:", json.dumps(event))
         
-        # 1. חילוץ המידע מהשלבים הקודמים
-        # אנחנו מניחים שהמידע יגיע משורשר (מה-Step Function שנבנה תכף)
-        contract_id = event.get('contractId') or event.get('key')
-        
-        # התוצאה של ה-AI יכולה להגיע בכמה צורות, תלוי איך שרשרנו
-        # כאן אנחנו מנסים לחלץ את הניתוח עצמו
-        ai_analysis_raw = event.get('analysis')
+        # 1. חילוץ הנתונים מהשלב הקודם
+        contract_id = event.get('contractId')
+        analysis_result = event.get('analysis_result')
         
         if not contract_id:
-            return {'statusCode': 400, 'body': "Error: Missing contractId"}
+            # מנסים גיבוי למקרה שהשם שונה
+            contract_id = event.get('contract_id')
+        
+        if not contract_id:
+            raise ValueError("CRITICAL ERROR: Missing contractId in input event")
             
-        if not ai_analysis_raw:
-            return {'statusCode': 400, 'body': "Error: Missing analysis data"}
+        if not analysis_result:
+            print(f"Warning: No analysis result found for {contract_id}")
+            analysis_result = {"error": "No analysis data found", "is_contract": False}
 
-        # 2. המרה לאובייקט שאפשר לשמור (JSON)
-        # אם הניתוח הגיע כמחרוזת (String), ננסה להפוך אותו ל-Dict
-        if isinstance(ai_analysis_raw, str):
-            try:
-                analysis_data = json.loads(ai_analysis_raw)
-            except:
-                # אם אי אפשר לפרסר, נשמור כטקסט גולמי
-                analysis_data = {"raw_text": ai_analysis_raw}
-        else:
-            analysis_data = ai_analysis_raw
+        # 2. המרה ל-Decimal
+        clean_analysis = convert_floats_to_decimals(analysis_result)
 
-        # 3. שמירה בטבלה
+        # חילוץ ציון (אם קיים)
+        risk_score = 0
+        if isinstance(clean_analysis, dict):
+            risk_score = clean_analysis.get('overall_risk_score', 0)
+
+        # 3. שמירה בטבלה - התיקון הקריטי כאן!
         item = {
-            'contractId': contract_id,
-            'timestamp': str(datetime.datetime.now()),
-            'analysis': analysis_data,
+            'contractId': contract_id,            # <--- תוקן: השם חייב להיות contractId (בלי קו תחתון)
+            'timestamp': datetime.utcnow().isoformat(),
+            'analysis_result': clean_analysis,
+            'risk_score': risk_score,
             'status': 'COMPLETED'
         }
         
+        print(f"Attempting to save item: {json.dumps(item, default=str)}")
         table.put_item(Item=item)
-        print(f"Successfully saved analysis for {contract_id}")
+        print("Item saved successfully to DynamoDB")
 
+        # 4. החזרה נקייה לשלב המייל
         return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'message': 'Analysis saved successfully',
-                'contractId': contract_id
-            })
+            'contractId': contract_id,
+            'status': 'success',
+            'risk_score': risk_score
         }
 
     except Exception as e:
         print(f"Error saving to DB: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps(f"Database Error: {str(e)}")
-        }
+        raise e

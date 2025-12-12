@@ -5,7 +5,7 @@ import uuid
 s3 = boto3.client('s3')
 
 # --- 🔴 חשוב! שנה את השם הזה לשם הדלי האמיתי שלך ---
-BUCKET_NAME = 'rentguard-contracts-moti-555' 
+BUCKET_NAME = 'rentguard-contracts-moty-101225' 
 # ----------------------------------------------------
 
 def lambda_handler(event, context):
