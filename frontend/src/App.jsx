@@ -62,7 +62,6 @@ const Navigation = () => {
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/upload', label: 'Upload', icon: '📤' },
     { path: '/contracts', label: 'Contracts', icon: '📄' },
-    { path: '/contact', label: 'Contact', icon: '📧' },
   ];
 
   const getUserInitials = () => {
@@ -117,6 +116,9 @@ const Navigation = () => {
                   </div>
                 </div>
                 <div className="profile-divider"></div>
+                <Link to="/contact" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
+                  <span>📧</span> Contact Support
+                </Link>
                 <Link to="/settings" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
                   <span>⚙️</span> Settings
                 </Link>

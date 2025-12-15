@@ -2,6 +2,7 @@ import json
 import boto3
 from datetime import datetime
 from decimal import Decimal
+from urllib.parse import unquote
 
 # Clients
 dynamodb = boto3.resource('dynamodb')
@@ -36,10 +37,11 @@ def get_s3_metadata(bucket, key):
     try:
         response = s3.head_object(Bucket=bucket, Key=key)
         metadata = response.get('Metadata', {})
+        # URL-decode the values (they were encoded to support Hebrew/Unicode)
         return {
-            'originalFileName': metadata.get('original-filename', ''),
-            'propertyAddress': metadata.get('property-address', ''),
-            'landlordName': metadata.get('landlord-name', '')
+            'originalFileName': unquote(metadata.get('original-filename', '')),
+            'propertyAddress': unquote(metadata.get('property-address', '')),
+            'landlordName': unquote(metadata.get('landlord-name', ''))
         }
     except Exception as e:
         print(f"Warning: Could not get S3 metadata: {e}")

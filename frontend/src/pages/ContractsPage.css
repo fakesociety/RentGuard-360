@@ -40,10 +40,30 @@
 
 .contract-card {
     transition: all var(--transition-normal);
+    min-height: 220px;
+    max-height: 220px;
+    overflow: hidden;
+    position: relative;
 }
 
 .contract-card:hover {
     transform: translateY(-4px);
+    max-height: none;
+    z-index: 10;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Truncate long file names */
+.contract-info h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.contract-card:hover .contract-info h3 {
+    white-space: normal;
+    overflow: visible;
 }
 
 .contract-header {

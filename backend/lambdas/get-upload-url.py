@@ -1,6 +1,7 @@
 import json
 import boto3
 import uuid
+from urllib.parse import quote
 
 s3 = boto3.client('s3')
 
@@ -31,15 +32,16 @@ def lambda_handler(event, context):
         unique_id = str(uuid.uuid4())
         file_key = f"uploads/{user_id}/contract-{unique_id}.pdf"
 
-        # 4. Build S3 params with metadata
+        # 4. Build S3 params with metadata (URL-encode non-ASCII characters)
+        # S3 metadata only allows ASCII, so we URL-encode Hebrew/Unicode values
         s3_params = {
             'Bucket': BUCKET_NAME,
             'Key': file_key,
             'ContentType': 'application/pdf',
             'Metadata': {
-                'original-filename': original_file_name[:255],  # S3 metadata limit
-                'property-address': property_address[:255] if property_address else '',
-                'landlord-name': landlord_name[:255] if landlord_name else '',
+                'original-filename': quote(original_file_name[:255], safe=''),
+                'property-address': quote(property_address[:255], safe='') if property_address else '',
+                'landlord-name': quote(landlord_name[:255], safe='') if landlord_name else '',
                 'user-id': user_id[:255]
             }
         }
