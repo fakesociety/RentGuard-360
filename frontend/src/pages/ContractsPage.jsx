@@ -246,9 +246,6 @@ const ContractsPage = () => {
                 >
                     🔄 Refresh Contracts
                 </Button>
-                <Link to="/contact" className="support-link">
-                    Need help? Contact Support
-                </Link>
             </div>
         </div>
     );

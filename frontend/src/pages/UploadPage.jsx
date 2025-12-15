@@ -156,7 +156,7 @@ const UploadPage = () => {
                                     <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
                                         Browse Files
                                     </Button>
-                                    <p className="drop-hint">Maximum file size: 10MB | PDF only</p>
+                                    <p className="drop-hint">Maximum file size: 25MB | PDF only</p>
                                 </div>
                             ) : (
                                 <div className="file-preview">
