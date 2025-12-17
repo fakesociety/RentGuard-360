@@ -2,13 +2,22 @@
 
 /* ============================================
    ROOT VARIABLES - LIGHT MODE (Premium)
+   3-Level Contrast Hierarchy
    ============================================ */
 :root {
-    /* Background Colors - Soft premium whites */
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F8FAFC;
-    --bg-tertiary: #F1F5F9;
-    --bg-elevated: #FFFFFF;
+    /* Background Colors - 3-Level Hierarchy */
+    --bg-page: #F0F2F5;
+    /* Level 1: Page background (slightly gray) */
+    --bg-card: #FFFFFF;
+    /* Level 2: Card surfaces (pure white) */
+    --bg-inset: #F7F8FA;
+    /* Level 3: Inset/nested elements */
+
+    /* Legacy aliases for compatibility */
+    --bg-primary: var(--bg-page);
+    --bg-secondary: var(--bg-card);
+    --bg-tertiary: var(--bg-inset);
+    --bg-elevated: var(--bg-card);
 
     /* Text Colors - Refined contrast */
     --text-primary: #0F172A;
@@ -16,7 +25,7 @@
     --text-tertiary: #64748B;
     --text-quaternary: #94A3B8;
 
-    /* Accent Colors - Emerald/Teal (matches dark mode) */
+    /* Accent Colors - Emerald/Teal */
     --accent-primary: #059669;
     --accent-primary-hover: #047857;
     --accent-secondary: #0891B2;
@@ -30,18 +39,18 @@
     --gradient-subtle: linear-gradient(135deg, #F0FDF4 0%, #ECFEFF 100%);
 
     /* Glassmorphism Effects */
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(15, 23, 42, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.08);
     --glass-blur: 20px;
 
-    /* Shadows - Refined and soft */
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.05), 0 2px 4px rgba(15, 23, 42, 0.03);
-    --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.08), 0 4px 6px rgba(15, 23, 42, 0.04);
-    --shadow-xl: 0 20px 25px rgba(15, 23, 42, 0.1), 0 10px 10px rgba(15, 23, 42, 0.04);
+    /* Shadows - Premium depth */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.15);
 
-    /* Glow effect for accent elements (light mode) */
+    /* Glow effect for accent elements */
     --glow-primary: 0 0 20px rgba(5, 150, 105, 0.12);
 
     /* Border Radius - Premium rounded */
@@ -97,14 +106,22 @@
 }
 
 /* ============================================
-   DARK MODE VARIABLES - Premium Charcoal Theme
+   DARK MODE VARIABLES - Premium 3-Level Contrast
    ============================================ */
 [data-theme="dark"] {
-    /* Background Colors - Premium charcoal (NOT pure black) */
-    --bg-primary: #0D1117;
-    --bg-secondary: #161B22;
-    --bg-tertiary: #21262D;
-    --bg-elevated: #30363D;
+    /* Background Colors - 3-Level Hierarchy (Dark) */
+    --bg-page: #0B0E13;
+    /* Level 1: Deep dark page (darkest) */
+    --bg-card: #151A23;
+    /* Level 2: Card surfaces (slate-blue) */
+    --bg-inset: #1E2530;
+    /* Level 3: Inset/nested (lighter slate) */
+
+    /* Legacy aliases */
+    --bg-primary: var(--bg-page);
+    --bg-secondary: var(--bg-card);
+    --bg-tertiary: var(--bg-inset);
+    --bg-elevated: var(--bg-card);
 
     /* Text Colors */
     --text-primary: #F0F6FC;
@@ -125,19 +142,19 @@
     --gradient-primary: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
     --gradient-subtle: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
 
-    /* Glassmorphism Effects - Subtle for dark mode */
-    --glass-bg: rgba(22, 27, 34, 0.8);
-    --glass-border: rgba(240, 246, 252, 0.1);
+    /* Glassmorphism Effects */
+    --glass-bg: rgba(21, 26, 35, 0.9);
+    --glass-border: rgba(255, 255, 255, 0.08);
 
-    /* Shadows - Glow effect for dark mode */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7);
+    /* Shadows - Deep dark shadows */
+    --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.8);
 
     /* Glow effect for accent elements */
-    --glow-primary: 0 0 20px rgba(16, 185, 129, 0.15);
+    --glow-primary: 0 0 24px rgba(16, 185, 129, 0.2);
 }
 
 /* ============================================

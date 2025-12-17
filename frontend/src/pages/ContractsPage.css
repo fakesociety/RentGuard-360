@@ -40,8 +40,8 @@
 
 .contract-card {
     transition: all var(--transition-normal);
-    min-height: 220px;
-    max-height: 220px;
+    min-height: 320px;
+    max-height: 320px;
     overflow: hidden;
     position: relative;
 }
@@ -265,34 +265,66 @@
     }
 }
 
-/* Contract Wrapper for positioning delete button */
+/* Contract wrapper for relative positioning */
 .contract-wrapper {
     position: relative;
 }
 
-.delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
+/* Card Action Bar */
+.card-action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.card-action-btn {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
     background: var(--bg-tertiary);
+    color: var(--text-secondary);
     cursor: pointer;
-    font-size: 14px;
-    opacity: 0;
+    font-size: var(--font-size-xs);
     transition: all var(--transition-fast);
-    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.contract-wrapper:hover .delete-btn {
-    opacity: 1;
+.card-action-btn:hover {
+    transform: scale(1.05);
 }
 
-.delete-btn:hover {
+.card-action-btn.export:hover {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.card-action-btn.delete:hover {
     background: var(--accent-danger);
-    transform: scale(1.1);
+    color: white;
+    border-color: var(--accent-danger);
+}
+
+/* Separator line */
+.card-separator {
+    height: 1px;
+    background: var(--glass-border);
+    margin: var(--space-sm) 0;
+}
+
+/* View Details hover effect */
+.view-action {
+    color: var(--accent-primary);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+}
+
+.contract-card:hover .view-action {
+    color: var(--accent-success);
+    text-shadow: 0 0 10px var(--accent-success);
 }
 
 /* Modal Overlay */

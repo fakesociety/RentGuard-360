@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getContracts, deleteContract } from '../services/api';
+import { getContracts, deleteContract, getAnalysis } from '../services/api';
+import { exportToWord, exportToPDF } from '../services/ExportService';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import './ContractsPage.css';
@@ -200,6 +201,35 @@ const ContractsPage = () => {
                                     className="contract-card animate-slideUp"
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
+                                    {/* Action Bar with Separator */}
+                                    <div className="card-action-bar">
+                                        <button
+                                            className="card-action-btn export"
+                                            onClick={async (e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                try {
+                                                    const analysis = await getAnalysis(contract.contractId);
+                                                    await exportToPDF(analysis, contract.fileName || 'Contract_Report');
+                                                } catch (err) {
+                                                    console.error('Export failed:', err);
+                                                    alert('Export failed. Please view the contract first.');
+                                                }
+                                            }}
+                                            title="Export to PDF"
+                                        >
+                                            📥 Export
+                                        </button>
+                                        <button
+                                            className="card-action-btn delete"
+                                            onClick={(e) => handleDelete(contract.contractId, e)}
+                                            title="Delete contract"
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                    <div className="card-separator"></div>
+
                                     <div className="contract-header">
                                         <div className="contract-icon">📄</div>
                                         {getStatusBadge(contract.status, contract.riskScore)}
@@ -226,13 +256,6 @@ const ContractsPage = () => {
                                     </div>
                                 </Card>
                             </Link>
-                            <button
-                                className="delete-btn"
-                                onClick={(e) => handleDelete(contract.contractId, e)}
-                                title="Delete contract"
-                            >
-                                🗑️
-                            </button>
                         </div>
                     ))}
                 </div>

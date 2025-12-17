@@ -1,4 +1,4 @@
-/* Card Component Styles - iOS 26 Liqueed */
+/* Card Component Styles - Premium 3-Level Contrast */
 
 .card {
     border-radius: var(--radius-lg);
@@ -21,20 +21,20 @@
 
 /* ========== VARIANTS ========== */
 
-/* Elevated Card - Standard shadow */
+/* Elevated Card - Level 2 surface (bg-card) */
 .card-elevated {
-    background: var(--bg-primary);
+    background: var(--bg-card);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--glass-border);
 }
 
-/* Outlined Card - Border only */
+/* Outlined Card - Border emphasis */
 .card-outlined {
-    background: var(--bg-primary);
+    background: var(--bg-card);
     border: 1.5px solid var(--glass-border);
 }
 
-/* Glass Card - Glassmorphism effect */
+/* Glass Card - Glassmorphism */
 .card-glass {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -67,11 +67,10 @@
     outline-offset: 2px;
 }
 
-/* ========== DARK MODE SPECIFIC ========== */
+/* ========== DARK MODE ENHANCEMENTS ========== */
 [data-theme="dark"] .card-elevated {
-    background: var(--bg-secondary);
-    border-color: rgba(240, 246, 252, 0.1);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="dark"] .card-elevated:hover {
@@ -80,11 +79,10 @@
 }
 
 [data-theme="dark"] .card-outlined {
-    background: var(--bg-secondary);
-    border-color: rgba(240, 246, 252, 0.15);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .card-glass {
-    background: var(--bg-secondary);
-    border-color: rgba(240, 246, 252, 0.08);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-md);
 }

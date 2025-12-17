@@ -219,10 +219,61 @@ export const deleteContract = async (contractId, userId) => {
     return data;
 };
 
+/**
+ * Ask AI to explain a specific clause
+ * @param {string} contractId - The contract ID
+ * @param {string} clauseText - The clause text to explain
+ */
+export const consultClause = async (contractId, clauseText) => {
+    const data = await apiCall('/consult', {
+        method: 'POST',
+        body: JSON.stringify({ contractId, clauseText }),
+    });
+
+    return data;
+};
+
+/**
+ * Send a contact/support message
+ * @param {object} formData - { name, email, subject, message }
+ */
+export const sendContactMessage = async (formData) => {
+    const data = await apiCall('/contact', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+    });
+
+    return data;
+};
+
+/**
+ * Save edited contract to AWS
+ * @param {string} contractId - Original contract ID
+ * @param {string} userId - User ID
+ * @param {object} editedClauses - Object with clauseId -> { text, action }
+ * @param {string} fullEditedText - Full contract text with edits applied
+ */
+export const saveEditedContract = async (contractId, userId, editedClauses, fullEditedText) => {
+    const data = await apiCall('/contracts/save-edited', {
+        method: 'POST',
+        body: JSON.stringify({
+            contractId,
+            userId,
+            editedClauses,
+            fullEditedText
+        }),
+    });
+
+    return data;
+};
+
 export default {
     uploadFile,
     getContracts,
     getAnalysis,
     pollForAnalysis,
     deleteContract,
+    consultClause,
+    sendContactMessage,
+    saveEditedContract,
 };

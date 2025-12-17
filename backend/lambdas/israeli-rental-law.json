@@ -1,0 +1,187 @@
+{
+    "law_name": "Fair Rental Law of 2017 (חוק שכירות הוגנת)",
+    "source": "Israeli Ministry of Justice",
+    "categories": {
+        "financial_terms": {
+            "display_name": "Financial Terms",
+            "max_points": 20,
+            "rules": [
+                {
+                    "id": "F1",
+                    "rule": "Maximum security deposit is 3 months rent OR 1/3 of total lease value (whichever is lower)",
+                    "source": "Fair Rental Law 2017, Section 25",
+                    "violation_penalty": 8,
+                    "check_question": "Does the contract require a deposit exceeding 3 months rent?"
+                },
+                {
+                    "id": "F2",
+                    "rule": "Deposit must be returned within 60 days after lease ends",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract specify deposit return period over 60 days?"
+                },
+                {
+                    "id": "F3",
+                    "rule": "Rent cannot be increased during active lease without explicit contract clause",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 7,
+                    "check_question": "Does the contract allow arbitrary rent increases during lease term?"
+                },
+                {
+                    "id": "F4",
+                    "rule": "Late payment penalties must be reasonable (typically max 2% per week)",
+                    "source": "Standard Practice",
+                    "violation_penalty": 5,
+                    "check_question": "Are late payment penalties excessive (over 5% per week)?"
+                }
+            ]
+        },
+        "tenant_rights": {
+            "display_name": "Tenant Rights",
+            "max_points": 20,
+            "rules": [
+                {
+                    "id": "T1",
+                    "rule": "Landlord must give reasonable notice (24-48 hours) before entering property",
+                    "source": "Tenant Privacy Rights, Israeli Civil Law",
+                    "violation_penalty": 7,
+                    "check_question": "Does the contract allow landlord entry without reasonable notice (less than 24h)?"
+                },
+                {
+                    "id": "T2",
+                    "rule": "Subletting restrictions must be reasonable; complete prohibition may be unfair",
+                    "source": "Standard Practice",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract completely prohibit subletting without exception?"
+                },
+                {
+                    "id": "T3",
+                    "rule": "Landlord cannot interrupt essential services (electricity, water, gas)",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 10,
+                    "check_question": "Does the contract allow landlord to cut off utilities?"
+                },
+                {
+                    "id": "T4",
+                    "rule": "Tenant has right to make minor modifications and hang items",
+                    "source": "Standard Practice",
+                    "violation_penalty": 3,
+                    "check_question": "Does the contract prohibit all modifications including hanging pictures?"
+                }
+            ]
+        },
+        "termination_clauses": {
+            "display_name": "Termination & Exit",
+            "max_points": 20,
+            "rules": [
+                {
+                    "id": "E1",
+                    "rule": "Tenant early termination notice: typically 60 days",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract require tenant notice period over 60 days?"
+                },
+                {
+                    "id": "E2",
+                    "rule": "Landlord must give 90 days notice for early termination",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 8,
+                    "check_question": "Does the contract allow landlord to terminate with less than 90 days notice?"
+                },
+                {
+                    "id": "E3",
+                    "rule": "Contract must specify clear conditions for early termination",
+                    "source": "Contract Law Best Practice",
+                    "violation_penalty": 4,
+                    "check_question": "Is the early termination clause vague or one-sided?"
+                },
+                {
+                    "id": "E4",
+                    "rule": "Tenant cannot be forced to pay remaining rent if finding replacement tenant",
+                    "source": "Standard Practice",
+                    "violation_penalty": 6,
+                    "check_question": "Does the contract require full remaining rent payment even with replacement tenant?"
+                }
+            ]
+        },
+        "liability_insurance": {
+            "display_name": "Liability & Repairs",
+            "max_points": 20,
+            "rules": [
+                {
+                    "id": "L1",
+                    "rule": "Landlord is responsible for structural and essential repairs",
+                    "source": "Fair Rental Law 2017, Section 6",
+                    "violation_penalty": 8,
+                    "check_question": "Does the contract shift all repair responsibility to tenant?"
+                },
+                {
+                    "id": "L2",
+                    "rule": "Normal wear and tear is not tenant's responsibility",
+                    "source": "Standard Practice",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract make tenant liable for normal wear and tear?"
+                },
+                {
+                    "id": "L3",
+                    "rule": "Insurance requirements must be reasonable",
+                    "source": "Standard Practice",
+                    "violation_penalty": 4,
+                    "check_question": "Does the contract require tenant to get excessive insurance coverage?"
+                },
+                {
+                    "id": "L4",
+                    "rule": "Damage liability must be proportional and documented",
+                    "source": "Civil Law",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract allow landlord to claim unlimited damages without proof?"
+                }
+            ]
+        },
+        "legal_compliance": {
+            "display_name": "Legal Compliance",
+            "max_points": 20,
+            "rules": [
+                {
+                    "id": "C1",
+                    "rule": "Contract must comply with Fair Rental Law 2017",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 5,
+                    "check_question": "Does the contract explicitly violate Fair Rental Law provisions?"
+                },
+                {
+                    "id": "C2",
+                    "rule": "Property must meet habitability standards (utilities, ventilation, light, lockable door)",
+                    "source": "Fair Rental Law 2017, Section 3",
+                    "violation_penalty": 7,
+                    "check_question": "Does the contract waive habitability requirements?"
+                },
+                {
+                    "id": "C3",
+                    "rule": "Lease terms cannot waive statutory tenant protections",
+                    "source": "Fair Rental Law 2017, Section 30",
+                    "violation_penalty": 8,
+                    "check_question": "Does the contract contain clauses waiving legal tenant protections?"
+                },
+                {
+                    "id": "C4",
+                    "rule": "Both parties must receive signed copy of contract",
+                    "source": "Fair Rental Law 2017",
+                    "violation_penalty": 3,
+                    "check_question": "Does the contract fail to require both parties keep signed copies?"
+                }
+            ]
+        }
+    },
+    "scoring_explanation": {
+        "method": "Deduction-based scoring",
+        "formula": "Final Score = 100 - Sum(violation_penalties)",
+        "interpretation": {
+            "0-30": "High Risk - Major legal concerns, strongly recommend legal review",
+            "31-50": "Medium-High Risk - Several concerning clauses need attention",
+            "51-70": "Medium Risk - Some issues to negotiate before signing",
+            "71-85": "Low-Medium Risk - Minor issues, generally acceptable",
+            "86-100": "Low Risk - Contract appears fair and balanced"
+        }
+    }
+}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { sendContactMessage } from '../services/api';
 import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -31,20 +32,17 @@ const ContactPage = () => {
         setSubmitStatus(null);
 
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // const response = await fetch(`${API_BASE_URL}/contact`, {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(formData),
-            // });
+            // Send contact message via API
+            const response = await sendContactMessage(formData);
 
-            // Simulated API call for now (remove when backend ready)
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Simulate success
-            setSubmitStatus('success');
-            setFormData({ ...formData, subject: '', message: '' });
+            if (response.success) {
+                setSubmitStatus('success');
+                setFormData({ ...formData, subject: '', message: '' });
+            } else {
+                throw new Error(response.error || 'Failed to send message');
+            }
         } catch (err) {
+            console.error('Contact form error:', err);
             setError(err.message || 'Failed to send message. Please try again.');
             setSubmitStatus('error');
         } finally {
