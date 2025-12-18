@@ -234,13 +234,24 @@ export const consultClause = async (contractId, clauseText) => {
 };
 
 /**
- * Send a contact/support message
+ * Send a contact/support message (via CreateSupportTicket Lambda)
  * @param {object} formData - { name, email, subject, message }
  */
 export const sendContactMessage = async (formData) => {
+    // Map frontend field names to backend expected format
+    const ticketData = {
+        user_email: formData.email,
+        category: formData.subject || 'General',
+        message: formData.message,
+        contract_id: formData.contractId || 'N/A'
+    };
+
+    // Use your existing API Gateway (has CORS configured)
+    // Moty needs to add /contact route pointing to CreateSupportTicket Lambda
+    // OR enable CORS on his Function URL in AWS Console
     const data = await apiCall('/contact', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(ticketData),
     });
 
     return data;

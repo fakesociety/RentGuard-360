@@ -12,7 +12,7 @@ const AnalysisPage = () => {
     const { contractId } = useParams();
     const [analysis, setAnalysis] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error, setError] = useState(null);
     const [expandedIssue, setExpandedIssue] = useState(null);
     const [consultingIssue, setConsultingIssue] = useState(null);
     const [aiExplanation, setAiExplanation] = useState({});
@@ -22,7 +22,7 @@ const AnalysisPage = () => {
     const [editedClauses, setEditedClauses] = useState({});
 
     // ========== MOCK DATA FOR TESTING ==========
-    const USE_MOCK = true; // Set to false when deploying to production
+    const USE_MOCK = false; // Set to true for local testing without backend
 
     const MOCK_ANALYSIS = {
         contractId: 'mock-contract-123',
@@ -115,20 +115,54 @@ _________________    _________________
     };
     // ========== END MOCK DATA ==========
 
+    const [pollCount, setPollCount] = useState(0);
+    const MAX_POLL_ATTEMPTS = 12; // 12 attempts = ~2 minutes total
+    const INITIAL_DELAY = 15000; // Wait 15s before first poll (analysis takes 30-60s)
+    const POLL_INTERVAL = 10000; // Then poll every 10 seconds
+
     useEffect(() => {
         fetchAnalysis();
     }, [contractId]);
 
+    // Auto-polling when analysis is still processing
+    useEffect(() => {
+        // Only poll if we have a 'processing' error and haven't exceeded max attempts
+        if (error?.type === 'processing' && pollCount < MAX_POLL_ATTEMPTS && !USE_MOCK) {
+            // Use longer delay for first poll (analysis takes 30-60s typically)
+            const delay = pollCount === 0 ? INITIAL_DELAY : POLL_INTERVAL;
+            console.log(`Auto-polling in ${delay / 1000}s... (attempt ${pollCount + 1}/${MAX_POLL_ATTEMPTS})`);
+
+            const pollTimer = setTimeout(() => {
+                setPollCount(prev => prev + 1);
+                fetchAnalysis();
+            }, delay);
+
+            return () => clearTimeout(pollTimer);
+        }
+    }, [error, pollCount]);
+
+    // Reset poll count when analysis succeeds
+    useEffect(() => {
+        if (analysis) {
+            setPollCount(0);
+        }
+    }, [analysis]);
+
     const fetchAnalysis = async () => {
         try {
-            setIsLoading(true);
-            setError('');
+            // Only show loading spinner on first load, not during polling
+            if (pollCount === 0) {
+                setIsLoading(true);
+            }
+            // Don't reset error during polling - otherwise the polling useEffect won't trigger
+            // setError(null) will happen when data is successfully fetched
 
             // Use mock data for testing
             if (USE_MOCK) {
                 console.log('Using MOCK data for testing');
                 await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
                 setAnalysis(MOCK_ANALYSIS);
+                setError(null);
                 return;
             }
 
@@ -136,12 +170,39 @@ _________________    _________________
             console.log('Fetching analysis for:', decodedId);
             const data = await getAnalysis(decodedId);
             setAnalysis(data);
+            setError(null); // Clear error on success
         } catch (err) {
             console.error('Failed to fetch analysis:', err);
-            if (err.message.includes('404')) {
-                setError('Analysis not found or still processing. Please wait and try again.');
+
+            // Parse error message for user-friendly display
+            const errorMsg = err.message || '';
+
+            if (errorMsg.includes('404')) {
+                setError({
+                    title: 'Analysis Not Ready',
+                    message: `Your contract is still being processed. Auto-checking... (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`,
+                    type: 'processing'
+                });
+            } else if (errorMsg.includes('FAILED') || errorMsg.includes('ValidationException')) {
+                setError({
+                    title: 'Analysis Failed',
+                    message: 'There was an error analyzing your contract. Our team has been notified. Please try uploading again.',
+                    type: 'failed',
+                    details: errorMsg
+                });
+            } else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+                setError({
+                    title: 'Analysis Timed Out',
+                    message: 'The analysis is taking longer than expected. Please check back in a few minutes.',
+                    type: 'timeout'
+                });
             } else {
-                setError('Failed to load analysis. Please try again.');
+                setError({
+                    title: 'Something Went Wrong',
+                    message: 'Failed to load analysis results. Please try again.',
+                    type: 'error',
+                    details: errorMsg
+                });
             }
         } finally {
             setIsLoading(false);
@@ -188,12 +249,25 @@ _________________    _________________
     }
 
     if (error) {
+        const errorIcon = {
+            processing: '⏳',
+            timeout: '⏱️',
+            failed: '❌',
+            error: '⚠️'
+        }[error.type] || '⚠️';
+
         return (
             <div className="analysis-page">
-                <div className="error-state">
-                    <div className="error-icon">⚠️</div>
-                    <h2>Analysis Not Ready</h2>
-                    <p>{error}</p>
+                <div className={`error-state error-${error.type}`}>
+                    <div className="error-icon">{errorIcon}</div>
+                    <h2>{error.title}</h2>
+                    <p>{error.message}</p>
+                    {error.details && (
+                        <details className="error-details">
+                            <summary>Technical Details</summary>
+                            <pre>{error.details}</pre>
+                        </details>
+                    )}
                     <div className="error-actions">
                         <Button variant="primary" onClick={fetchAnalysis}>Try Again</Button>
                         <Link to="/contracts">
@@ -435,7 +509,7 @@ _________________    _________________
                     {/* Full Contract View Tab */}
                     {activeTab === 'contract' && (
                         <ContractView
-                            contractText={analysis?.sanitizedText || analysis?.contractText || analysis?.extracted_text || ''}
+                            contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
                             issues={issues}
                             onClauseChange={(clauseId, text, action) => {
                                 setEditedClauses(prev => ({
@@ -445,7 +519,7 @@ _________________    _________________
                             }}
                             onExportEdited={async (clauses) => {
                                 // Export edited contract to Word with Hebrew
-                                const contractText = analysis?.sanitizedText || analysis?.contractText || '';
+                                const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
                                 await exportEditedContract(contractText, clauses, issues, 'Edited_Contract');
                             }}
                             onSaveToCloud={async (clauses, fullEditedText) => {

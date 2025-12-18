@@ -3,6 +3,7 @@ import boto3
 import traceback
 import re
 
+# Initialize Bedrock client
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
 
 # Israeli Rental Law Knowledge Base (Fair Rental Law 2017 / חוק שכירות הוגנת)
@@ -59,7 +60,102 @@ SCORE INTERPRETATION:
 - 86-100: LOW RISK - Fair and balanced contract
 """
 
+# =============================================================================
+# MODEL CONFIGURATION - Validated for AWS Bedrock
+# =============================================================================
+# IMPORTANT NOTES:
+# 1. Haiku 4.5 requires regional prefix "us." for us-east-1
+# 2. Does NOT support both temperature AND topP - use only temperature
+# 3. maxTokens can be up to 8192
+# =============================================================================
+
+MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+# Inference config - ONLY temperature, no topP (not allowed for Haiku 4.5)
+INFERENCE_CONFIG = {
+    "maxTokens": 8192,
+    "temperature": 0.0  # Deterministic output for consistent analysis
+}
+
+
+def call_bedrock(model_id, system_prompt, user_message):
+    """
+    Call Bedrock with the specified model.
+    Returns the response text or raises an exception.
+    """
+    response = bedrock.converse(
+        modelId=model_id,
+        system=[{"text": system_prompt}],
+        messages=[user_message],
+        inferenceConfig=INFERENCE_CONFIG
+    )
+    return response['output']['message']['content'][0]['text']
+
+
+def parse_json_response(ai_output_text):
+    """
+    Parse JSON from AI response, handling markdown wrappers and edge cases.
+    """
+    # Clean markdown wrappers
+    clean_text = ai_output_text.replace("```json", "").replace("```", "").strip()
+    
+    # Find JSON object
+    match = re.search(r'\{.*\}', clean_text, re.DOTALL)
+    if not match:
+        raise ValueError("No JSON object found in response")
+    
+    analysis_json = json.loads(match.group(0))
+    
+    # Validate and add missing required fields
+    if 'is_contract' not in analysis_json:
+        analysis_json['is_contract'] = True
+    
+    if 'overall_risk_score' not in analysis_json:
+        analysis_json['overall_risk_score'] = 50  # Default middle score
+    
+    if 'score_breakdown' not in analysis_json:
+        analysis_json['score_breakdown'] = {
+            "financial_terms": {"score": 20, "deductions": []},
+            "tenant_rights": {"score": 20, "deductions": []},
+            "termination_clauses": {"score": 20, "deductions": []},
+            "liability_repairs": {"score": 20, "deductions": []},
+            "legal_compliance": {"score": 20, "deductions": []}
+        }
+    
+    if 'issues' not in analysis_json:
+        analysis_json['issues'] = []
+    
+    if 'summary' not in analysis_json:
+        analysis_json['summary'] = "הניתוח הושלם."
+    
+    return analysis_json
+
+
+def create_fallback_response(error_message, raw_response=""):
+    """
+    Create a fallback response when parsing fails.
+    """
+    return {
+        "is_contract": True,
+        "overall_risk_score": 0,
+        "score_breakdown": {
+            "financial_terms": {"score": 20, "deductions": []},
+            "tenant_rights": {"score": 20, "deductions": []},
+            "termination_clauses": {"score": 20, "deductions": []},
+            "liability_repairs": {"score": 20, "deductions": []},
+            "legal_compliance": {"score": 20, "deductions": []}
+        },
+        "summary": "הניתוח הושלם אך יש שגיאת פורמט טכנית.",
+        "issues": [],
+        "parse_error": error_message,
+        "raw_ai_response": raw_response[:1000] if raw_response else ""
+    }
+
+
 def lambda_handler(event, context):
+    """
+    Main Lambda handler for AI contract analysis.
+    """
     try:
         # 1. Extract input data
         sanitized_text = event.get('sanitizedText') or event.get('extractedText', '')
@@ -68,24 +164,29 @@ def lambda_handler(event, context):
         key = event.get('key')
         clauses_list = event.get('clauses', [])
         
+        # 2. Validate input - just check empty
         if not sanitized_text:
             return {
                 'contractId': contract_id, 
-                'analysis_result': {'error': 'No text found', 'is_contract': False},
+                'analysis_result': {
+                    'error': 'No contract text found',
+                    'is_contract': False,
+                    'overall_risk_score': 0,
+                    'issues': []
+                },
                 'bucket': bucket,
                 'key': key,
                 'clauses': clauses_list,
                 'sanitizedText': ''
             }
 
-        # Budget protection: limit text length
-        if len(sanitized_text) > 25000:
-            sanitized_text = sanitized_text[:25000] + "... [Text Truncated]"
+        # 3. Budget protection: limit text length (saves tokens = saves money)
+        MAX_TEXT_LENGTH = 25000
+        if len(sanitized_text) > MAX_TEXT_LENGTH:
+            print(f"Truncating text from {len(sanitized_text)} to {MAX_TEXT_LENGTH} chars")
+            sanitized_text = sanitized_text[:MAX_TEXT_LENGTH] + "... [Text Truncated]"
 
-        # === MODEL SELECTION ===
-        # Claude Haiku 4.5 - Best Hebrew support, serverless
-        model_id = "anthropic.claude-haiku-4-5-20251001-v1:0"
-
+        # 4. Build system prompt
         system_prompt = f"""You are an expert Israeli real estate lawyer analyzing rental contracts.
 
 {KNOWLEDGE_BASE}
@@ -114,7 +215,7 @@ TASK: Analyze the contract and return ONLY valid JSON with this EXACT structure:
       "penalty_points": <number>,
       "legal_basis": "<which law/rule this violates>",
       "explanation": "<Hebrew explanation why this is risky>",
-      "suggested_fix": "<Hebrew suggestion for better wording>"
+      "suggested_fix": "<THE ACTUAL CORRECTED CLAUSE TEXT IN HEBREW - write the new clause directly, NOT instructions like 'יש לשנות ל' or 'יש להסיר'>"
     }}
   ]
 }}
@@ -125,6 +226,7 @@ RULES FOR ANALYSIS:
 3. Each issue MUST include rule_id and legal_basis
 4. Score = 100 - sum of all penalty_points
 5. If document is NOT a rental contract, return is_contract: false with score 0
+6. For suggested_fix: Write the CORRECTED text directly. Do NOT write "יש לשנות ל" or "יש להסיר" - just write the actual replacement clause text.
 
 IMPORTANT: Return ONLY the JSON, no markdown, no explanation outside JSON."""
 
@@ -133,56 +235,20 @@ IMPORTANT: Return ONLY the JSON, no markdown, no explanation outside JSON."""
             "content": [{"text": f"Analyze this rental contract:\n\n{sanitized_text}"}]
         }
 
-        response = bedrock.converse(
-            modelId=model_id,
-            system=[{"text": system_prompt}],
-            messages=[user_message],
-            inferenceConfig={"maxTokens": 8192, "temperature": 0.0, "topP": 1.0}
-        )
+        # 5. Call Bedrock
+        print(f"Calling model: {MODEL_ID}")
+        ai_output_text = call_bedrock(MODEL_ID, system_prompt, user_message)
+        print("Model call succeeded")
 
-        ai_output_text = response['output']['message']['content'][0]['text']
-        
-        # Clean markdown wrappers if present
-        ai_output_text = ai_output_text.replace("```json", "").replace("```", "").strip()
-        
-        # Extract JSON using regex
+        # 6. Parse JSON response
         try:
-            match = re.search(r'\{.*\}', ai_output_text, re.DOTALL)
-            if match:
-                clean_json = match.group(0)
-                analysis_json = json.loads(clean_json)
-                
-                # Validate and ensure required fields exist
-                if 'score_breakdown' not in analysis_json:
-                    analysis_json['score_breakdown'] = {
-                        "financial_terms": {"score": 20, "deductions": []},
-                        "tenant_rights": {"score": 20, "deductions": []},
-                        "termination_clauses": {"score": 20, "deductions": []},
-                        "liability_repairs": {"score": 20, "deductions": []},
-                        "legal_compliance": {"score": 20, "deductions": []}
-                    }
-            else:
-                raise Exception("No JSON found in response")
-                
-        except Exception as e:
-            print(f"JSON Parse Error: {str(e)}")
-            print(f"Raw response: {ai_output_text[:500]}")
-            analysis_json = {
-                "is_contract": True,
-                "overall_risk_score": 0,
-                "score_breakdown": {
-                    "financial_terms": {"score": 20, "deductions": []},
-                    "tenant_rights": {"score": 20, "deductions": []},
-                    "termination_clauses": {"score": 20, "deductions": []},
-                    "liability_repairs": {"score": 20, "deductions": []},
-                    "legal_compliance": {"score": 20, "deductions": []}
-                },
-                "summary": "הניתוח הושלם אך יש שגיאת פורמט טכנית.",
-                "issues": [],
-                "raw_ai_response": ai_output_text[:1000]
-            }
+            analysis_json = parse_json_response(ai_output_text)
+        except Exception as parse_error:
+            print(f"JSON Parse Error: {str(parse_error)}")
+            print(f"Raw response: {ai_output_text[:500] if ai_output_text else 'None'}")
+            analysis_json = create_fallback_response(str(parse_error), ai_output_text)
 
-        # Return with all passthrough data
+        # 7. Return success response
         return {
             'contractId': contract_id,
             'analysis_result': analysis_json,
@@ -194,4 +260,5 @@ IMPORTANT: Return ONLY the JSON, no markdown, no explanation outside JSON."""
         
     except Exception as e:
         traceback.print_exc()
+        print(f"Lambda handler error: {str(e)}")
         raise e

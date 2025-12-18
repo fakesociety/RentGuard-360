@@ -35,7 +35,8 @@ const ContactPage = () => {
             // Send contact message via API
             const response = await sendContactMessage(formData);
 
-            if (response.success) {
+            // Moty's API returns { message: 'Ticket created', ticketId: '...' }
+            if (response.ticketId || response.message === 'Ticket created') {
                 setSubmitStatus('success');
                 setFormData({ ...formData, subject: '', message: '' });
             } else {
