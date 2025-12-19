@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getContracts, deleteContract, getAnalysis } from '../services/api';
+import { getContracts, deleteContract, getAnalysis, updateContract } from '../services/api';
 import { exportToWord, exportToPDF } from '../services/ExportService';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -13,8 +13,13 @@ const ContractsPage = () => {
     const [contracts, setContracts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState(null); // contractId to confirm delete
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [exportDropdown, setExportDropdown] = useState(null);
+
+    // Inline edit state - { contractId, fileName, propertyAddress, landlordName }
+    const [editingCard, setEditingCard] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Check if user just came from upload page
     const justUploaded = location.state?.justUploaded || false;
@@ -28,6 +33,15 @@ const ContractsPage = () => {
             return () => clearTimeout(timer);
         }
     }, [user]);
+
+    // Close export dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => setExportDropdown(null);
+        if (exportDropdown) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [exportDropdown]);
 
     const fetchContracts = async (showRefreshing = false) => {
         const userId = user?.userId || user?.username || userAttributes?.sub;
@@ -91,6 +105,70 @@ const ContractsPage = () => {
         } finally {
             setIsDeleting(false);
         }
+    };
+
+    // Start inline editing mode for a card
+    const startEdit = (contract, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setEditingCard({
+            contractId: contract.contractId,
+            fileName: (contract.fileName || 'Contract').replace(/\.pdf$/i, ''),
+            propertyAddress: contract.propertyAddress || '',
+            landlordName: contract.landlordName || ''
+        });
+    };
+
+    // Cancel editing without saving
+    const cancelEdit = (e) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        setEditingCard(null);
+    };
+
+    // Save edits to the backend
+    const saveEdit = async (e) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        if (!editingCard) return;
+
+        const userId = user?.userId || user?.username || userAttributes?.sub;
+        setIsSaving(true);
+
+        try {
+            const updates = {
+                fileName: editingCard.fileName.trim() || 'Contract',
+                propertyAddress: editingCard.propertyAddress.trim(),
+                landlordName: editingCard.landlordName.trim()
+            };
+
+            await updateContract(editingCard.contractId, userId, updates);
+
+            // Update local state
+            const finalFileName = updates.fileName.endsWith('.pdf')
+                ? updates.fileName
+                : `${updates.fileName}.pdf`;
+
+            setContracts(contracts.map(c =>
+                c.contractId === editingCard.contractId
+                    ? { ...c, fileName: finalFileName, propertyAddress: updates.propertyAddress, landlordName: updates.landlordName }
+                    : c
+            ));
+            setEditingCard(null);
+        } catch (err) {
+            console.error('Save failed:', err);
+            alert('Failed to save changes. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Format UTC date string to user's local timezone
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        // Append 'Z' if not present to indicate UTC
+        const utcDate = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+        return new Date(utcDate).toLocaleDateString();
     };
 
     const getStatusBadge = (status, riskScore) => {
@@ -201,25 +279,67 @@ const ContractsPage = () => {
                                     className="contract-card animate-slideUp"
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
-                                    {/* Action Bar with Separator */}
+                                    {/* Action Bar */}
                                     <div className="card-action-bar">
+                                        {/* Export Button with Dropdown */}
+                                        <div className="dropdown-wrapper">
+                                            <button
+                                                className={`card-action-btn export ${exportDropdown === contract.contractId ? 'active' : ''}`}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setExportDropdown(exportDropdown === contract.contractId ? null : contract.contractId);
+                                                }}
+                                                title="Export options"
+                                            >
+                                                📊 Export Report ▼
+                                            </button>
+                                            {exportDropdown === contract.contractId && (
+                                                <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            try {
+                                                                const analysis = await getAnalysis(contract.contractId);
+                                                                await exportToPDF(analysis, contract.fileName || 'Contract_Report');
+                                                                setExportDropdown(null);
+                                                            } catch (err) {
+                                                                console.error('PDF export failed:', err);
+                                                                alert('Export failed. Please view the contract first.');
+                                                            }
+                                                        }}
+                                                    >
+                                                        📄 Issues Report (PDF)
+                                                    </button>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            try {
+                                                                const analysis = await getAnalysis(contract.contractId);
+                                                                await exportToWord(analysis, contract.fileName || 'Contract_Report');
+                                                                setExportDropdown(null);
+                                                            } catch (err) {
+                                                                console.error('Word export failed:', err);
+                                                                alert('Export failed. Please view the contract first.');
+                                                            }
+                                                        }}
+                                                    >
+                                                        📝 Issues Report (Word)
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Edit Button */}
                                         <button
-                                            className="card-action-btn export"
-                                            onClick={async (e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                try {
-                                                    const analysis = await getAnalysis(contract.contractId);
-                                                    await exportToPDF(analysis, contract.fileName || 'Contract_Report');
-                                                } catch (err) {
-                                                    console.error('Export failed:', err);
-                                                    alert('Export failed. Please view the contract first.');
-                                                }
-                                            }}
-                                            title="Export to PDF"
+                                            className="card-action-btn edit"
+                                            onClick={(e) => startEdit(contract, e)}
+                                            title="Edit contract details"
                                         >
-                                            📥 Export
+                                            ✏️ Edit
                                         </button>
+
+                                        {/* Delete Button */}
                                         <button
                                             className="card-action-btn delete"
                                             onClick={(e) => handleDelete(contract.contractId, e)}
@@ -228,6 +348,7 @@ const ContractsPage = () => {
                                             🗑️ Delete
                                         </button>
                                     </div>
+
                                     <div className="card-separator"></div>
 
                                     <div className="contract-header">
@@ -235,20 +356,77 @@ const ContractsPage = () => {
                                         {getStatusBadge(contract.status, contract.riskScore)}
                                     </div>
                                     <div className="contract-info">
-                                        <h3>{contract.fileName || 'Contract'}</h3>
-                                        {contract.propertyAddress && (
-                                            <p className="contract-meta">📍 {contract.propertyAddress}</p>
-                                        )}
-                                        {contract.landlordName && (
-                                            <p className="contract-meta">👤 {contract.landlordName}</p>
-                                        )}
-                                        <p className="contract-date">
-                                            {new Date(contract.uploadDate).toLocaleDateString()}
-                                        </p>
-                                        {contract.riskScore !== undefined && (
-                                            <p className="risk-score">
-                                                Risk Score: <strong>{contract.riskScore}</strong>/100
-                                            </p>
+                                        {editingCard?.contractId === contract.contractId ? (
+                                            // Inline Edit Mode
+                                            <div className="inline-edit-form" onClick={(e) => e.preventDefault()}>
+                                                <div className="edit-field">
+                                                    <label>📄 Filename</label>
+                                                    <div className="edit-input-row">
+                                                        <input
+                                                            type="text"
+                                                            value={editingCard.fileName}
+                                                            onChange={(e) => setEditingCard({ ...editingCard, fileName: e.target.value })}
+                                                            className="inline-edit-input"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        />
+                                                        <span className="file-ext">.pdf</span>
+                                                    </div>
+                                                </div>
+                                                <div className="edit-field">
+                                                    <label>📍 Address</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editingCard.propertyAddress}
+                                                        onChange={(e) => setEditingCard({ ...editingCard, propertyAddress: e.target.value })}
+                                                        className="inline-edit-input"
+                                                        placeholder="Property address"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </div>
+                                                <div className="edit-field">
+                                                    <label>👤 Landlord</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editingCard.landlordName}
+                                                        onChange={(e) => setEditingCard({ ...editingCard, landlordName: e.target.value })}
+                                                        className="inline-edit-input"
+                                                        placeholder="Landlord name"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </div>
+                                                <div className="edit-actions">
+                                                    <button className="edit-save-btn" onClick={saveEdit} disabled={isSaving}>
+                                                        {isSaving ? '...' : '✓'}
+                                                    </button>
+                                                    <button className="edit-cancel-btn" onClick={cancelEdit}>
+                                                        ✗
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // Normal Display Mode
+                                            <>
+                                                <h3>{contract.fileName || 'Contract'}</h3>
+                                                {contract.propertyAddress && (
+                                                    <p className="contract-meta">📍 {contract.propertyAddress}</p>
+                                                )}
+                                                {contract.landlordName && (
+                                                    <p className="contract-meta">👤 {contract.landlordName}</p>
+                                                )}
+                                                <p className="contract-date">
+                                                    📅 Uploaded: {formatDate(contract.uploadDate)}
+                                                </p>
+                                                {contract.analyzedDate && (
+                                                    <p className="contract-date analyzed">
+                                                        ✅ Analyzed: {formatDate(contract.analyzedDate)}
+                                                    </p>
+                                                )}
+                                                {contract.riskScore !== undefined && (
+                                                    <p className="risk-score">
+                                                        Risk Score: <strong>{contract.riskScore}</strong>/100
+                                                    </p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                     <div className="contract-footer">
@@ -259,7 +437,8 @@ const ContractsPage = () => {
                         </div>
                     ))}
                 </div>
-            )}
+            )
+            }
 
             <div className="contracts-actions">
                 <Button
@@ -270,7 +449,7 @@ const ContractsPage = () => {
                     🔄 Refresh Contracts
                 </Button>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -4,7 +4,7 @@
   "States": {
     "ExtractPDFText": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:pdf-processor",
+      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:RentGuard_AzureOCR:$LATEST",
       "Next": "SanitizeText",
       "Catch": [
         {
@@ -17,7 +17,7 @@
     },
     "SanitizeText": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:privacy-shield",
+      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:privacy-shield:$LATEST",
       "Next": "AnalyzeContract",
       "Catch": [
         {
@@ -30,7 +30,7 @@
     },
     "AnalyzeContract": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:ai-analyzer",
+      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:ai-analyzer:$LATEST",
       "Next": "SaveResults",
       "Catch": [
         {
@@ -44,7 +44,7 @@
     "SaveResults": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:us-east-1:459347924875:function:save-results",
-      "Next": "SendNotification",
+      "Next": "NotifyUser",
       "Catch": [
         {
           "ErrorEquals": [
@@ -54,17 +54,18 @@
         }
       ]
     },
-    "SendNotification": {
+    "NotifyUser": {
       "Type": "Task",
-      "Resource": "arn:aws:sns:us-east-1:459347924875:RentGuardAlerts:7947c62f-ffd1-4603-b0a6-84f1476a00f8",
-      "Parameters": {
-        "TopicArn": "הדבק_כאן_את_ה_ARN_של_ה_SNS",
-        "Message": {
-          "default": "Contract analysis completed successfully!",
-          "contractId.$": "$.contractId"
+      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:NotifyUser",
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "HandleError"
         }
-      },
-      "End": true
+      ]
     },
     "HandleError": {
       "Type": "Task",

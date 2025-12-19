@@ -41,14 +41,11 @@
 .contract-card {
     transition: all var(--transition-normal);
     min-height: 320px;
-    max-height: 320px;
-    overflow: hidden;
     position: relative;
 }
 
 .contract-card:hover {
     transform: translateY(-4px);
-    max-height: none;
     z-index: 10;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
@@ -274,29 +271,40 @@
 .card-action-bar {
     display: flex;
     justify-content: flex-end;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
+/* Dropdown Wrapper - KEY: position relative for dropdown positioning */
+.dropdown-wrapper {
+    position: relative;
+}
+
+/* Action Buttons */
 .card-action-btn {
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    border-radius: 6px;
     border: 1px solid var(--glass-border);
     background: var(--bg-tertiary);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: var(--font-size-xs);
-    transition: all var(--transition-fast);
-    display: flex;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
 }
 
 .card-action-btn:hover {
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.card-action-btn.export:hover {
+.card-action-btn.export:hover,
+.card-action-btn.export.active {
     background: var(--accent-primary);
     color: white;
     border-color: var(--accent-primary);
@@ -308,11 +316,17 @@
     border-color: var(--accent-danger);
 }
 
+.card-action-btn.edit:hover {
+    background: var(--accent-warning);
+    color: white;
+    border-color: var(--accent-warning);
+}
+
 /* Separator line */
 .card-separator {
     height: 1px;
     background: var(--glass-border);
-    margin: var(--space-sm) 0;
+    margin: 12px 0;
 }
 
 /* View Details hover effect */
@@ -320,11 +334,74 @@
     color: var(--accent-primary);
     font-weight: var(--font-weight-medium);
     transition: all var(--transition-fast);
+    opacity: 0;
+    transform: translateX(-10px);
 }
 
 .contract-card:hover .view-action {
+    opacity: 1;
+    transform: translateX(0);
     color: var(--accent-success);
     text-shadow: 0 0 10px var(--accent-success);
+}
+
+/* Dropdown Menu - positioned relative to wrapper (the button) */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    min-width: 180px;
+    overflow: hidden;
+    animation: dropdownSlide 0.15s ease-out;
+}
+
+@keyframes dropdownSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background 0.1s ease;
+}
+
+.dropdown-menu button:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.dropdown-menu button:not(:last-child) {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* Analyzed Date Style */
+.contract-date.analyzed {
+    color: var(--accent-success);
+    font-weight: var(--font-weight-medium);
 }
 
 /* Modal Overlay */
@@ -365,6 +442,135 @@
     display: flex;
     gap: var(--space-md);
     justify-content: center;
+}
+
+/* Rename Input in Modal */
+.rename-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: var(--space-lg);
+}
+
+.rename-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rename-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.rename-ext {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Inline Edit Form on Cards */
+.inline-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.edit-field label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.edit-input-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.inline-edit-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--accent-primary);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s ease;
+}
+
+.inline-edit-input:focus {
+    outline: none;
+    border-color: var(--accent-success);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.inline-edit-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.file-ext {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.edit-save-btn {
+    background: var(--accent-success);
+    color: white;
+}
+
+.edit-save-btn:hover:not(:disabled) {
+    background: #059669;
+    transform: scale(1.1);
+}
+
+.edit-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.edit-cancel-btn {
+    background: var(--accent-danger);
+    color: white;
+}
+
+.edit-cancel-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
 }
 
 /* Upload Processing Banner */

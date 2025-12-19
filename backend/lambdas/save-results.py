@@ -108,34 +108,33 @@ def lambda_handler(event, context):
         analysis_table.put_item(Item=analysis_item)
         print("Analysis saved successfully")
 
-        # 6. Save to RentGuard-Contracts table with original filename and metadata
+        # 6. UPDATE existing contract record in RentGuard-Contracts (created by get-upload-url)
         if user_id:
             try:
-                # Use original filename from S3 metadata, fallback to key-based name
-                original_filename = s3_metadata.get('originalFileName', '')
-                if not original_filename:
-                    original_filename = s3_key.split('/')[-1] if s3_key else 'unknown.pdf'
-                
-                contract_item = {
-                    'userId': user_id,
-                    'contractId': contract_id,
-                    'fileName': original_filename,
-                    'uploadDate': datetime.utcnow().isoformat(),
-                    'status': 'analyzed',
-                    'riskScore': risk_score
+                # Update the existing record with analysis results
+                update_expression = "SET #status = :status, analyzedDate = :analyzedDate, riskScore = :riskScore"
+                expression_values = {
+                    ':status': 'analyzed',
+                    ':analyzedDate': datetime.utcnow().isoformat(),
+                    ':riskScore': risk_score
+                }
+                expression_names = {
+                    '#status': 'status'  # 'status' is a reserved word in DynamoDB
                 }
                 
-                # Add optional metadata if available
-                if s3_metadata.get('propertyAddress'):
-                    contract_item['propertyAddress'] = s3_metadata['propertyAddress']
-                if s3_metadata.get('landlordName'):
-                    contract_item['landlordName'] = s3_metadata['landlordName']
-                
-                print(f"Saving to Contracts table: {json.dumps(contract_item, default=str)}")
-                contracts_table.put_item(Item=contract_item)
-                print("Contract record saved successfully")
+                print(f"Updating contract {contract_id} to status='analyzed'")
+                contracts_table.update_item(
+                    Key={
+                        'userId': user_id,
+                        'contractId': contract_id
+                    },
+                    UpdateExpression=update_expression,
+                    ExpressionAttributeValues=expression_values,
+                    ExpressionAttributeNames=expression_names
+                )
+                print("Contract record updated successfully")
             except Exception as e:
-                print(f"Warning: Could not save to Contracts table: {e}")
+                print(f"Warning: Could not update Contracts table: {e}")
 
         # 7. Return clean response for notification step
         return {

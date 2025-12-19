@@ -25,6 +25,7 @@ const UploadPage = () => {
         startDate: '',
         monthlyRent: '',
     });
+    const [customFileName, setCustomFileName] = useState('');
 
     const validateFile = (file) => {
         const maxSize = 25 * 1024 * 1024; // 25MB
@@ -46,6 +47,9 @@ const UploadPage = () => {
             return;
         }
         setFile(selectedFile);
+        // Set initial custom filename (without .pdf extension for editing)
+        const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, '');
+        setCustomFileName(nameWithoutExt);
     };
 
     const handleDragEnter = (e) => { e.preventDefault(); setIsDragging(true); };
@@ -76,6 +80,7 @@ const UploadPage = () => {
             const result = await uploadFile(file, setUploadProgress, {
                 propertyAddress: metadata.propertyAddress,
                 landlordName: metadata.landlordName,
+                customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
             });
 
             setUploadedKey(result.key);
@@ -162,10 +167,19 @@ const UploadPage = () => {
                                 <div className="file-preview">
                                     <div className="file-icon">📄</div>
                                     <div className="file-info">
-                                        <h4>{file.name}</h4>
+                                        <div className="filename-edit">
+                                            <input
+                                                type="text"
+                                                value={customFileName}
+                                                onChange={(e) => setCustomFileName(e.target.value)}
+                                                className="filename-input"
+                                                placeholder="Contract name"
+                                            />
+                                            <span className="filename-ext">.pdf</span>
+                                        </div>
                                         <p>{formatFileSize(file.size)}</p>
                                     </div>
-                                    <Button variant="ghost" onClick={() => setFile(null)} disabled={isUploading}>
+                                    <Button variant="ghost" onClick={() => { setFile(null); setCustomFileName(''); }} disabled={isUploading}>
                                         ✕
                                     </Button>
                                 </div>

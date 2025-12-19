@@ -109,6 +109,38 @@
     font-size: var(--font-size-sm);
 }
 
+/* Editable Filename Input */
+.filename-edit {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.filename-input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    flex: 1;
+    min-width: 0;
+    transition: border-color 0.15s ease;
+}
+
+.filename-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.filename-ext {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
 /* Upload Progress */
 .upload-progress {
     margin-top: var(--space-lg);

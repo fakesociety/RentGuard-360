@@ -2,11 +2,15 @@ import json
 import boto3
 import uuid
 from urllib.parse import quote
+from datetime import datetime
 
 s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
 
 # S3 bucket for contract storage
 BUCKET_NAME = 'rentguard-contracts-moty-101225'
+# DynamoDB table for contracts
+contracts_table = dynamodb.Table('RentGuard-Contracts')
 
 def lambda_handler(event, context):
     try:
@@ -28,9 +32,9 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"Warning: Could not extract userId from claims: {e}")
         
-        # 3. Create unique file key with userId in path
-        unique_id = str(uuid.uuid4())
-        file_key = f"uploads/{user_id}/contract-{unique_id}.pdf"
+        # 3. Create unique contract ID and file key
+        contract_id = str(uuid.uuid4())
+        file_key = f"uploads/{user_id}/contract-{contract_id}.pdf"
 
         # 4. Build S3 params with metadata (URL-encode non-ASCII characters)
         # S3 metadata only allows ASCII, so we URL-encode Hebrew/Unicode values
@@ -53,7 +57,31 @@ def lambda_handler(event, context):
             ExpiresIn=300
         )
 
-        # 6. Return response to frontend
+        # 6. Create initial contract record with status='uploaded' for auto-polling
+        try:
+            contract_item = {
+                'userId': user_id,
+                'contractId': contract_id,
+                'fileName': original_file_name,
+                'uploadDate': datetime.utcnow().isoformat(),
+                'status': 'uploaded',  # Will be updated to 'analyzed' after analysis completes
+                's3Key': file_key
+            }
+            
+            # Add optional metadata if available
+            if property_address:
+                contract_item['propertyAddress'] = property_address
+            if landlord_name:
+                contract_item['landlordName'] = landlord_name
+            
+            print(f"Creating initial contract record: {contract_id}")
+            contracts_table.put_item(Item=contract_item)
+            print("Initial contract record created successfully")
+        except Exception as e:
+            print(f"Warning: Could not create initial contract record: {e}")
+            # Continue anyway - save-results.py will create the record after analysis
+
+        # 7. Return response to frontend
         return {
             'statusCode': 200,
             'headers': {
@@ -64,6 +92,7 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'uploadUrl': presigned_url,
                 'key': file_key,
+                'contractId': contract_id,
                 'fileName': original_name,
                 'userId': user_id,
                 'metadata': {

@@ -86,9 +86,14 @@ const apiCall = async (endpoint, options = {}) => {
  */
 export const uploadFile = async (file, onProgress, metadata = {}) => {
     // Step 1: Get presigned URL from our API with original filename and metadata
+    // Use customFileName if provided, otherwise use original file name
+    const displayName = metadata.customFileName
+        ? `${metadata.customFileName}.pdf`
+        : file.name;
+
     const params = new URLSearchParams({
         fileName: file.name,
-        originalFileName: file.name,
+        originalFileName: displayName, // This is what gets saved to DynamoDB
         ...(metadata.propertyAddress && { propertyAddress: metadata.propertyAddress }),
         ...(metadata.landlordName && { landlordName: metadata.landlordName }),
     });
@@ -228,6 +233,25 @@ export const consultClause = async (contractId, clauseText) => {
     const data = await apiCall('/consult', {
         method: 'POST',
         body: JSON.stringify({ contractId, clauseText }),
+    });
+
+    return data;
+};
+
+/**
+ * Update a contract's metadata (fileName, propertyAddress, landlordName)
+ * @param {string} contractId - The contract ID
+ * @param {string} userId - The user's ID
+ * @param {object} updates - { fileName?, propertyAddress?, landlordName? }
+ */
+export const updateContract = async (contractId, userId, updates) => {
+    const data = await apiCall('/contracts/rename', {
+        method: 'POST',
+        body: JSON.stringify({
+            contractId,
+            userId,
+            ...updates
+        }),
     });
 
     return data;
