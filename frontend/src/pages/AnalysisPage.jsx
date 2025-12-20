@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getAnalysis, consultClause, saveEditedContract } from '../services/api';
 import { exportToWord, exportToPDF, exportEditedContract } from '../services/ExportService';
+import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import ContractView from '../components/ContractView';
+import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle } from 'lucide-react';
 import './AnalysisPage.css';
+import './LegalCard.css';
 
 const AnalysisPage = () => {
     const { contractId } = useParams();
+    const { t, isRTL } = useLanguage();
     const [analysis, setAnalysis] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,6 +24,7 @@ const AnalysisPage = () => {
     const [isExporting, setIsExporting] = useState(false);
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
     const [editedClauses, setEditedClauses] = useState({});
+    const [copiedIndex, setCopiedIndex] = useState(null);
 
     // ========== MOCK DATA FOR TESTING ==========
     const USE_MOCK = false; // Set to true for local testing without backend
@@ -239,10 +244,10 @@ _________________    _________________
 
     if (isLoading) {
         return (
-            <div className="analysis-page">
+            <div className="analysis-page" dir="rtl">
                 <div className="loading-state">
                     <div className="loading-spinner"></div>
-                    <p>Loading analysis results...</p>
+                    <p>טוען תוצאות ניתוח...</p>
                 </div>
             </div>
         );
@@ -257,21 +262,21 @@ _________________    _________________
         }[error.type] || '⚠️';
 
         return (
-            <div className="analysis-page">
+            <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className={`error-state error-${error.type}`}>
                     <div className="error-icon">{errorIcon}</div>
                     <h2>{error.title}</h2>
                     <p>{error.message}</p>
                     {error.details && (
                         <details className="error-details">
-                            <summary>Technical Details</summary>
+                            <summary>{isRTL ? 'פרטים טכניים' : 'Technical Details'}</summary>
                             <pre>{error.details}</pre>
                         </details>
                     )}
                     <div className="error-actions">
-                        <Button variant="primary" onClick={fetchAnalysis}>Try Again</Button>
+                        <Button variant="primary" onClick={fetchAnalysis}>{isRTL ? 'נסה שוב' : 'Try Again'}</Button>
                         <Link to="/contracts">
-                            <Button variant="secondary">Back to Contracts</Button>
+                            <Button variant="secondary">{t('analysis.backToContracts')}</Button>
                         </Link>
                     </div>
                 </div>
@@ -285,10 +290,10 @@ _________________    _________________
     const scoreBreakdown = result?.score_breakdown || {};
 
     return (
-        <div className="analysis-page">
+        <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="analysis-header animate-fadeIn">
-                <Link to="/contracts" className="back-link">← Back to Contracts</Link>
-                <h1>Contract Analysis</h1>
+                <Link to="/contracts" className="back-link">{isRTL ? '→' : '←'} {t('analysis.backToContracts')}</Link>
+                <h1>{t('analysis.title')}</h1>
             </div>
 
             <div className="analysis-layout">
@@ -299,7 +304,7 @@ _________________    _________________
                         <div className="contract-details">
                             <div className="contract-file-icon">📄</div>
                             <h3 className="contract-file-name">
-                                {analysis?.fileName || 'Contract Document'}
+                                {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
                             </h3>
                             {analysis?.propertyAddress && (
                                 <p className="contract-meta-item">📍 {analysis.propertyAddress}</p>
@@ -308,7 +313,20 @@ _________________    _________________
                                 <p className="contract-meta-item">👤 {analysis.landlordName}</p>
                             )}
                             {analysis?.uploadDate && (
-                                <p className="contract-meta-item">📅 {new Date(analysis.uploadDate).toLocaleDateString()}</p>
+                                <p className="contract-meta-item">📅 {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}</p>
+                            )}
+                        </div>
+
+                        <div className="sidebar-divider"></div>
+
+                        {/* Summary - Prominent */}
+                        <div className="sidebar-summary-hero">
+                            <h4>{t('analysis.summary')}</h4>
+                            <p>{result?.summary || (isRTL ? 'הניתוח הושלם.' : 'Analysis complete.')}</p>
+                            {result?.is_contract === false && (
+                                <div className="not-contract-warning">
+                                    ⚠️ {t('analysis.notContract')}
+                                </div>
                             )}
                         </div>
 
@@ -323,39 +341,26 @@ _________________    _________________
 
                         <div className="sidebar-divider"></div>
 
-                        {/* Summary */}
-                        <div className="sidebar-summary">
-                            <h4>Summary</h4>
-                            <p>{result?.summary || 'Analysis complete.'}</p>
-                            {result?.is_contract === false && (
-                                <div className="not-contract-warning">
-                                    ⚠️ This document may not be a rental contract
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="sidebar-divider"></div>
-
                         {/* Actions */}
                         <div className="sidebar-actions">
                             <button className="sidebar-action-btn" onClick={fetchAnalysis}>
-                                🔄 Refresh
+                                🔄 {t('analysis.refresh')}
                             </button>
                             <div className="export-dropdown-sidebar">
                                 <button
                                     className="sidebar-action-btn"
                                     onClick={() => setShowExportMenu(!showExportMenu)}
                                 >
-                                    📥 Export Report {showExportMenu ? '▲' : '▼'}
+                                    📥 {t('analysis.export')} {showExportMenu ? '▲' : '▼'}
                                 </button>
                                 {showExportMenu && (
                                     <div className="export-menu-sidebar">
-                                        <div className="export-menu-title">Export Analysis Report</div>
+                                        <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
                                         <button
                                             onClick={async () => {
                                                 setIsExporting(true);
                                                 try {
-                                                    await exportToWord(analysis, analysis?.fileName || 'Analysis_Report');
+                                                    await exportToWord(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
                                                 } finally {
                                                     setIsExporting(false);
                                                     setShowExportMenu(false);
@@ -363,13 +368,13 @@ _________________    _________________
                                             }}
                                             disabled={isExporting}
                                         >
-                                            📝 Word - Analysis Report
+                                            📝 Word - {isRTL ? 'דוח ניתוח' : 'Analysis Report'}
                                         </button>
                                         <button
                                             onClick={async () => {
                                                 setIsExporting(true);
                                                 try {
-                                                    await exportToPDF(analysis, analysis?.fileName || 'Analysis_Report');
+                                                    await exportToPDF(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
                                                 } finally {
                                                     setIsExporting(false);
                                                     setShowExportMenu(false);
@@ -377,8 +382,8 @@ _________________    _________________
                                             }}
                                             disabled={isExporting}
                                         >
-                                            📕 PDF - Analysis Report
-                                            <span className="export-note">(English only)</span>
+                                            📕 PDF - {isRTL ? 'דוח ניתוח' : 'Analysis Report'}
+                                            <span className="export-note">{isRTL ? '(אנגלית בלבד)' : '(English only)'}</span>
                                         </button>
                                     </div>
                                 )}
@@ -396,102 +401,166 @@ _________________    _________________
                             className={`tab-btn ${activeTab === 'issues' ? 'active' : ''}`}
                             onClick={() => setActiveTab('issues')}
                         >
-                            ⚠️ Issues ({issues.length})
+                            {t('analysis.issues')} ({issues.length})
                         </button>
                         <button
                             className={`tab-btn ${activeTab === 'contract' ? 'active' : ''}`}
                             onClick={() => setActiveTab('contract')}
                         >
-                            📄 Full Contract
+                            {isRTL ? 'החוזה המלא' : 'Full Contract'}
                         </button>
                     </div>
 
                     {/* Tab Content */}
                     {activeTab === 'issues' && issues.length > 0 && (
-                        <section className="issues-section">
-                            <h2 className="section-title">
-                                Issues Found ({issues.length})
+                        <section className="issues-section" dir={isRTL ? 'rtl' : 'ltr'}>
+                            <h2 className="section-title-hebrew">
+                                {t('analysis.issues')} ({issues.length})
                             </h2>
                             <div className="issues-list">
-                                {issues.map((issue, index) => (
-                                    <Card
-                                        key={index}
-                                        variant="elevated"
-                                        padding="md"
-                                        className={`issue-card ${getRiskLabel(issue.risk_level)} animate-slideUp`}
-                                        style={{ animationDelay: `${index * 100}ms` }}
-                                    >
-                                        <div className="issue-header" onClick={() => setExpandedIssue(expandedIssue === index ? null : index)}>
-                                            <div className="issue-meta">
-                                                {issue.rule_id && (
-                                                    <span className="issue-rule-id">{issue.rule_id}</span>
-                                                )}
-                                                <span className={`issue-badge ${getRiskLabel(issue.risk_level)}`}>
-                                                    {issue.risk_level}
-                                                </span>
-                                                {issue.penalty_points && (
-                                                    <span className="issue-penalty">-{issue.penalty_points} pts</span>
-                                                )}
-                                            </div>
-                                            <h3>{issue.clause_topic}</h3>
-                                            <span className="expand-icon">{expandedIssue === index ? '▲' : '▼'}</span>
-                                        </div>
+                                {issues.map((issue, index) => {
+                                    const handleCopy = async (text, idx) => {
+                                        try {
+                                            await navigator.clipboard.writeText(text);
+                                            setCopiedIndex(idx);
+                                            setTimeout(() => setCopiedIndex(null), 2000);
+                                        } catch (err) {
+                                            console.error('Failed to copy:', err);
+                                        }
+                                    };
 
-                                        <div className={`issue-content ${expandedIssue === index ? 'expanded' : ''}`}>
-                                            {issue.original_text && (
-                                                <div className="issue-quote">
-                                                    <h4>📝 Original Clause</h4>
-                                                    <p>"{issue.original_text}"</p>
-                                                </div>
-                                            )}
+                                    const riskClass = getRiskLabel(issue.risk_level);
 
-                                            {issue.legal_basis && (
-                                                <div className="issue-legal">
-                                                    <h4>⚖️ Legal Basis</h4>
-                                                    <p>{issue.legal_basis}</p>
-                                                </div>
-                                            )}
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`legal-card ${riskClass} animate-slideUp`}
+                                            style={{ animationDelay: `${index * 80}ms` }}
+                                        >
+                                            {/* Severity Indicator Glow */}
+                                            <div className={`severity-glow ${riskClass}`}></div>
 
-                                            <div className="issue-explanation">
-                                                <h4>⚠️ Why This Matters</h4>
-                                                <p>{issue.explanation}</p>
-                                            </div>
-
-                                            {issue.suggested_fix && (
-                                                <div className="issue-suggestion">
-                                                    <h4>💡 Suggested Change</h4>
-                                                    <p>{issue.suggested_fix}</p>
-                                                </div>
-                                            )}
-
-                                            {issue.negotiation_tip && (
-                                                <div className="issue-tip">
-                                                    <h4>🤝 Negotiation Tip</h4>
-                                                    <p>{issue.negotiation_tip}</p>
-                                                </div>
-                                            )}
-
-                                            {/* AI Consult Section */}
-                                            <div className="issue-consult">
-                                                {aiExplanation[index] ? (
-                                                    <div className="ai-response">
-                                                        <h4>🤖 AI Explanation</h4>
-                                                        <p>{aiExplanation[index]}</p>
+                                            {/* Card Header */}
+                                            <div
+                                                className="legal-card-header"
+                                                onClick={() => setExpandedIssue(expandedIssue === index ? null : index)}
+                                            >
+                                                <div className="legal-header-main">
+                                                    <h3 className="legal-title">{issue.clause_topic}</h3>
+                                                    <div className="legal-meta">
+                                                        {/* Risk Badge - Pill with dot */}
+                                                        <span className={`risk-pill ${riskClass}`}>
+                                                            <span className="risk-dot"></span>
+                                                            {issue.risk_level === 'High' && t('score.highRisk')}
+                                                            {issue.risk_level === 'Medium' && t('score.mediumRisk')}
+                                                            {issue.risk_level === 'Low' && t('score.lowRisk')}
+                                                        </span>
+                                                        {issue.penalty_points && (
+                                                            <span className="points-badge">
+                                                                -{issue.penalty_points} {isRTL ? 'נקודות' : 'points'}
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                ) : (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleConsultClause(issue, index)}
-                                                        loading={consultingIssue === index}
-                                                    >
-                                                        {consultingIssue === index ? 'Asking AI...' : '🤖 Ask AI for more details'}
-                                                    </Button>
+                                                </div>
+                                                <button className={`expand-trigger ${expandedIssue === index ? 'expanded' : ''}`}>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {/* Card Content */}
+                                            <div className={`legal-card-content ${expandedIssue === index ? 'expanded' : ''}`}>
+
+                                                {/* Original Clause - Quote Style */}
+                                                {issue.original_text && (
+                                                    <div className="legal-section quote-section">
+                                                        <div className="section-icon">
+                                                            <FileText size={18} />
+                                                        </div>
+                                                        <div className="section-body">
+                                                            <h4 className="section-label">{isRTL ? 'הסעיף המקורי' : t('analysis.original')}</h4>
+                                                            <blockquote className="original-quote">
+                                                                "{issue.original_text}"
+                                                            </blockquote>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Legal Basis - Compact */}
+                                                {issue.legal_basis && (
+                                                    <div className="legal-section compact-section">
+                                                        <div className="section-icon legal-icon">
+                                                            <Scale size={18} />
+                                                        </div>
+                                                        <div className="section-body">
+                                                            <h4 className="section-label">{isRTL ? 'בסיס משפטי' : 'Legal Basis'}</h4>
+                                                            <p className="legal-basis-text">{issue.legal_basis}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Why It Matters - Explanation */}
+                                                <div className="legal-section explanation-section">
+                                                    <div className="section-icon explanation-icon">
+                                                        <Lightbulb size={18} />
+                                                    </div>
+                                                    <div className="section-body">
+                                                        <h4 className="section-label">{isRTL ? 'למה זה חשוב?' : 'Why It Matters'}</h4>
+                                                        <p className="explanation-text">{issue.explanation}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Recommendation - Highlighted */}
+                                                {issue.suggested_fix && (
+                                                    <div className="legal-section recommendation-section">
+                                                        <div className="section-icon recommendation-icon">
+                                                            <CheckCircle size={18} />
+                                                        </div>
+                                                        <div className="section-body">
+                                                            <h4 className="section-label">{isRTL ? 'הנוסח המומלץ' : t('analysis.recommendation')}</h4>
+                                                            <div className="recommendation-box">
+                                                                <p className="recommendation-text">{issue.suggested_fix}</p>
+                                                                <button
+                                                                    className={`copy-button ${copiedIndex === index ? 'copied' : ''}`}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCopy(issue.suggested_fix, index);
+                                                                    }}
+                                                                >
+                                                                    {copiedIndex === index ? (
+                                                                        <>
+                                                                            <Check size={16} />
+                                                                            <span>{t('analysis.copied')}</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Copy size={16} />
+                                                                            <span>{t('analysis.copyFix')}</span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Negotiation Tip */}
+                                                {issue.negotiation_tip && (
+                                                    <div className="legal-section tip-section">
+                                                        <div className="section-icon tip-icon">
+                                                            <MessageCircle size={18} />
+                                                        </div>
+                                                        <div className="section-body">
+                                                            <h4 className="section-label tip-label">💡 {isRTL ? 'טיפ למשא ומתן' : 'Negotiation Tip'}</h4>
+                                                            <p className="tip-text">{issue.negotiation_tip}</p>
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
-                                    </Card>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </section>
                     )}
@@ -500,8 +569,8 @@ _________________    _________________
                         <Card variant="glass" padding="lg" className="no-issues animate-slideUp">
                             <div className="no-issues-content">
                                 <span className="no-issues-icon">✅</span>
-                                <h3>No Major Issues Found</h3>
-                                <p>This contract appears to be standard with no significant red flags.</p>
+                                <h3>{t('analysis.noIssues')}</h3>
+                                <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
                             </div>
                         </Card>
                     )}

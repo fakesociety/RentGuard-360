@@ -1,20 +1,22 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Footer.css';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
+    const { t, isRTL } = useLanguage();
 
     return (
-        <footer className="app-footer">
+        <footer className="app-footer" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="footer-content">
                 <div className="footer-brand">
                     <span className="footer-logo">🛡️</span>
                     <span className="footer-name">RentGuard 360</span>
                 </div>
                 <div className="footer-info">
-                    <p>AI-Powered Lease Analysis Platform</p>
+                    <p>{t('footer.tagline')}</p>
                     <p className="footer-credits">
-                        Built with ❤️ by{' '}
+                        {t('footer.builtWith')}{' '}
                         <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer" className="footer-link">
                             Ron
                         </a>
@@ -25,7 +27,7 @@ const Footer = () => {
                     </p>
                 </div>
                 <div className="footer-meta">
-                    <p>© {currentYear} RentGuard 360. Cloud Computing Final Project.</p>
+                    <p>{t('footer.copyright').replace('{year}', currentYear)}</p>
                 </div>
             </div>
         </footer>

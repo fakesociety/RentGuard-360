@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { uploadFile } from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -9,6 +10,7 @@ import './UploadPage.css';
 
 const UploadPage = () => {
     const { user } = useAuth();
+    const { t, isRTL } = useLanguage();
     const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -26,14 +28,16 @@ const UploadPage = () => {
         monthlyRent: '',
     });
     const [customFileName, setCustomFileName] = useState('');
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [showTermsModal, setShowTermsModal] = useState(false);
 
     const validateFile = (file) => {
         const maxSize = 25 * 1024 * 1024; // 25MB
         if (!file.type.includes('pdf')) {
-            return 'Only PDF files are allowed';
+            return t('upload.pdfOnly');
         }
         if (file.size > maxSize) {
-            return 'File size must be less than 25MB';
+            return t('upload.fileTooLarge');
         }
         return null;
     };
@@ -47,7 +51,6 @@ const UploadPage = () => {
             return;
         }
         setFile(selectedFile);
-        // Set initial custom filename (without .pdf extension for editing)
         const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, '');
         setCustomFileName(nameWithoutExt);
     };
@@ -69,23 +72,24 @@ const UploadPage = () => {
     };
 
     const handleUpload = async () => {
-        if (!file) return;
+        if (!file || !termsAccepted) return;
 
         setIsUploading(true);
         setUploadProgress(0);
         setError('');
 
         try {
-            // Real upload to S3 with metadata (progress tracked via XMLHttpRequest)
             const result = await uploadFile(file, setUploadProgress, {
                 propertyAddress: metadata.propertyAddress,
                 landlordName: metadata.landlordName,
                 customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
+                termsAccepted: true,
             });
 
             setUploadedKey(result.key);
             setUploadSuccess(true);
             setFile(null);
+            setTermsAccepted(false);
             setMetadata({
                 propertyAddress: '',
                 landlordName: '',
@@ -95,26 +99,26 @@ const UploadPage = () => {
 
         } catch (err) {
             console.error('Upload failed:', err);
-            setError(err.message || 'Upload failed. Please try again.');
+            setError(err.message || t('upload.uploadFailed'));
         } finally {
             setIsUploading(false);
         }
     };
 
     const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
+        if (bytes === 0) return '0 בייט';
         const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
+        const sizes = ['בייט', 'KB', 'MB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     return (
-        <div className="upload-page">
+        <div className="upload-page" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="upload-container">
                 <div className="upload-header animate-fadeIn">
-                    <h1>Upload Contract</h1>
-                    <p>Upload your rental contract PDF for AI analysis</p>
+                    <h1>{t('upload.title')}</h1>
+                    <p>{t('upload.subtitle')}</p>
                 </div>
 
                 {uploadSuccess && (
@@ -122,21 +126,21 @@ const UploadPage = () => {
                         <div className="success-content">
                             <span className="success-icon">✅</span>
                             <div>
-                                <h3>Upload Successful!</h3>
+                                <h3>{t('upload.uploadSuccess')}</h3>
                                 <p className="analyzing-status">
                                     <span className="mini-spinner"></span>
-                                    AI is analyzing your contract (30-60 seconds)...
+                                    {t('upload.analyzing')}
                                 </p>
-                                <p className="upload-confirm">✓ Contract uploaded to server</p>
-                                <p className="upload-confirm">✓ Analysis started</p>
+                                <p className="upload-confirm">{t('upload.uploadedToServer')}</p>
+                                <p className="upload-confirm">{t('upload.analysisStarted')}</p>
                             </div>
                         </div>
                         <div className="success-actions">
                             <Button variant="primary" onClick={() => navigate('/contracts')}>
-                                View My Contracts →
+                                {t('upload.viewMyContracts')} {isRTL ? '←' : '→'}
                             </Button>
                             <Button variant="secondary" onClick={() => setUploadSuccess(false)}>
-                                Upload Another
+                                {t('upload.uploadAnother')}
                             </Button>
                         </div>
                     </Card>
@@ -156,12 +160,12 @@ const UploadPage = () => {
                             {!file ? (
                                 <div className="drop-content">
                                     <div className="drop-icon">📄</div>
-                                    <h3>Drop your PDF here</h3>
-                                    <p>or click to browse</p>
+                                    <h3>{t('upload.dragDrop')}</h3>
+                                    <p>{t('upload.or')}</p>
                                     <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
-                                        Browse Files
+                                        {t('upload.selectFile')}
                                     </Button>
-                                    <p className="drop-hint">Maximum file size: 25MB | PDF only</p>
+                                    <p className="drop-hint">{t('upload.maxSize')}</p>
                                 </div>
                             ) : (
                                 <div className="file-preview">
@@ -173,7 +177,7 @@ const UploadPage = () => {
                                                 value={customFileName}
                                                 onChange={(e) => setCustomFileName(e.target.value)}
                                                 className="filename-input"
-                                                placeholder="Contract name"
+                                                placeholder={t('upload.contractName')}
                                             />
                                             <span className="filename-ext">.pdf</span>
                                         </div>
@@ -198,7 +202,7 @@ const UploadPage = () => {
                                     <div className="progress-bar">
                                         <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
                                     </div>
-                                    <p>{uploadProgress}% {uploadProgress < 100 ? 'Uploading...' : 'Complete!'}</p>
+                                    <p>{uploadProgress}% {uploadProgress < 100 ? t('upload.uploading') : t('upload.complete')}</p>
                                 </div>
                             )}
                         </Card>
@@ -207,22 +211,45 @@ const UploadPage = () => {
 
                         {file && !isUploading && (
                             <Card variant="elevated" padding="lg" className="metadata-card animate-slideUp">
-                                <h3>Contract Details (Optional)</h3>
+                                <h3>{t('upload.contractDetails')}</h3>
                                 <div className="metadata-grid">
                                     <Input
-                                        label="Property Address"
-                                        placeholder="123 Main St, City"
+                                        label={t('upload.propertyAddress')}
+                                        placeholder={t('upload.addressPlaceholder')}
                                         value={metadata.propertyAddress}
                                         onChange={(e) => setMetadata({ ...metadata, propertyAddress: e.target.value })}
                                     />
                                     <Input
-                                        label="Landlord Name"
-                                        placeholder="John Doe"
+                                        label={t('upload.landlordName')}
+                                        placeholder={t('upload.landlordPlaceholder')}
                                         value={metadata.landlordName}
                                         onChange={(e) => setMetadata({ ...metadata, landlordName: e.target.value })}
                                     />
                                 </div>
                             </Card>
+                        )}
+
+                        {/* Terms Checkbox */}
+                        {file && !isUploading && (
+                            <div className="terms-section animate-slideUp">
+                                <label className="terms-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        checked={termsAccepted}
+                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                    />
+                                    <span className="terms-text">
+                                        {t('upload.termsLabel')}{' '}
+                                        <button
+                                            type="button"
+                                            className="terms-link"
+                                            onClick={() => setShowTermsModal(true)}
+                                        >
+                                            {t('upload.termsLink')}
+                                        </button>
+                                    </span>
+                                </label>
+                            </div>
                         )}
 
                         {file && !isUploading && (
@@ -232,13 +259,59 @@ const UploadPage = () => {
                                 fullWidth
                                 onClick={handleUpload}
                                 className="upload-button animate-slideUp"
+                                disabled={!termsAccepted}
                             >
-                                Upload Contract for Analysis
+                                {t('upload.uploadBtn')}
                             </Button>
                         )}
                     </div>
                 )}
             </div>
+
+            {/* Terms Modal */}
+            {showTermsModal && (
+                <div className="terms-modal-overlay" onClick={() => setShowTermsModal(false)}>
+                    <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="terms-modal-header">
+                            <h2>{t('upload.termsTitle')}</h2>
+                            <button className="terms-modal-close" onClick={() => setShowTermsModal(false)}>✕</button>
+                        </div>
+                        <div className="terms-modal-content">
+                            <h3>{t('upload.terms1Title')}</h3>
+                            <p>{t('upload.terms1Content')}</p>
+
+                            <h3>{t('upload.terms2Title')}</h3>
+                            <p>{t('upload.terms2Content')}</p>
+
+                            <h3>{t('upload.terms3Title')}</h3>
+                            <p>{t('upload.terms3Content')}</p>
+
+                            <h3>{t('upload.terms4Title')}</h3>
+                            <p>{t('upload.terms4Content')}</p>
+
+                            <h3>{t('upload.terms5Title')}</h3>
+                            <p>{t('upload.terms5Content')}</p>
+
+                            <h3>{t('upload.terms6Title')}</h3>
+                            <p>{t('upload.terms6Content')}</p>
+                        </div>
+                        <div className="terms-modal-footer">
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    setTermsAccepted(true);
+                                    setShowTermsModal(false);
+                                }}
+                            >
+                                {t('upload.iAgree')}
+                            </Button>
+                            <Button variant="secondary" onClick={() => setShowTermsModal(false)}>
+                                {t('upload.close')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

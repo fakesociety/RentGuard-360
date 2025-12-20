@@ -9,8 +9,9 @@ dynamodb = boto3.resource('dynamodb')
 
 # S3 bucket for contract storage
 BUCKET_NAME = 'rentguard-contracts-moty-101225'
-# DynamoDB table for contracts
+# DynamoDB tables
 contracts_table = dynamodb.Table('RentGuard-Contracts')
+consent_table = dynamodb.Table('RentGuard-UserConsent')
 
 def lambda_handler(event, context):
     try:
@@ -20,8 +21,9 @@ def lambda_handler(event, context):
         original_file_name = query_params.get('originalFileName', original_name)
         property_address = query_params.get('propertyAddress', '')
         landlord_name = query_params.get('landlordName', '')
+        terms_accepted = query_params.get('termsAccepted', 'false') == 'true'
         
-        print(f"Received: fileName={original_name}, address={property_address}, landlord={landlord_name}")
+        print(f"Received: fileName={original_name}, address={property_address}, landlord={landlord_name}, terms={terms_accepted}")
         
         # 2. Extract userId from Cognito authorizer claims
         user_id = 'anonymous'
@@ -57,7 +59,25 @@ def lambda_handler(event, context):
             ExpiresIn=300
         )
 
-        # 6. Create initial contract record with status='uploaded' for auto-polling
+        # 6. Record user consent in DynamoDB
+        if terms_accepted:
+            try:
+                consent_item = {
+                    'userId': user_id,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'action': 'contract_upload',
+                    'termsVersion': 'v1.0',
+                    'contractId': contract_id,
+                    'ipAddress': event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown'),
+                    'userAgent': event.get('headers', {}).get('User-Agent', 'unknown')[:500]
+                }
+                consent_table.put_item(Item=consent_item)
+                print(f"Consent recorded for user {user_id}")
+            except Exception as e:
+                print(f"Warning: Could not record consent: {e}")
+                # Continue anyway - consent recording failure shouldn't block upload
+
+        # 7. Create initial contract record with status='uploaded' for auto-polling
         try:
             contract_item = {
                 'userId': user_id,
@@ -65,7 +85,9 @@ def lambda_handler(event, context):
                 'fileName': original_file_name,
                 'uploadDate': datetime.utcnow().isoformat(),
                 'status': 'uploaded',  # Will be updated to 'analyzed' after analysis completes
-                's3Key': file_key
+                's3Key': file_key,
+                'termsAccepted': terms_accepted,
+                'termsAcceptedAt': datetime.utcnow().isoformat() if terms_accepted else None
             }
             
             # Add optional metadata if available

@@ -32,6 +32,20 @@ def extract_user_id_from_key(s3_key):
         print(f"Warning: Could not extract userId from key: {e}")
     return None
 
+def extract_contract_id_from_key(s3_key):
+    """Extract contractId (UUID) from S3 key path: uploads/{userId}/contract-{uuid}.pdf"""
+    try:
+        # Get the filename part: contract-{uuid}.pdf
+        parts = s3_key.split('/')
+        if len(parts) >= 3:
+            filename = parts[-1]  # contract-{uuid}.pdf
+            # Remove 'contract-' prefix and '.pdf' suffix
+            if filename.startswith('contract-') and filename.endswith('.pdf'):
+                return filename[9:-4]  # Extract UUID
+    except Exception as e:
+        print(f"Warning: Could not extract contractId from key: {e}")
+    return None
+
 def get_s3_metadata(bucket, key):
     """Fetch S3 object metadata (original filename, address, landlord)"""
     try:
@@ -52,7 +66,7 @@ def lambda_handler(event, context):
         print("Received event:", json.dumps(event))
         
         # 1. Extract data from previous step
-        contract_id = event.get('contractId')
+        passed_contract_id = event.get('contractId') or event.get('contract_id')
         analysis_result = event.get('analysis_result')
         s3_key = event.get('key')
         s3_bucket = event.get('bucket', BUCKET_NAME)
@@ -61,8 +75,21 @@ def lambda_handler(event, context):
         clauses_list = event.get('clauses', [])
         full_text = event.get('sanitizedText', '')
         
+        # CRITICAL: Always extract contractId from s3_key (which contains the UUID from get-upload-url)
+        # The passed contractId from Step Functions may be wrong/different from the one in DynamoDB
+        contract_id = None
+        if s3_key:
+            # Extract UUID from path: uploads/{userId}/contract-{uuid}.pdf
+            contract_id = extract_contract_id_from_key(s3_key)
+            if contract_id:
+                print(f"Using contractId from s3_key: {contract_id}")
+                if passed_contract_id and passed_contract_id != contract_id:
+                    print(f"WARNING: Passed contractId '{passed_contract_id}' differs from s3_key UUID '{contract_id}'. Using s3_key UUID.")
+        
+        # Fallback to passed contractId if s3_key extraction failed
         if not contract_id:
-            contract_id = event.get('contract_id') or s3_key
+            contract_id = passed_contract_id
+            print(f"Fallback: Using passed contractId: {contract_id}")
         
         if not contract_id:
             raise ValueError("CRITICAL ERROR: Missing contractId in input event")

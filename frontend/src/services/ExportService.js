@@ -489,8 +489,249 @@ export const exportEditedContract = async (originalText, editedClauses, issues =
     saveAs(blob, `${fileName}.docx`);
 };
 
+/**
+ * Export edited contract to Word WITH SIGNATURES
+ * @param {array} clauseTexts - Array of clause texts (already edited)
+ * @param {object} editedClauses - Object with clauseId -> { text, action }
+ * @param {string} fileName - Output file name
+ */
+export const exportEditedContractWithSignatures = async (clauseTexts, editedClauses, fileName = 'חוזה_שכירות') => {
+    const sections = [];
+
+    // ===== HEADER =====
+    sections.push(
+        new Paragraph({
+            text: 'חוזה שכירות בלתי מוגנת',
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+        }),
+        new Paragraph({
+            text: `נערך ונחתם ביום: ${new Date().toLocaleDateString('he-IL')}`,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { after: 600 },
+        })
+    );
+
+    // ===== CONTRACT CLAUSES =====
+    clauseTexts.forEach((text, index) => {
+        const clauseId = `clause-${index}`;
+        const edit = editedClauses[clauseId];
+        const wasEdited = edit && (edit.action === 'accepted' || edit.action === 'edited');
+
+        sections.push(
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: text,
+                        rightToLeft: true,
+                        highlight: wasEdited ? 'yellow' : undefined,
+                    }),
+                ],
+                bidirectional: true,
+                spacing: {
+                    after: 300,
+                    line: 360,
+                },
+            })
+        );
+    });
+
+    // ===== SIGNATURE SECTION =====
+    sections.push(
+        new Paragraph({
+            spacing: { before: 800 },
+        }),
+        new Paragraph({
+            text: '─────────────────────────────────────────────────',
+            alignment: AlignmentType.CENTER,
+        }),
+        new Paragraph({
+            text: 'חתימות',
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { before: 400, after: 400 },
+        })
+    );
+
+    // Side-by-side signature table (Landlord on right, Tenant on left - RTL)
+    const signatureTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+            top: { style: 'none' },
+            bottom: { style: 'none' },
+            left: { style: 'none' },
+            right: { style: 'none' },
+            insideHorizontal: { style: 'none' },
+            insideVertical: { style: 'none' },
+        },
+        rows: [
+            // Headers row with underlines
+            new TableRow({
+                children: [
+                    // Tenant (left column in visual, but first in RTL table)
+                    new TableCell({
+                        width: { size: 50, type: WidthType.PERCENTAGE },
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                text: '________________',
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: 'השוכר',
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 200 },
+                            }),
+                        ],
+                    }),
+                    // Landlord (right column in visual)
+                    new TableCell({
+                        width: { size: 50, type: WidthType.PERCENTAGE },
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                text: '________________',
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: 'המשכיר',
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 200 },
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // Name row
+            new TableRow({
+                children: [
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: 'שם: ', rightToLeft: true }),
+                                    new TextRun({ text: '________________' }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 150 },
+                            }),
+                        ],
+                    }),
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: 'שם: ', rightToLeft: true }),
+                                    new TextRun({ text: '________________' }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 150 },
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            // ID row
+            new TableRow({
+                children: [
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: 'ת.ז.: ', rightToLeft: true }),
+                                    new TextRun({ text: '________________' }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 150 },
+                            }),
+                        ],
+                    }),
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: 'ת.ז.: ', rightToLeft: true }),
+                                    new TextRun({ text: '________________' }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                bidirectional: true,
+                                spacing: { after: 150 },
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+        ],
+    });
+
+    sections.push(signatureTable);
+
+    // Date at center bottom
+    sections.push(
+        new Paragraph({
+            spacing: { before: 400 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({ text: 'תאריך: ', rightToLeft: true }),
+                new TextRun({ text: '________________' }),
+            ],
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { after: 400 },
+        })
+    );
+
+    // Footer
+    sections.push(
+        new Paragraph({
+            spacing: { before: 600 },
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: 'מסמך זה נוצר באמצעות RentGuard 360',
+                    size: 18,
+                    color: '888888',
+                    rightToLeft: true,
+                }),
+            ],
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+        })
+    );
+
+    // Create document
+    const doc = new Document({
+        sections: [{
+            properties: {
+                page: {
+                    margin: { top: 720, bottom: 720, left: 720, right: 720 },
+                }
+            },
+            children: sections,
+        }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${fileName}.docx`);
+};
+
 export default {
     exportToWord,
     exportToPDF,
     exportEditedContract,
+    exportEditedContractWithSignatures,
 };

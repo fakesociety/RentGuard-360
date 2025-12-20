@@ -56,21 +56,25 @@
     white-space: nowrap;
 }
 
-/* Color classes */
+/* Color classes - 4 distinct levels */
 .excellent {
     color: var(--accent-success);
+    /* Bright green for Low Risk */
 }
 
 .good {
-    color: #10B981;
+    color: #14b8a6;
+    /* Teal for Low-Medium Risk - distinct from green */
 }
 
 .warning {
     color: var(--accent-warning);
+    /* Orange for Medium Risk */
 }
 
 .danger {
     color: var(--accent-danger);
+    /* Red for High Risk */
 }
 
 .excellent .score-label {
@@ -79,8 +83,9 @@
 }
 
 .good .score-label {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10B981;
+    background: rgba(20, 184, 166, 0.15);
+    /* Teal background */
+    color: #14b8a6;
 }
 
 .warning .score-label {
@@ -97,50 +102,56 @@
 .categories-breakdown {
     background: var(--bg-inset);
     border-radius: var(--radius-md);
-    padding: var(--space-md);
+    padding: var(--space-lg);
     border: 1px solid var(--glass-border);
 }
 
 .breakdown-title {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    margin-bottom: var(--space-sm);
-    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .categories-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: var(--space-md);
 }
 
 .category-item {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-xs) 0;
+    gap: 12px;
+    padding: 10px 0;
 }
 
 .category-icon {
-    font-size: 16px;
-    width: 24px;
+    font-size: 20px;
+    width: 28px;
     text-align: center;
     flex-shrink: 0;
 }
 
 .category-name {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
-    width: 130px;
+    min-width: 120px;
+    max-width: 160px;
     flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .category-bar {
-    width: 80px;
-    height: 6px;
+    flex: 1;
+    min-width: 80px;
+    max-width: 150px;
+    height: 10px;
     background: var(--bg-page);
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -148,9 +159,9 @@
 }
 
 .category-score {
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-sm);
-    min-width: 45px;
+    font-weight: 700;
+    font-size: 15px;
+    min-width: 55px;
     text-align: right;
     flex-shrink: 0;
     color: var(--text-primary);
@@ -167,7 +178,8 @@
 }
 
 .category-progress.good {
-    background: #10B981;
+    background: #14b8a6;
+    /* Teal */
 }
 
 .category-progress.warning {
@@ -187,23 +199,25 @@
 .score-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
-    padding: var(--space-sm);
+    gap: 16px;
+    padding: 16px 20px;
     background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-md);
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-xs);
-    color: var(--text-secondary);
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
 .legend-item .dot {
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
 }
 
@@ -212,7 +226,8 @@
 }
 
 .good .dot {
-    background: #10B981;
+    background: #14b8a6;
+    /* Teal */
 }
 
 .warning .dot {

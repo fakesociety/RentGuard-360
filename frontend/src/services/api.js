@@ -96,6 +96,7 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
         originalFileName: displayName, // This is what gets saved to DynamoDB
         ...(metadata.propertyAddress && { propertyAddress: metadata.propertyAddress }),
         ...(metadata.landlordName && { landlordName: metadata.landlordName }),
+        ...(metadata.termsAccepted && { termsAccepted: 'true' }),
     });
 
     if (onProgress) onProgress(5); // Starting...

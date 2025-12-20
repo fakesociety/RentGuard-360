@@ -12,8 +12,8 @@ MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 def lambda_handler(event, context):
     """
-    ConsultClause - AI-powered clause explanation
-    Uses Claude Haiku 4.5 (same as ai-analyzer)
+    ConsultClause - Explains legal clauses in simple terms.
+    Focus: EXTREMELY CONCISE explanation (Max 3 lines).
     """
     try:
         # 1. Parse request body
@@ -28,22 +28,21 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'No clause text provided'})
             }
 
-        # 2. Build prompt for AI
-        system_prompt = """You are an expert Israeli real estate lawyer.
-Explain contract clauses in simple Hebrew.
-Keep answers short (2-3 sentences) and friendly.
-Format: Brief explanation, risk level (נמוך/בינוני/גבוה), and recommendation."""
+        # 2. Build prompt for AI - UPDATED FOR BREVITY
+        # השינוי: הנחיה לסיכום בפסקה אחת קצרה בלבד
+        system_prompt = """You are a concise legal interpreter.
+Your goal is to explain the clause in simple Hebrew in ONE short paragraph.
+CONSTRAINT: Maximum 3 sentences.
+Do NOT use bullet points. Do NOT use numbered lists.
+Focus only on the practical meaning."""
 
         user_message = {
             "role": "user",
             "content": [{
-                "text": f"""הסבר בבקשה את הסעיף הזה מחוזה שכירות:
+                "text": f"""הסבר את סעיף השכירות הבא בקיצור נמרץ (עד 3 משפטים):
 "{clause_text}"
 
-ענה בעברית בקצרה:
-1. מה הסעיף אומר
-2. האם זה סטנדרטי או מסוכן
-3. המלצה קצרה"""
+כתוב רק את השורה התחתונה: מה זה אומר תכל'ס בשפה פשוטה וביומיומית. בלי הקדמות ובלי דוגמאות ארוכות."""
             }]
         }
 
@@ -52,14 +51,11 @@ Format: Brief explanation, risk level (נמוך/בינוני/גבוה), and reco
             modelId=MODEL_ID,
             system=[{"text": system_prompt}],
             messages=[user_message],
-            inferenceConfig={"maxTokens": 512, "temperature": 0.5}
+            inferenceConfig={"maxTokens": 300, "temperature": 0.3} 
         )
         
         ai_answer = response['output']['message']['content'][0]['text']
 
-        # 4. Save consultation to history (optional - uses userId+contractId key)
-        # Skip DB save to avoid key issues
-        
         # 5. Return AI response
         return {
             'statusCode': 200,

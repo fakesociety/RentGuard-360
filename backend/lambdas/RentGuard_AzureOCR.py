@@ -30,9 +30,30 @@ def lambda_handler(event, context):
     """
     print("Starting Azure Document Intelligence OCR (Free Tier, optimal batching)...")
     
-    bucket_name = event.get('bucket')
-    file_key = event.get('key')
-    contract_id = event.get('contractId') or str(uuid.uuid4())
+    # Handle both direct input and EventBridge S3 event format
+    if 'detail' in event:
+        # EventBridge S3 event format
+        bucket_name = event['detail']['bucket']['name']
+        file_key = event['detail']['object']['key']
+    else:
+        # Direct input format
+        bucket_name = event.get('bucket')
+        file_key = event.get('key')
+    
+    # Extract contractId from S3 key: uploads/{userId}/contract-{uuid}.pdf
+    # CRITICAL: Do NOT generate a new UUID - use the one from get-upload-url!
+    contract_id = event.get('contractId')
+    if not contract_id and file_key:
+        # Extract UUID from filename: contract-{uuid}.pdf
+        filename = file_key.split('/')[-1]  # Get "contract-uuid.pdf"
+        if filename.startswith('contract-') and filename.endswith('.pdf'):
+            contract_id = filename[9:-4]  # Extract the UUID
+            print(f"Extracted contractId from S3 key: {contract_id}")
+    
+    if not contract_id:
+        # Last resort fallback (should not happen in normal flow)
+        contract_id = str(uuid.uuid4())
+        print(f"WARNING: Generated new contractId as fallback: {contract_id}")
     
     if not bucket_name or not file_key:
         return {'error': 'Missing bucket or key'}

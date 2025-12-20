@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeToggle } from './components/Toggle';
+import LanguageToggle from './components/LanguageToggle';
 import Button from './components/Button';
 import Card from './components/Card';
 import Input from './components/Input';
 import DashboardPage from './pages/DashboardPage';
+import DashboardBento from './pages/DashboardBento';
 import UploadPage from './pages/UploadPage';
 import ContractsPage from './pages/ContractsPage';
 import AnalysisPage from './pages/AnalysisPage';
@@ -23,7 +26,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div className="app-loading">
         <div className="loading-spinner"></div>
-        <p>Loading...</p>
+        <p>{t ? t('common.loading') : 'Loading...'}</p>
       </div>
     );
   }
@@ -34,6 +37,7 @@ const ProtectedRoute = ({ children }) => {
 // Modern Navigation Component
 const Navigation = () => {
   const { logout, userAttributes } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -59,9 +63,9 @@ const Navigation = () => {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/upload', label: 'Upload', icon: '📤' },
-    { path: '/contracts', label: 'Contracts', icon: '📄' },
+    { path: '/dashboard', label: t('nav.dashboard') },
+    { path: '/upload', label: t('nav.upload') },
+    { path: '/contracts', label: t('nav.contracts') },
   ];
 
   const getUserInitials = () => {
@@ -70,9 +74,9 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="nav-container">
+    <nav className="nav-container" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="nav-inner">
-        {/* Logo */}
+        {/* Logo - Keep English */}
         <Link to="/dashboard" className="nav-logo">
           <span className="logo-icon">🛡️</span>
           <span className="logo-text">RentGuard 360</span>
@@ -86,14 +90,14 @@ const Navigation = () => {
               to={link.path}
               className={`nav-link ${isActive(link.path) ? 'active' : ''}`}
             >
-              <span className="nav-link-icon">{link.icon}</span>
               <span className="nav-link-label">{link.label}</span>
             </Link>
           ))}
         </div>
 
-        {/* Right Side - Theme Toggle & Profile */}
+        {/* Right Side - Language Toggle, Theme Toggle & Profile */}
         <div className="nav-right">
+          <LanguageToggle />
           <ThemeToggle />
 
           {/* Profile Dropdown */}
@@ -111,19 +115,19 @@ const Navigation = () => {
                 <div className="profile-header">
                   <div className="profile-avatar-large">{getUserInitials()}</div>
                   <div className="profile-info">
-                    <p className="profile-name">{userAttributes?.name || 'User'}</p>
+                    <p className="profile-name">{userAttributes?.name || t('common.user')}</p>
                     <p className="profile-email">{userAttributes?.email}</p>
                   </div>
                 </div>
                 <div className="profile-divider"></div>
                 <Link to="/contact" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
-                  <span>📧</span> Contact Support
+                  {t('nav.contact')}
                 </Link>
                 <Link to="/settings" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
-                  <span>⚙️</span> Settings
+                  {t('nav.settings')}
                 </Link>
                 <button className="profile-menu-item logout" onClick={handleLogout}>
-                  <span>🚪</span> Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             )}
@@ -155,10 +159,10 @@ const Navigation = () => {
           ))}
           <div className="mobile-menu-divider"></div>
           <Link to="/settings" className="mobile-menu-link" onClick={() => setShowMobileMenu(false)}>
-            <span>⚙️</span> Settings
+            <span>הגדרות</span>
           </Link>
           <button className="mobile-menu-link logout" onClick={handleLogout}>
-            <span>🚪</span> Logout
+            <span>התנתקות</span>
           </button>
         </div>
       )}
@@ -171,6 +175,7 @@ const Navigation = () => {
 // Landing/Login Page
 const LandingPage = () => {
   const { login, register, confirmRegistration, isAuthenticated } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -230,24 +235,20 @@ const LandingPage = () => {
   const [carouselIndex, setCarouselIndex] = React.useState(0);
   const benefits = [
     {
-      icon: '☁️',
-      title: 'Built on AWS Cloud',
-      description: 'Enterprise-grade infrastructure with 99.99% uptime. Your documents are processed securely in the cloud.'
+      title: t('auth.benefitCloud'),
+      description: t('auth.benefitCloudDesc')
     },
     {
-      icon: '🧠',
-      title: 'Amazon Bedrock AI',
-      description: 'Powered by the latest Meta Llama 3.1 model - one of the smartest AI systems available today.'
+      title: t('auth.benefitAI'),
+      description: t('auth.benefitAIDesc')
     },
     {
-      icon: '🔐',
-      title: 'Bank-Level Security',
-      description: 'End-to-end encryption. Your personal data is auto-redacted before AI analysis. Zero data retention.'
+      title: t('auth.benefitSecurity'),
+      description: t('auth.benefitSecurityDesc')
     },
     {
-      icon: '⚡',
-      title: 'Instant Analysis',
-      description: 'Get comprehensive lease review in under 60 seconds. No waiting, no appointments needed.'
+      title: t('auth.benefitFast'),
+      description: t('auth.benefitFastDesc')
     }
   ];
 
@@ -260,16 +261,19 @@ const LandingPage = () => {
       setCarouselIndex((prev) => (prev + 1) % benefits.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, benefits.length]);
 
   const goToNext = () => setCarouselIndex((prev) => (prev + 1) % benefits.length);
   const goToPrev = () => setCarouselIndex((prev) => (prev - 1 + benefits.length) % benefits.length);
 
   return (
-    <div className="landing-page">
+    <div className="landing-page" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="landing-header">
         <a href="/" className="landing-logo">🛡️ RentGuard 360</a>
-        <ThemeToggle />
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="landing-content">
@@ -277,11 +281,9 @@ const LandingPage = () => {
         <div className="hero-card">
           <div className="hero-section">
             <div className="hero-text">
-              <h2>AI-Powered Lease Analysis</h2>
+              <h2>{t('auth.heroTitle')}</h2>
               <p className="hero-subtitle">
-                Don't sign a rental contract without understanding it first.
-                Our AI analyzes your lease in seconds to identify risks, unfair clauses,
-                and gives you negotiation tips.
+                {t('auth.heroSubtitle')}
               </p>
 
               {/* Benefits Carousel with Controls */}
@@ -290,14 +292,14 @@ const LandingPage = () => {
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
               >
-                {isPaused && <span className="carousel-paused">⏸ Paused</span>}
-                <button className="carousel-arrow carousel-prev" onClick={goToPrev}>←</button>
+                {isPaused && <span className="carousel-paused">|| {isRTL ? 'מושהה' : 'Paused'}</span>}
+                <button className="carousel-arrow carousel-prev" onClick={goToPrev}>{isRTL ? '→' : '←'}</button>
                 <div className="carousel-content" key={carouselIndex}>
-                  <span className="carousel-icon">{benefits[carouselIndex].icon}</span>
+                  <span className="carousel-number">{carouselIndex + 1}/{benefits.length}</span>
                   <h4>{benefits[carouselIndex].title}</h4>
                   <p>{benefits[carouselIndex].description}</p>
                 </div>
-                <button className="carousel-arrow carousel-next" onClick={goToNext}>→</button>
+                <button className="carousel-arrow carousel-next" onClick={goToNext}>{isRTL ? '←' : '→'}</button>
                 <div className="carousel-controls">
                   <div className="carousel-dots">
                     {benefits.map((_, idx) => (
@@ -314,15 +316,15 @@ const LandingPage = () => {
               <div className="hero-stats">
                 <div className="stat">
                   <span className="stat-number">70+</span>
-                  <span className="stat-label">Risk Factors Analyzed</span>
+                  <span className="stat-label">גורמי סיכון מנותחים</span>
                 </div>
                 <div className="stat">
                   <span className="stat-number">&lt;60s</span>
-                  <span className="stat-label">Analysis Time</span>
+                  <span className="stat-label">זמן ניתוח</span>
                 </div>
                 <div className="stat">
                   <span className="stat-number">100%</span>
-                  <span className="stat-label">Privacy Protected</span>
+                  <span className="stat-label">הגנה על הפרטיות</span>
                 </div>
               </div>
             </div>
@@ -331,25 +333,25 @@ const LandingPage = () => {
 
         {/* How It Works - Demo Section */}
         <div className="demo-section">
-          <h3>How It Works</h3>
+          <h3>איך זה עובד</h3>
           <div className="demo-steps">
             <div className="demo-step">
               <div className="step-number">1</div>
               <div className="step-icon">📄</div>
-              <h4>Upload Contract</h4>
-              <p>Upload your rental contract PDF. We support Hebrew & English.</p>
+              <h4>העלאת חוזה</h4>
+              <p>העלו את חוזה השכירות שלכם בפורמט PDF. אנחנו תומכים בעברית ואנגלית.</p>
             </div>
             <div className="demo-step">
               <div className="step-number">2</div>
               <div className="step-icon">🤖</div>
-              <h4>AI Analysis</h4>
-              <p>Our AI scans for risks, unfair terms, and legal issues.</p>
+              <h4>ניתוח AI</h4>
+              <p>ה-AI שלנו סורק סיכונים, תנאים לא הוגנים ובעיות משפטיות.</p>
             </div>
             <div className="demo-step">
               <div className="step-number">3</div>
               <div className="step-icon">📊</div>
-              <h4>Get Results</h4>
-              <p>See risk score, issue explanations, and negotiation tips.</p>
+              <h4>קבלת תוצאות</h4>
+              <p>צפו בציון הסיכון, הסברים לבעיות וטיפים למשא ומתן.</p>
             </div>
           </div>
         </div>
@@ -358,27 +360,27 @@ const LandingPage = () => {
         <Card variant="glass" padding="lg" className="auth-card">
           {mode === 'login' && (
             <form onSubmit={handleLogin}>
-              <h3>Sign In</h3>
+              <h3>{t('auth.login')}</h3>
               <Input
                 type="email"
-                label="Email"
+                label={t('auth.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
                 type="password"
-                label="Password"
+                label={t('auth.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
               {error && <p className="auth-error">{error}</p>}
-              <Button variant="primary" fullWidth loading={loading} type="submit">Sign In</Button>
+              <Button variant="primary" fullWidth loading={loading} type="submit">{t('auth.loginButton')}</Button>
               <p className="auth-switch">
-                Don't have an account?{' '}
+                {t('auth.noAccount')}{' '}
                 <button type="button" onClick={() => { setMode('register'); setError(''); }}>
-                  Sign Up
+                  {t('auth.register')}
                 </button>
               </p>
             </form>
@@ -386,34 +388,34 @@ const LandingPage = () => {
 
           {mode === 'register' && (
             <form onSubmit={handleRegister}>
-              <h3>Create Account</h3>
+              <h3>{t('auth.registerButton')}</h3>
               <Input
-                label="Full Name"
+                label={t('auth.fullName')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
               <Input
                 type="email"
-                label="Email"
+                label={t('auth.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
                 type="password"
-                label="Password"
+                label={t('auth.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                helperText="Min 8 chars, uppercase, number"
+                helperText={t('auth.passwordHint')}
               />
               {error && <p className="auth-error">{error}</p>}
-              <Button variant="primary" fullWidth loading={loading} type="submit">Create Account</Button>
+              <Button variant="primary" fullWidth loading={loading} type="submit">{t('auth.registerButton')}</Button>
               <p className="auth-switch">
-                Already have an account?{' '}
+                {t('auth.hasAccount')}{' '}
                 <button type="button" onClick={() => { setMode('login'); setError(''); }}>
-                  Sign In
+                  {t('auth.login')}
                 </button>
               </p>
             </form>
@@ -421,16 +423,16 @@ const LandingPage = () => {
 
           {mode === 'confirm' && (
             <form onSubmit={handleConfirm}>
-              <h3>Verify Email</h3>
-              <p className="confirm-message">We sent a code to {tempEmail}</p>
+              <h3>{t('auth.confirmTitle')}</h3>
+              <p className="confirm-message">{t('auth.confirmMessage')} {tempEmail}</p>
               <Input
-                label="Verification Code"
+                label={t('auth.confirmCode')}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
               />
               {error && <p className="auth-error">{error}</p>}
-              <Button variant="primary" fullWidth loading={loading} type="submit">Verify</Button>
+              <Button variant="primary" fullWidth loading={loading} type="submit">{t('auth.confirmButton')}</Button>
             </form>
           )}
         </Card>
@@ -438,27 +440,27 @@ const LandingPage = () => {
         {/* Features Grid */}
         <div className="features-section">
           <Card variant="elevated" padding="md">
-            <h4>🤖 AI Analysis</h4>
-            <p>Powered by Amazon Bedrock AI to analyze contracts like a legal expert</p>
+            <h4>{t('auth.featureAI')}</h4>
+            <p>{t('auth.featureAIDesc')}</p>
           </Card>
           <Card variant="elevated" padding="md">
-            <h4>🔒 Privacy First</h4>
-            <p>Personal data (ID, phone, email) is auto-redacted before analysis</p>
+            <h4>{t('auth.featurePrivacy')}</h4>
+            <p>{t('auth.featurePrivacyDesc')}</p>
           </Card>
           <Card variant="elevated" padding="md">
-            <h4>💡 Smart Tips</h4>
-            <p>Get specific negotiation advice for each problematic clause</p>
+            <h4>{t('auth.featureTips')}</h4>
+            <p>{t('auth.featureTipsDesc')}</p>
           </Card>
         </div>
 
         {/* Footer */}
         <div className="landing-footer">
           <p>
-            Built with ❤️ by{' '}
+            {t('auth.builtBy')}{' '}
             <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
             {' & '}
             <a href="https://github.com/MoTy" target="_blank" rel="noopener noreferrer">Moty</a>
-            {' | Cloud Computing Final Project'}
+            {' | '}{t('auth.projectName')}
           </p>
         </div>
       </div>
@@ -473,7 +475,7 @@ function App() {
     return (
       <div className="app-loading">
         <div className="loading-spinner"></div>
-        <p>Loading RentGuard 360...</p>
+        <p>טוען RentGuard 360...</p>
       </div>
     );
   }
@@ -486,6 +488,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/dashboard-demo" element={<ProtectedRoute><DashboardBento /></ProtectedRoute>} />
           <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
           <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
           <Route path="/analysis/:contractId" element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>} />

@@ -115,11 +115,11 @@ def parse_json_response(ai_output_text):
     
     if 'score_breakdown' not in analysis_json:
         analysis_json['score_breakdown'] = {
-            "financial_terms": {"score": 20, "deductions": []},
-            "tenant_rights": {"score": 20, "deductions": []},
-            "termination_clauses": {"score": 20, "deductions": []},
-            "liability_repairs": {"score": 20, "deductions": []},
-            "legal_compliance": {"score": 20, "deductions": []}
+            "financial_terms": {"score": 20},
+            "tenant_rights": {"score": 20},
+            "termination_clauses": {"score": 20},
+            "liability_repairs": {"score": 20},
+            "legal_compliance": {"score": 20}
         }
     
     if 'issues' not in analysis_json:
@@ -139,17 +139,89 @@ def create_fallback_response(error_message, raw_response=""):
         "is_contract": True,
         "overall_risk_score": 0,
         "score_breakdown": {
-            "financial_terms": {"score": 20, "deductions": []},
-            "tenant_rights": {"score": 20, "deductions": []},
-            "termination_clauses": {"score": 20, "deductions": []},
-            "liability_repairs": {"score": 20, "deductions": []},
-            "legal_compliance": {"score": 20, "deductions": []}
+            "financial_terms": {"score": 20},
+            "tenant_rights": {"score": 20},
+            "termination_clauses": {"score": 20},
+            "liability_repairs": {"score": 20},
+            "legal_compliance": {"score": 20}
         },
         "summary": "הניתוח הושלם אך יש שגיאת פורמט טכנית.",
         "issues": [],
         "parse_error": error_message,
         "raw_ai_response": raw_response[:1000] if raw_response else ""
     }
+
+
+def recalculate_scores(analysis_json):
+    """
+    Recalculate scores based on penalty_points from issues.
+    Don't trust AI's math - calculate it ourselves!
+    
+    Each category starts at 20 points.
+    Deduct penalty_points based on rule_id prefix:
+    - F → financial_terms
+    - T → tenant_rights
+    - E → termination_clauses
+    - L → liability_repairs
+    - C → legal_compliance
+    """
+    if not analysis_json.get('is_contract', True):
+        return analysis_json
+    
+    # Initialize category scores (max 20 each)
+    categories = {
+        'financial_terms': 20,
+        'tenant_rights': 20,
+        'termination_clauses': 20,
+        'liability_repairs': 20,
+        'legal_compliance': 20
+    }
+    
+    # Map rule_id prefix to category
+    prefix_to_category = {
+        'F': 'financial_terms',
+        'T': 'tenant_rights',
+        'E': 'termination_clauses',
+        'L': 'liability_repairs',
+        'C': 'legal_compliance'
+    }
+    
+    # Deduct penalty_points from each category
+    issues = analysis_json.get('issues', [])
+    for issue in issues:
+        rule_id = issue.get('rule_id', '')
+        
+        # Safe conversion - handle both int and string
+        try:
+            penalty = int(issue.get('penalty_points', 0))
+        except (ValueError, TypeError):
+            penalty = 0
+        
+        if rule_id and len(rule_id) > 0 and penalty > 0:
+            prefix = rule_id[0].upper()
+            category = prefix_to_category.get(prefix)
+            
+            if category:
+                categories[category] = max(0, categories[category] - penalty)
+    
+    # Calculate overall score (sum of all categories)
+    overall_score = sum(categories.values())
+    
+    # Update analysis_json with recalculated scores
+    analysis_json['score_breakdown'] = {
+        'financial_terms': {'score': categories['financial_terms']},
+        'tenant_rights': {'score': categories['tenant_rights']},
+        'termination_clauses': {'score': categories['termination_clauses']},
+        'liability_repairs': {'score': categories['liability_repairs']},
+        'legal_compliance': {'score': categories['legal_compliance']}
+    }
+    analysis_json['overall_risk_score'] = overall_score
+    
+    # Log for debugging
+    print(f"Recalculated scores: {categories}")
+    print(f"Overall risk score: {overall_score}")
+    
+    return analysis_json
 
 
 def lambda_handler(event, context):
@@ -186,7 +258,6 @@ def lambda_handler(event, context):
             print(f"Truncating text from {len(sanitized_text)} to {MAX_TEXT_LENGTH} chars")
             sanitized_text = sanitized_text[:MAX_TEXT_LENGTH] + "... [Text Truncated]"
 
-        # 4. Build system prompt
         system_prompt = f"""You are an expert Israeli real estate lawyer analyzing rental contracts.
 
 {KNOWLEDGE_BASE}
@@ -197,13 +268,13 @@ TASK: Analyze the contract and return ONLY valid JSON with this EXACT structure:
 
 {{
   "is_contract": true,
-  "overall_risk_score": <number 0-100>,
+  "overall_risk_score": <MUST equal sum of all 5 category scores below>,
   "score_breakdown": {{
-    "financial_terms": {{"score": <0-20>, "deductions": []}},
-    "tenant_rights": {{"score": <0-20>, "deductions": []}},
-    "termination_clauses": {{"score": <0-20>, "deductions": []}},
-    "liability_repairs": {{"score": <0-20>, "deductions": []}},
-    "legal_compliance": {{"score": <0-20>, "deductions": []}}
+    "financial_terms": {{"score": <0-20, start at 20 and deduct for F-rule violations>}},
+    "tenant_rights": {{"score": <0-20, start at 20 and deduct for T-rule violations>}},
+    "termination_clauses": {{"score": <0-20, start at 20 and deduct for E-rule violations>}},
+    "liability_repairs": {{"score": <0-20, start at 20 and deduct for L-rule violations>}},
+    "legal_compliance": {{"score": <0-20, start at 20 and deduct for C-rule violations>}}
   }},
   "summary": "<Hebrew summary of 2-3 sentences>",
   "issues": [
@@ -212,21 +283,47 @@ TASK: Analyze the contract and return ONLY valid JSON with this EXACT structure:
       "clause_topic": "<Hebrew topic>",
       "original_text": "<exact quote from contract>",
       "risk_level": "High/Medium/Low",
-      "penalty_points": <number>,
-      "legal_basis": "<which law/rule this violates>",
+      "penalty_points": <number - this is the amount deducted from the category score>,
+      "legal_basis": "<Hebrew - which law/rule this violates>",
       "explanation": "<Hebrew explanation why this is risky>",
       "suggested_fix": "<Hebrew suggestion for better wording>"
     }}
   ]
 }}
 
+SCORING RULES (CRITICAL - YOU MUST FOLLOW THESE EXACTLY):
+1. Each category starts at 20 points (perfect score)
+2. For each issue, deduct penalty_points from the relevant category based on rule_id prefix:
+   - F-rules (F1, F2, F3, F4) -> deduct from financial_terms
+   - T-rules (T1, T2, T3, T4) -> deduct from tenant_rights
+   - E-rules (E1, E2, E3, E4) -> deduct from termination_clauses
+   - L-rules (L1, L2, L3, L4) -> deduct from liability_repairs
+   - C-rules (C1, C2, C3, C4) -> deduct from legal_compliance
+
+3. MATH VERIFICATION (YOU MUST DO THIS):
+   - Sum all penalty_points from F-rules -> deduct from financial_terms (20 - sum = category score)
+   - Sum all penalty_points from T-rules -> deduct from tenant_rights (20 - sum = category score)
+   - Sum all penalty_points from E-rules -> deduct from termination_clauses (20 - sum = category score)
+   - Sum all penalty_points from L-rules -> deduct from liability_repairs (20 - sum = category score)
+   - Sum all penalty_points from C-rules -> deduct from legal_compliance (20 - sum = category score)
+   - Minimum category score is 0 (never negative)
+
+4. overall_risk_score = financial_terms.score + tenant_rights.score + termination_clauses.score + liability_repairs.score + legal_compliance.score
+
+5. EXAMPLE: If you have issues F1 (8 pts) and F4 (8 pts), then financial_terms.score = 20 - 8 - 8 = 4 (not 12!)
+   If you have issues C1 (7 pts) and C3 (7 pts), then legal_compliance.score = 20 - 7 - 7 = 6 (not 15!)
+
+6. The sum of all penalty_points in issues MUST equal (100 - overall_risk_score)
+
 RULES FOR ANALYSIS:
 1. ONLY cite rules from the knowledge base above
 2. If something is not covered, mark as "Standard Practice" 
-3. Each issue MUST include rule_id and legal_basis
-4. Score = 100 - sum of all penalty_points
-5. If document is NOT a rental contract, return is_contract: false with score 0
-6. For suggested_fix: Write the CORRECTED text directly. Do NOT write "יש לשנות ל" or "יש להסיר" - just write the actual replacement clause text.
+3. Each issue MUST include rule_id and legal_basis in HEBREW
+4. If document is NOT a rental contract, return is_contract: false with score 0
+5. For suggested_fix: Write the CORRECTED text directly. Do NOT write "יש לשנות ל" or "יש להסיר" - just write the actual replacement clause text.
+6. CRITICAL: Only include ACTUAL PROBLEMS in the issues array. Do NOT include clauses that are compliant/fair/legal.
+7. Issues array should ONLY contain clauses with penalty_points > 0.
+8. ALL TEXT in the JSON (summary, clause_topic, legal_basis, explanation, suggested_fix) MUST BE IN HEBREW. Only rule_id and risk_level can be in English.
 
 IMPORTANT: Return ONLY the JSON, no markdown, no explanation outside JSON."""
 
@@ -247,6 +344,9 @@ IMPORTANT: Return ONLY the JSON, no markdown, no explanation outside JSON."""
             print(f"JSON Parse Error: {str(parse_error)}")
             print(f"Raw response: {ai_output_text[:500] if ai_output_text else 'None'}")
             analysis_json = create_fallback_response(str(parse_error), ai_output_text)
+        
+        # 7. RECALCULATE SCORES - Don't trust AI's math!
+        analysis_json = recalculate_scores(analysis_json)
 
         # 7. Return success response
         return {
