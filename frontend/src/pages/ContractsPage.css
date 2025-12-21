@@ -477,6 +477,16 @@
     color: #64748b;
 }
 
+.status-chip.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.score-gauge.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
 .analyzed-date {
     font-size: 11px;
     color: #94a3b8;

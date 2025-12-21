@@ -116,9 +116,28 @@ const ContractView = ({
         return detectLanguage(sampleText);
     }, [clauses]);
 
-    // Get current text for a clause
+    // Get current text for a clause (with clause number preserved)
     const getClauseText = (clause) => {
-        return editedClauses[clause.id]?.text || clause.text;
+        const edit = editedClauses[clause.id];
+        if (edit?.text) {
+            // Try to find original clause number from multiple sources
+            let originalNumber = edit.originalNumber;
+            if (!originalNumber) {
+                // Try from clause.text
+                originalNumber = clause.text?.match(/^(\d+\.)\s*/)?.[1];
+            }
+            if (!originalNumber && clause.issue?.original_text) {
+                // Try from issue's original_text
+                originalNumber = clause.issue.original_text?.match(/^(\d+\.)\s*/)?.[1];
+            }
+
+            if (originalNumber && !edit.text.match(/^\d+\.\s*/)) {
+                // Add the number only if the edit text doesn't already have one
+                return `${originalNumber} ${edit.text}`;
+            }
+            return edit.text;
+        }
+        return clause.text;
     };
 
     // Open popup editor
@@ -133,12 +152,33 @@ const ContractView = ({
         setEditingText('');
     };
 
+    // Helper: Extract clause number from text (e.g., "1." from "1. הטקסט...")
+    const extractClauseNumber = (text) => {
+        const match = text?.match(/^(\d+\.)\s*/);
+        return match ? match[1] : null;
+    };
+
     // Save edit from popup
     const saveEdit = () => {
         if (selectedClause && editingText.trim()) {
+            // Extract clause number from original text (try multiple sources)
+            let originalNumber = extractClauseNumber(selectedClause.text);
+
+            if (!originalNumber && selectedClause.issue?.original_text) {
+                originalNumber = extractClauseNumber(selectedClause.issue.original_text);
+            }
+
+            // DEBUG - show what's happening
+            alert(`DEBUG:\nclause.text: "${selectedClause.text?.substring(0, 40)}..."\nOriginal number: ${originalNumber || 'NULL'}`);
+
+
             setEditedClauses(prev => ({
                 ...prev,
-                [selectedClause.id]: { text: editingText.trim(), action: 'edited' }
+                [selectedClause.id]: {
+                    text: editingText.trim(),
+                    action: 'edited',
+                    originalNumber: originalNumber  // Save the original clause number
+                }
             }));
             onClauseChange?.(selectedClause.id, editingText.trim(), 'edited');
             setSaveStatus(null);

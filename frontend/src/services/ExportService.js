@@ -520,11 +520,21 @@ export const exportEditedContractWithSignatures = async (clauseTexts, editedClau
         const edit = editedClauses[clauseId];
         const wasEdited = edit && (edit.action === 'accepted' || edit.action === 'edited');
 
+        let displayText = text;
+
+        // For edited clauses, prepend the original clause number if available
+        if (wasEdited && edit.originalNumber) {
+            // Check if the text doesn't already start with a number
+            if (!text.match(/^\d+\.\s*/)) {
+                displayText = `${edit.originalNumber} ${text}`;
+            }
+        }
+
         sections.push(
             new Paragraph({
                 children: [
                     new TextRun({
-                        text: text,
+                        text: displayText,
                         rightToLeft: true,
                         highlight: wasEdited ? 'yellow' : undefined,
                     }),

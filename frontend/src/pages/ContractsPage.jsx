@@ -28,7 +28,9 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
         return t('contracts.highRisk');
     };
 
+
     const isAnalyzed = contract.status === 'analyzed';
+    const isFailed = contract.status === 'failed' || contract.status === 'error';
     const score = contract.riskScore ?? contract.risk_score ?? null;
     const hasScore = isAnalyzed && score !== null && score !== undefined;
 
@@ -46,6 +48,10 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
                 {/* Score Gauge */}
                 {hasScore ? (
                     <RiskGauge score={score} size={80} />
+                ) : isFailed ? (
+                    <div className="score-gauge error">
+                        <AlertTriangle size={20} />
+                    </div>
                 ) : (
                     <div className="score-gauge pending">
                         <RefreshCw size={20} className="spinning" />
@@ -61,6 +67,8 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
                         <span className={`status-chip ${getScoreColor(score)}`}>
                             {getScoreLabel(score)}
                         </span>
+                    ) : isFailed ? (
+                        <span className="status-chip error">{isRTL ? 'שגיאה בניתוח' : 'Analysis Failed'}</span>
                     ) : (
                         <span className="status-chip pending">{t('contracts.pendingAnalysis')}...</span>
                     )}

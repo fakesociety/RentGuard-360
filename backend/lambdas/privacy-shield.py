@@ -77,15 +77,120 @@ def clean_ocr_noise(text: str) -> str:
     return text.strip()
 
 def split_to_clauses(text: str) -> list[str]:
-    """מפרק את הטקסט לרשימת סעיפים לתצוגה"""
-    raw_blocks = text.split('\n')
-    clean_clauses = []
-    for block in raw_blocks:
-        block = block.strip()
-        # סינון שורות קצרות מדי או כאלו שהן רק מספרים
-        if len(block) > 15 and not re.match(r'^[\d\W]+$', block):
-            clean_clauses.append(block)
-    return clean_clauses
+    """
+    מפרק את הטקסט לרשימת סעיפים לתצוגה - גרסה משופרת ומקצועית.
+    מזהה כותרות, סעיפים ממוספרים וסעיפי משנה.
+    לא מתבלבל עם מספרים בהקשר של כסף, תאריכים וכו'.
+    """
+    
+    # === כותרות סעיפים נפוצות בחוזי שכירות ===
+    SECTION_HEADERS = [
+        'מבוא', 'הואיל', 'לפיכך',
+        'תקופת השכירות', 'תקופת האופציה', 'הארכת החוזה',
+        'דמי השכירות', 'דמי שכירות', 'תשלומים',
+        'מיסים, אגרות ותשלומים', 'מיסים ותשלומים',
+        'השימוש והחזקה', 'השימוש במושכר', 'החזקת המושכר',
+        'אחריות לנזק', 'אחריות', 'נזקים',
+        'פינוי המושכר', 'פינוי הדירה', 'פינוי',
+        'בטחונות', 'ערבויות', 'ערבות', 'ביטחונות',
+        'הפרות', 'הפרה יסודית', 'ביטול ההסכם',
+        'שונות', 'הוראות כלליות', 'כללי',
+        'חתימות', 'חתימה',
+    ]
+    
+    # === Regex לזיהוי מספרי סעיפים (לא כסף!) ===
+    # מזהה: "1." או "1)" או "א." בתחילת משפט, אחרי רווח או שורה חדשה
+    # לא מזהה: "5,200 ש"ח" או "26.10.25" או "12 חודשים"
+    CLAUSE_NUMBER_PATTERN = re.compile(
+        r'(?:^|(?<=\s)|(?<=\n))'  # תחילת טקסט, אחרי רווח, או אחרי שורה חדשה
+        r'([0-9]{1,2}|[א-י])'      # מספר 1-99 או אות עברית א-י
+        r'[.\)]\s+'                # נקודה או סוגר + רווח
+        r'(?![0-9,]+\s*(?:ש[״\']?ח|₪|שקל|אלף))'  # לא אחרי סכום כסף
+        r'(?![0-9]{1,2}[./][0-9])'  # לא תאריך
+    )
+    
+    # === שלב 1: פיצול ראשוני לפי שורות ===
+    lines = text.split('\n')
+    
+    # === שלב 2: זיהוי ומיזוג חכם ===
+    clauses = []
+    current_clause = ""
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        
+        # בדיקה אם זו כותרת סעיף
+        is_header = any(header in line for header in SECTION_HEADERS)
+        
+        # בדיקה אם מתחילה עם מספר סעיף
+        is_numbered_clause = bool(CLAUSE_NUMBER_PATTERN.match(line))
+        
+        # בדיקה אם זו תחילת סעיף חדש
+        is_new_clause = is_header or is_numbered_clause
+        
+        if is_new_clause:
+            # שמירת הסעיף הקודם
+            if current_clause and len(current_clause.strip()) > 15:
+                clauses.append(current_clause.strip())
+            current_clause = line
+        else:
+            # המשך של הסעיף הנוכחי
+            if current_clause:
+                current_clause += " " + line
+            else:
+                current_clause = line
+    
+    # שמירת הסעיף האחרון
+    if current_clause and len(current_clause.strip()) > 15:
+        clauses.append(current_clause.strip())
+    
+    # === שלב 3: פיצול סעיפים ממוספרים בתוך שורה אחת ===
+    # לפעמים יש "1. ... 2. ... 3. ..." באותה שורה
+    final_clauses = []
+    
+    for clause in clauses:
+        # בדיקה אם יש כמה סעיפים ממוספרים באותה שורה
+        # מחפש דפוס: טקסט + מספר + נקודה + טקסט
+        split_pattern = re.compile(
+            r'(?<=\S)\s+'           # אחרי טקסט כלשהו (לא בהתחלה)
+            r'([0-9]{1,2})\.\s+'    # מספר + נקודה + רווח
+            r'(?![0-9,]+\s*(?:ש[״\']?ח|₪))'  # לא כסף
+            r'(?![0-9]{1,2}[./][0-9])'       # לא תאריך
+            r'(?=[\u0590-\u05FF])'           # לפני אות עברית (תחילת טקסט)
+        )
+        
+        # מחפש נקודות פיצול
+        split_points = [(m.start(), m.group(1)) for m in split_pattern.finditer(clause)]
+        
+        if split_points:
+            # יש כמה סעיפים - מפצל
+            prev_pos = 0
+            for pos, num in split_points:
+                sub_clause = clause[prev_pos:pos].strip()
+                if len(sub_clause) > 15:
+                    final_clauses.append(sub_clause)
+                prev_pos = pos + 1  # +1 לדלג על הרווח
+            # הסעיף האחרון
+            last_part = clause[prev_pos:].strip()
+            if len(last_part) > 15:
+                final_clauses.append(last_part)
+        else:
+            # סעיף בודד
+            if len(clause) > 15:
+                final_clauses.append(clause)
+    
+    # === שלב 4: ניקוי סופי ===
+    cleaned = []
+    for clause in final_clauses:
+        # הסרת רווחים מיותרים
+        clause = re.sub(r'\s+', ' ', clause).strip()
+        # לא להוסיף אם זה רק מספרים וסימנים
+        if not re.match(r'^[\d\W]+$', clause):
+            cleaned.append(clause)
+    
+    return cleaned
 
 def calculate_contract_confidence(text: str) -> int:
     """מחשב כמה המערכת בטוחה שזה אכן חוזה שכירות"""
