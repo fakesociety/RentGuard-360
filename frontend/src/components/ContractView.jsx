@@ -168,10 +168,6 @@ const ContractView = ({
                 originalNumber = extractClauseNumber(selectedClause.issue.original_text);
             }
 
-            // DEBUG - show what's happening
-            alert(`DEBUG:\nclause.text: "${selectedClause.text?.substring(0, 40)}..."\nOriginal number: ${originalNumber || 'NULL'}`);
-
-
             setEditedClauses(prev => ({
                 ...prev,
                 [selectedClause.id]: {

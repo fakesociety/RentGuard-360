@@ -50,7 +50,7 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
                     <RiskGauge score={score} size={80} />
                 ) : isFailed ? (
                     <div className="score-gauge error">
-                        <AlertTriangle size={20} />
+                        <X size={24} strokeWidth={3} />
                     </div>
                 ) : (
                     <div className="score-gauge pending">
@@ -145,10 +145,17 @@ const ContractsPage = () => {
 
     useEffect(() => { fetchContracts(); }, [user]);
 
+    // Auto-refresh while there are pending contracts
     useEffect(() => {
-        const hasPending = contracts.some(c => c.status === 'processing' || c.status === 'uploaded');
+        const hasPending = contracts.some(c =>
+            c.status === 'processing' ||
+            c.status === 'uploaded' ||
+            c.status === 'pending' ||
+            !c.status  // No status yet
+        );
         if (!hasPending) return;
-        const interval = setInterval(() => fetchContracts(false), 10000);
+        // Poll every 5 seconds for faster updates
+        const interval = setInterval(() => fetchContracts(false), 5000);
         return () => clearInterval(interval);
     }, [contracts, user]);
 
