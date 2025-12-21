@@ -419,6 +419,17 @@
     color: var(--text-secondary);
 }
 
+/* Error/Failed state */
+.score-gauge.error {
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
 /* Card Body */
 .card-body {
     padding: 0 20px 16px;
