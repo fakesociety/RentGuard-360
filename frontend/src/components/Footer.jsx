@@ -1,31 +1,40 @@
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { Shield } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
-    const { t, isRTL } = useLanguage();
+    const { isRTL } = useLanguage();
+    const { isDark } = useTheme();
 
     return (
-        <footer className="app-footer" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="footer-content">
-                <div className="footer-brand">
-                    <span className="footer-logo">🛡️</span>
-                    <span className="footer-name">RentGuard 360</span>
+        <footer className={`app-footer ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="footer-container">
+                <div className="footer-content">
+
+                    {/* Logo */}
+                    <div className="footer-brand">
+                        <Shield size={22} className="footer-shield" />
+                        <span className="footer-name">RentGuard 360</span>
+                    </div>
+
+                    {/* Credits */}
+                    <div className="footer-credits">
+                        <span>{isRTL ? 'נבנה ע"י' : 'Built by'}</span>
+                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                        <span>&</span>
+                        <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                        <span className="footer-divider">|</span>
+                        <span>{isRTL ? 'פרויקט גמר מחשוב ענן' : 'Cloud Computing Final Project'}</span>
+                    </div>
                 </div>
-                <div className="footer-info">
-                    <p>{t('footer.tagline')}</p>
-                    <p className="footer-tech">{t('footer.benefits')}</p>
-                </div>
-                <div className="footer-meta">
-                    <p className="footer-credits">
-                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer" className="footer-link">Ron</a>
-                        {' & '}
-                        <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer" className="footer-link">Moty</a>
-                        {' | '}{t('footer.project')}
-                    </p>
-                    <p>{t('footer.copyright').replace('{year}', currentYear)}</p>
-                </div>
+
+                {/* Copyright */}
+                <p className="footer-copyright">
+                    © {currentYear} RentGuard 360
+                </p>
             </div>
         </footer>
     );

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { processContractClauses, detectLanguage } from '../utils/contractTextProcessor';
 import { consultClause } from '../services/api';
 import { exportEditedContractWithSignatures } from '../services/ExportService';
+import RecommendationCard from './RecommendationCard';
 import './ContractView.css';
 
 /**
@@ -371,24 +372,19 @@ const ContractView = ({
                                     </div>
                                 )}
 
-                                {/* Suggested Fix for issues */}
+                                {/* Suggested Fix for issues - Modern Design */}
                                 {clause.hasIssue && clause.issue?.suggested_fix && (
-                                    <div className="suggested-fix no-print">
-                                        <strong>💡 הצעה לתיקון:</strong>
-                                        <p>{clause.issue.suggested_fix}</p>
-                                        <button
-                                            className="apply-fix-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setEditedClauses(prev => ({
-                                                    ...prev,
-                                                    [clause.id]: { text: clause.issue.suggested_fix, action: 'accepted' }
-                                                }));
-                                            }}
-                                        >
-                                            ✓ החל תיקון
-                                        </button>
-                                    </div>
+                                    <RecommendationCard
+                                        title="הצעה לתיקון"
+                                        suggestion={clause.issue.suggested_fix}
+                                        isApplied={!!editedClauses[clause.id]}
+                                        onApply={() => {
+                                            setEditedClauses(prev => ({
+                                                ...prev,
+                                                [clause.id]: { text: clause.issue.suggested_fix, action: 'accepted' }
+                                            }));
+                                        }}
+                                    />
                                 )}
                             </div>
                         ))
@@ -473,15 +469,18 @@ const ContractView = ({
                                 </div>
                             </div>
 
-                            {/* Suggested fix if available */}
+                            {/* Suggested fix if available - Modern Style */}
                             {selectedClause.issue?.suggested_fix && (
-                                <div className="popup-section suggested">
-                                    <label>הצעת תיקון AI:</label>
+                                <div className="popup-section popup-suggested-modern">
+                                    <div className="popup-suggested-header">
+                                        <span className="popup-suggested-icon">💡</span>
+                                        <label>הצעת תיקון AI</label>
+                                    </div>
                                     <div className="popup-suggested-text">
                                         {selectedClause.issue.suggested_fix}
                                     </div>
                                     <button
-                                        className="popup-apply-btn"
+                                        className="popup-apply-btn-modern"
                                         onClick={applySuggestedFix}
                                     >
                                         ✓ החל הצעה

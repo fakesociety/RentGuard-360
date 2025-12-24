@@ -70,7 +70,7 @@ const DashboardPage = () => {
     };
 
     const statCards = [
-        { label: t('dashboard.totalContracts'), value: stats.total, icon: 'contracts', color: '#10b981' },
+        { label: t('dashboard.totalContracts'), value: stats.total, icon: 'contracts', color: '#3b82f6' },
         { label: t('dashboard.analyzed'), value: stats.analyzed, icon: 'check', color: '#10b981' },
         { label: t('dashboard.pending'), value: stats.pending, icon: 'clock', color: '#f59e0b' },
         { label: t('dashboard.highRisk'), value: stats.highRisk, icon: 'alert', color: '#ef4444' },
@@ -145,7 +145,7 @@ const DashboardPage = () => {
             </section>
 
             <section className="actions-section">
-                <h2 className="section-title">פעולות מהירות</h2>
+                <h2 className="section-title">{isRTL ? 'פעולות מהירות' : 'Quick Actions'}</h2>
                 <div className="actions-grid">
                     <Card variant="elevated" padding="lg" className="action-card animate-slideUp" style={{ animationDelay: '400ms' }}>
                         <div className="action-icon-wrapper">

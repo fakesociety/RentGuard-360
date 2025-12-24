@@ -1,10 +1,16 @@
-/* DashboardBento - Premium Bento Grid Layout */
-/* Inspired by Linear, Raycast, Stripe dashboards */
+/* =============================================
+   DashboardBento - Premium Bento Grid Layout
+   ============================================= */
 
 .bento-dashboard {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     padding: 24px;
+    position: relative;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+[data-theme="dark"] .bento-dashboard {
+    background: var(--bg-page);
 }
 
 /* ===== Bento Grid Layout ===== */
@@ -17,29 +23,45 @@
     margin: 0 auto;
 }
 
-/* ===== Base Card Styles ===== */
+/* ===== Base Card Styles - Solid & Professional ===== */
 .bento-card {
-    background: #ffffff;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     padding: 24px;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
+}
+
+/* Dark mode - Solid slate, NO blur */
+[data-theme="dark"] .bento-card {
+    background: #1e293b;
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    box-shadow: none;
 }
 
 .bento-card:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* ===== Hero Welcome Card ===== */
+[data-theme="dark"] .bento-card:hover {
+    border-color: rgba(71, 85, 105, 0.6);
+    background: #1e293b;
+}
+
+/* ===== Hero Welcome Card - Professional ===== */
 .hero-card {
     grid-column: span 4;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     padding: 40px;
     min-height: 160px;
+}
+
+[data-theme="dark"] .hero-card {
+    background: #1e293b;
+    border: 1px solid rgba(51, 65, 85, 0.5);
 }
 
 .hero-pattern {
@@ -49,9 +71,8 @@
     right: 0;
     bottom: 0;
     background-image:
-        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 60% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 30%);
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
     pointer-events: none;
 }
 
@@ -64,26 +85,27 @@
 }
 
 .hero-greeting {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    color: #94a3b8;
     font-weight: 500;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     display: block;
     margin-bottom: 8px;
 }
 
 .hero-name {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #ffffff;
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: #f8fafc;
     margin: 0 0 8px 0;
     line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 15px;
+    color: #64748b;
     margin: 0;
 }
 
@@ -91,17 +113,17 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3));
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(139, 92, 246, 0.1);
+    border: none;
     padding: 8px 16px;
     border-radius: 100px;
     color: #a78bfa;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
     backdrop-filter: blur(8px);
 }
 
-/* ===== Upload Card - Centerpiece ===== */
+/* ===== Upload Card - Vibrant Teal Dropzone ===== */
 .upload-card {
     grid-column: span 2;
     grid-row: span 2;
@@ -110,15 +132,37 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    border: 2px dashed rgba(59, 130, 246, 0.3);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%);
+
+    /* Dashed teal border */
+    border: 2px dashed rgba(20, 184, 166, 0.5);
+    /* teal-500/50 */
+
+    /* Subtle teal background */
+    background: linear-gradient(135deg,
+            rgba(240, 253, 250, 0.8) 0%,
+            /* teal-50 */
+            rgba(204, 251, 241, 0.4) 100%
+            /* teal-100 */
+        );
+
     cursor: pointer;
     min-height: 280px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .upload-card:hover {
-    border-color: rgba(59, 130, 246, 0.5);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(139, 92, 246, 0.04) 100%);
+    /* Intensify on hover */
+    border-color: #14b8a6;
+    /* teal-500 */
+    background: linear-gradient(135deg,
+            rgba(204, 251, 241, 0.6) 0%,
+            /* teal-100 */
+            rgba(153, 246, 228, 0.3) 100%
+            /* teal-200 */
+        );
+    box-shadow:
+        0 0 0 4px rgba(20, 184, 166, 0.1),
+        0 8px 32px rgba(20, 184, 166, 0.15);
 }
 
 .upload-card:hover .upload-glow {
@@ -132,7 +176,7 @@
     transform: translate(-50%, -50%);
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.2) 0%, transparent 70%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -147,46 +191,58 @@
     width: 72px;
     height: 72px;
     border-radius: 20px;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    /* Teal gradient icon */
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    /* teal-500 to teal-600 */
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px;
     color: white;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 8px 24px rgba(20, 184, 166, 0.35);
 }
 
 .upload-card h3 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1e293b;
+    color: #0f766e;
+    /* teal-700 */
     margin: 0 0 8px 0;
 }
 
 .upload-card p {
     font-size: 14px;
-    color: #64748b;
+    color: #5eead4;
+    /* teal-300 - lighter for subtext */
     margin: 0 0 24px 0;
 }
 
+/* Teal outline button */
 .upload-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 12px 28px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
+    /* Teal outline style */
+    background: transparent;
+    border: 2px solid #14b8a6;
+    /* teal-500 */
+    color: #0f766e;
+    /* teal-700 */
     border-radius: 12px;
     font-weight: 600;
     font-size: 15px;
     text-decoration: none;
-    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
     transition: all 0.2s ease;
 }
 
 .upload-btn:hover {
+    background: rgba(20, 184, 166, 0.1);
+    /* teal-500/10 */
+    border-color: #0d9488;
+    /* teal-600 */
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.25);
 }
 
 .upload-dropzone-hint {
@@ -196,7 +252,8 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #94a3b8;
+    color: #2dd4bf;
+    /* teal-400 */
 }
 
 /* ===== Stat Cards ===== */
@@ -520,6 +577,55 @@
 [data-theme="dark"] .bento-card {
     background: rgba(30, 41, 59, 0.8);
     border-color: rgba(71, 85, 105, 0.3);
+}
+
+/* Upload Card Dark Mode - Teal Glassmorphism */
+[data-theme="dark"] .upload-card {
+    background: rgba(20, 184, 166, 0.05);
+    /* teal-500/5 - almost transparent */
+    border: 2px dashed rgba(45, 212, 191, 0.4);
+    /* teal-400/40 */
+}
+
+[data-theme="dark"] .upload-card:hover {
+    background: rgba(20, 184, 166, 0.1);
+    border-color: #2dd4bf;
+    /* teal-400 */
+    box-shadow:
+        0 0 0 4px rgba(45, 212, 191, 0.1),
+        0 0 30px rgba(45, 212, 191, 0.15);
+}
+
+[data-theme="dark"] .upload-card h3 {
+    color: #5eead4 !important;
+    /* teal-300 */
+}
+
+[data-theme="dark"] .upload-card p {
+    color: #94a3b8 !important;
+    /* slate-400 */
+}
+
+[data-theme="dark"] .upload-icon-wrapper {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4);
+}
+
+[data-theme="dark"] .upload-btn {
+    background: transparent;
+    border: 2px solid rgba(45, 212, 191, 0.5);
+    color: #5eead4;
+    /* teal-300 */
+}
+
+[data-theme="dark"] .upload-btn:hover {
+    background: rgba(45, 212, 191, 0.15);
+    border-color: #5eead4;
+}
+
+[data-theme="dark"] .upload-dropzone-hint {
+    color: #2dd4bf;
+    /* teal-400 */
 }
 
 [data-theme="dark"] .hero-card {

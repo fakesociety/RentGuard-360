@@ -710,11 +710,12 @@ const UsersTab = ({ users, searchQuery, setSearchQuery, statusFilter, setStatusF
                         </tr>
                     ) : (
                         users.map(user => (
-                            <tr key={user.username} className={!user.enabled ? 'disabled-user' : ''}>
+                            <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
                                 <td>{user.email || '—'}</td>
                                 <td>{user.name || '—'}</td>
                                 <td>
                                     <span className={`status-badge ${user.enabled ? 'active' : 'disabled'}`}>
+                                        <span className="status-dot"></span>
                                         {user.enabled ? t('admin.active') : t('admin.suspended')}
                                     </span>
                                 </td>
@@ -725,35 +726,35 @@ const UsersTab = ({ users, searchQuery, setSearchQuery, statusFilter, setStatusF
                                     }
                                 </td>
                                 <td className="actions-cell">
-                                    {user.enabled ? (
-                                        <Button
-                                            variant="danger"
-                                            size="small"
-                                            onClick={() => onDisable(user.username)}
-                                            disabled={actionLoading === user.username}
-                                        >
-                                            {actionLoading === user.username ? '...' : `🚫 ${t('admin.disable')}`}
-                                        </Button>
-                                    ) : (
-                                        <div className="action-buttons">
-                                            <Button
-                                                variant="success"
-                                                size="small"
+                                    <div className="action-buttons">
+                                        {user.enabled ? (
+                                            <button
+                                                className="action-icon-btn danger"
+                                                onClick={() => onDisable(user.username)}
+                                                disabled={actionLoading === user.username}
+                                                title={t('admin.disable')}
+                                            >
+                                                {actionLoading === user.username ? '...' : '🚫'}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="action-icon-btn success"
                                                 onClick={() => onEnable(user.username)}
                                                 disabled={actionLoading === user.username}
+                                                title={t('admin.enable')}
                                             >
-                                                {actionLoading === user.username ? '...' : `✅ ${t('admin.enable')}`}
-                                            </Button>
-                                            <Button
-                                                variant="danger"
-                                                size="small"
-                                                onClick={() => onDelete(user.username)}
-                                                disabled={actionLoading === user.username}
-                                            >
-                                                {actionLoading === user.username ? '...' : `🗑️ ${t('admin.delete')}`}
-                                            </Button>
-                                        </div>
-                                    )}
+                                                {actionLoading === user.username ? '...' : '✓'}
+                                            </button>
+                                        )}
+                                        <button
+                                            className="action-icon-btn danger"
+                                            onClick={() => onDelete(user.username)}
+                                            disabled={actionLoading === user.username}
+                                            title={t('admin.delete')}
+                                        >
+                                            {actionLoading === user.username ? '...' : '🗑'}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))

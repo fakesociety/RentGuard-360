@@ -1,32 +1,78 @@
-/* Admin Dashboard Styles - Dark/Light Mode Compatible */
+/* ============================================
+   ADMIN DASHBOARD - DEEP SPACE PREMIUM
+   Linear/Raycast-inspired $100M SaaS Aesthetic
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ==========================================
+   DEEP SPACE ENVIRONMENT
+   ========================================== */
 
 .admin-dashboard {
     min-height: calc(100vh - 80px);
-    padding: 30px 20px;
+    padding: 32px 24px;
     max-width: 1400px;
     margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
 }
 
-/* Theme-specific colors */
+/* DARK MODE - Deep Space with Premium Lighting */
 .admin-dashboard.dark {
-    --admin-bg: var(--bg-primary, #0f0f23);
-    --admin-card-bg: var(--bg-card, #1a1a2e);
-    --admin-text: var(--text-primary, #ffffff);
-    --admin-text-secondary: var(--text-secondary, rgba(255, 255, 255, 0.7));
-    --admin-border: rgba(255, 255, 255, 0.1);
-    --admin-hover: rgba(255, 255, 255, 0.05);
+    /* Absolute black base */
+    background-color: #030711;
+
+    /* Multi-layered atmospheric lighting */
+    background-image:
+        /* Primary purple/blue spotlight */
+        radial-gradient(ellipse 80% 80% at 50% -25%, rgba(120, 119, 198, 0.15), transparent),
+        /* Secondary green accent */
+        radial-gradient(ellipse 60% 60% at 80% 10%, rgba(16, 185, 129, 0.08), transparent),
+        /* Blue side accent */
+        radial-gradient(ellipse 50% 50% at 10% 30%, rgba(59, 130, 246, 0.05), transparent),
+        /* Grid texture */
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+
+    /* Theme Variables - Premium Glass */
+    --admin-card-bg: rgba(17, 24, 39, 0.5);
+    --admin-card-border: rgba(255, 255, 255, 0.05);
+    --admin-card-border-hover: rgba(120, 119, 198, 0.3);
+    --admin-card-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    --admin-card-glow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --admin-text: #f9fafb;
+    --admin-text-secondary: #d1d5db;
+    --admin-text-muted: #6b7280;
+    --admin-border: rgba(255, 255, 255, 0.04);
+    --admin-glow-green: rgba(16, 185, 129, 0.4);
+    --admin-glow-blue: rgba(59, 130, 246, 0.4);
+    --admin-glow-purple: rgba(139, 92, 246, 0.4);
+    --admin-green: #10b981;
 }
 
+/* LIGHT MODE - Clean & Professional */
 .admin-dashboard.light {
-    --admin-bg: var(--bg-primary, #f8fafc);
-    --admin-card-bg: var(--bg-card, #ffffff);
-    --admin-text: var(--text-primary, #1a1a2e);
-    --admin-text-secondary: var(--text-secondary, rgba(0, 0, 0, 0.6));
-    --admin-border: rgba(0, 0, 0, 0.1);
-    --admin-hover: rgba(0, 0, 0, 0.03);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+
+    --admin-card-bg: rgba(255, 255, 255, 0.95);
+    --admin-card-border: rgba(15, 23, 42, 0.08);
+    --admin-card-border-hover: rgba(59, 130, 246, 0.25);
+    --admin-card-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    --admin-card-glow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --admin-text: #0f172a;
+    --admin-text-secondary: #334155;
+    --admin-text-muted: #64748b;
+    --admin-border: rgba(15, 23, 42, 0.06);
+    --admin-glow-green: transparent;
+    --admin-green: #059669;
 }
 
-/* Access Denied */
+/* ==========================================
+   ACCESS DENIED
+   ========================================== */
+
 .access-denied {
     display: flex;
     flex-direction: column;
@@ -38,76 +84,111 @@
 
 .access-denied h1 {
     font-size: 2rem;
-    margin-bottom: 10px;
+    font-weight: 700;
+    margin-bottom: 12px;
     color: var(--admin-text);
 }
 
 .access-denied p {
-    color: var(--admin-text-secondary);
+    color: var(--admin-text-muted);
 }
 
-/* Header */
+/* ==========================================
+   HEADER
+   ========================================== */
+
 .admin-header {
-    margin-bottom: 30px;
+    margin-bottom: 36px;
 }
 
 .admin-header h1 {
-    font-size: 2rem;
-    margin-bottom: 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 4px;
     color: var(--admin-text);
+    letter-spacing: -0.02em;
 }
 
 .admin-header p {
-    color: var(--admin-text-secondary);
-    font-size: 1rem;
+    color: var(--admin-text-muted);
+    font-size: 0.875rem;
 }
 
-/* Tabs */
+/* ==========================================
+   TABS - Glass Style
+   ========================================== */
+
 .admin-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--admin-border);
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    padding: 4px;
+    background: var(--admin-card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 14px;
+    border: 1px solid var(--admin-card-border);
+    box-shadow: var(--admin-card-highlight);
 }
 
-/* Content */
+.admin-tabs button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+}
+
+.admin-tabs button:hover {
+    color: var(--admin-text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* ==========================================
+   CONTENT
+   ========================================== */
+
 .admin-content {
     min-height: 400px;
 }
 
-/* Error Banner */
 .error-banner {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
-    padding: 15px 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    background: rgba(239, 68, 68, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    padding: 14px 18px;
+    border-radius: 14px;
+    margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
+    font-size: 0.875rem;
 }
 
-/* Loading State */
 .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px;
-    color: var(--admin-text-secondary);
+    padding: 100px;
+    color: var(--admin-text-muted);
 }
 
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--admin-border);
-    border-top-color: var(--primary, #3b82f6);
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.06);
+    border-top-color: var(--admin-neon-green);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
+    animation: spin 0.7s linear infinite;
+    margin-bottom: 16px;
+    box-shadow: 0 0 20px var(--admin-glow-green);
 }
 
 @keyframes spin {
@@ -116,61 +197,93 @@
     }
 }
 
-/* Stats Dashboard */
+/* ==========================================
+   STATS DASHBOARD
+   ========================================== */
+
 .stats-dashboard {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-}
-
-/* Summary Cards Row */
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
 
+/* ==========================================
+   HYPER-GLASS CARDS
+   ========================================== */
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
 .summary-card {
+    /* Deep gray translucent */
     background: var(--admin-card-bg);
-    border: 1px solid var(--admin-border);
+
+    /* Heavy blur */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+
+    /* Barely visible border */
+    border: 1px solid var(--admin-card-border);
+
+    /* Inner light - 3D glass effect */
+    box-shadow: var(--admin-card-highlight);
+
     border-radius: 16px;
-    padding: 24px;
+    padding: 20px 22px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    transition: all 0.3s ease;
+    gap: 14px;
+
+    /* Smooth hover transition */
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
+/* Hover - green border glow */
 .summary-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    background: rgba(31, 41, 55, 0.6);
+    border-color: var(--admin-card-border-hover);
+    transform: translateY(-2px);
+    box-shadow:
+        var(--admin-card-highlight),
+        0 0 30px -5px var(--admin-glow-green);
 }
 
+/* Icon with neon glow */
 .summary-card .card-icon {
-    font-size: 2.5rem;
-    width: 60px;
-    height: 60px;
+    font-size: 1.25rem;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    background: rgba(59, 130, 246, 0.1);
+    flex-shrink: 0;
+    position: relative;
 }
 
 .summary-card.contracts .card-icon {
-    background: rgba(59, 130, 246, 0.15);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
+    color: #60a5fa;
 }
 
 .summary-card.analyzed .card-icon {
-    background: rgba(34, 197, 94, 0.15);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+    color: #10b981;
 }
 
 .summary-card.users .card-icon {
-    background: rgba(168, 85, 247, 0.15);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05));
+    color: #a78bfa;
 }
 
 .summary-card.time .card-icon {
-    background: rgba(245, 158, 11, 0.15);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05));
+    color: #fbbf24;
 }
 
 .summary-card .card-info {
@@ -178,58 +291,115 @@
     flex-direction: column;
 }
 
+/* Typography - Small caps labels */
+.summary-card .card-label {
+    font-size: 10px;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+/* Typography - Gradient numbers */
 .summary-card .card-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--admin-text);
+    line-height: 1;
+    letter-spacing: -0.02em;
+
+    /* Gradient text effect */
+    background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.summary-card .card-label {
-    font-size: 0.875rem;
-    color: var(--admin-text-secondary);
+/* Contracts card - blue value */
+.summary-card.contracts .card-value {
+    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-/* Charts Grid */
+/* Trend badge */
+.summary-card .card-trend {
+    display: inline-flex;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 100px;
+    margin-top: 6px;
+    width: fit-content;
+}
+
+.summary-card .card-trend.positive {
+    background: rgba(52, 211, 153, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+/* ==========================================
+   CHART CARDS - Premium Glass with Glow
+   ========================================== */
+
 .charts-grid {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 24px;
+    gap: 14px;
 }
 
 .chart-card {
     background: var(--admin-card-bg);
-    border: 1px solid var(--admin-border);
-    border-radius: 16px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--admin-card-border);
+    box-shadow: var(--admin-card-highlight), var(--admin-card-glow);
+    border-radius: 20px;
     padding: 24px;
-    transition: all 0.3s ease;
-}
-
-.chart-card-wide {
-    min-width: 400px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chart-card:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border-color: var(--admin-card-border-hover);
+    box-shadow:
+        var(--admin-card-highlight),
+        var(--admin-card-glow),
+        0 0 40px -10px var(--admin-glow-purple);
+}
+
+.chart-card-wide {
+    min-width: 0;
 }
 
 .line-chart-container {
     overflow-x: auto;
 }
 
+/* Chart Headers - Typography Hierarchy */
 .chart-card h3 {
-    font-size: 1rem;
+    font-size: 11px;
     font-weight: 600;
-    color: var(--admin-text);
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
     margin-bottom: 20px;
-    padding-bottom: 12px;
+    padding-bottom: 14px;
     border-bottom: 1px solid var(--admin-border);
+}
+
+/* Neon Chart Lines */
+.admin-dashboard.dark .chart-card svg path[stroke],
+.admin-dashboard.dark .chart-card svg line {
+    filter: drop-shadow(0 0 8px var(--admin-glow-blue));
 }
 
 .chart-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 200px;
+    min-height: 180px;
 }
 
 .gauge-container {
@@ -240,42 +410,40 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    text-align: center;
-    font-weight: 600;
-    color: var(--admin-text-secondary);
-    margin-top: 10px;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    margin-top: 8px;
 }
 
 .risk-dot {
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    flex-shrink: 0;
 }
 
 .no-data {
-    color: var(--admin-text-secondary);
-    font-style: italic;
+    color: var(--admin-text-muted);
+    font-size: 0.8125rem;
 }
 
 .stats-footer {
     text-align: center;
-    font-size: 0.875rem;
-    color: var(--admin-text-secondary);
-    margin-top: 20px;
-    padding-top: 20px;
+    font-size: 0.6875rem;
+    color: var(--admin-text-muted);
+    margin-top: 16px;
+    padding-top: 14px;
     border-top: 1px solid var(--admin-border);
 }
 
-/* Chart Header with Date Range Selector */
+/* Chart Header */
 .chart-header {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--admin-border);
 }
 
@@ -283,248 +451,172 @@
     margin: 0;
     padding: 0;
     border: none;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--admin-text);
 }
 
 .date-range-selector {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
 }
 
 .date-range-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
 }
 
+/* Glass Buttons */
 .range-btn {
-    padding: 6px 12px;
-    font-size: 0.75rem;
+    padding: 5px 10px;
+    font-size: 0.625rem;
     font-weight: 500;
-    border: 1px solid var(--admin-border);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    background: var(--admin-card-bg);
-    color: var(--admin-text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--admin-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .range-btn:hover {
-    background: var(--admin-hover);
-    color: var(--admin-text);
-    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--admin-text-secondary);
 }
 
 .range-btn.active {
-    background: #22c55e;
-    color: #ffffff;
-    border-color: #22c55e;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
-/* Year Picker Dropdown */
 .year-picker {
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border: 1px solid var(--admin-border);
+    padding: 5px 8px;
+    font-size: 0.625rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    background: var(--admin-card-bg);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--admin-text);
     cursor: pointer;
-    transition: all 0.2s ease;
     appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    padding-right: 20px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 14px;
-    padding-right: 28px;
-    min-width: 80px;
-}
-
-.year-picker:hover {
-    background-color: var(--admin-hover);
-    border-color: rgba(34, 197, 94, 0.3);
-}
-
-.year-picker:focus {
-    outline: none;
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-}
-
-.year-picker option {
-    background: var(--admin-card-bg);
-    color: var(--admin-text);
+    background-position: right 4px center;
+    background-size: 10px;
 }
 
 .custom-date-range {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 
 .date-input {
-    padding: 6px 10px;
-    font-size: 0.75rem;
-    border: 1px solid var(--admin-border);
+    padding: 5px 6px;
+    font-size: 0.625rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    background: var(--admin-card-bg);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--admin-text);
-    cursor: pointer;
 }
 
 .date-input:focus {
     outline: none;
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    border-color: var(--admin-neon-green);
+    box-shadow: 0 0 10px var(--admin-glow-green);
 }
 
 .date-separator {
-    color: var(--admin-text-secondary);
-    font-size: 0.875rem;
+    color: var(--admin-text-muted);
+    font-size: 0.6875rem;
 }
 
-/* Dark mode specific for date inputs */
 .admin-dashboard.dark .date-input {
     color-scheme: dark;
 }
 
-.admin-dashboard.light .date-input {
-    color-scheme: light;
+/* Risk Legend */
+.risk-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    margin-top: 12px;
+    border: 1px solid var(--admin-border);
 }
 
-/* Users Tab */
+.risk-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--admin-text-muted);
+}
+
+/* Glowing dots */
+.risk-legend .legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.risk-legend .legend-item.excellent .dot {
+    background: #22c55e;
+}
+
+.risk-legend .legend-item.good .dot {
+    background: #10b981;
+}
+
+.risk-legend .legend-item.warning .dot {
+    background: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+}
+
+.risk-legend .legend-item.danger .dot {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ==========================================
+   USERS TAB
+   ========================================== */
+
 .users-tab {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
 }
 
-.search-form {
-    display: flex;
-    gap: 12px;
-}
-
-.search-input {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1px solid var(--admin-border);
-    border-radius: 10px;
-    font-size: 1rem;
-    background: var(--admin-card-bg);
-    color: var(--admin-text);
-    transition: all 0.2s;
-}
-
-.search-input::placeholder {
-    color: var(--admin-text-secondary);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary, #3b82f6);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-/* Users Table */
-.users-table-wrapper {
-    overflow-x: auto;
-    border-radius: 12px;
-    border: 1px solid var(--admin-border);
-}
-
-.users-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--admin-card-bg);
-}
-
-.users-table th,
-.users-table td {
-    padding: 16px 20px;
-    text-align: right;
-    border-bottom: 1px solid var(--admin-border);
-    color: var(--admin-text);
-}
-
-[dir="ltr"] .users-table th,
-[dir="ltr"] .users-table td {
-    text-align: left;
-}
-
-.users-table th {
-    background: var(--admin-hover);
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--admin-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.users-table tbody tr {
-    transition: background 0.2s;
-}
-
-.users-table tbody tr:hover {
-    background: var(--admin-hover);
-}
-
-.users-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.users-table .disabled-user {
-    opacity: 0.6;
-}
-
-.users-table .no-data {
-    text-align: center !important;
-    color: var(--admin-text-secondary);
-    padding: 40px !important;
-}
-
-/* Status Badge */
-.status-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.status-badge.active {
-    background: rgba(34, 197, 94, 0.15);
-    color: #22c55e;
-}
-
-.status-badge.disabled {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-}
-
-.users-count {
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--admin-text-secondary);
-}
-
-/* Users Controls - Search and Filters */
 .users-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 10px;
     align-items: center;
 }
 
 .search-container {
     flex: 1;
-    min-width: 250px;
+    min-width: 220px;
     position: relative;
 }
 
@@ -533,8 +625,9 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1rem;
+    font-size: 0.8125rem;
     pointer-events: none;
+    opacity: 0.4;
 }
 
 [dir="rtl"] .search-icon {
@@ -542,115 +635,526 @@
     right: 14px;
 }
 
-.search-container .search-input {
+.search-input {
     width: 100%;
-    padding-left: 42px;
+    padding: 10px 16px 10px 38px;
+    border: 1px solid var(--admin-card-border);
+    border-radius: 12px;
+    font-size: 0.8125rem;
+    background: var(--admin-card-bg);
+    color: var(--admin-text);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
 }
 
 [dir="rtl"] .search-container .search-input {
     padding-left: 16px;
-    padding-right: 42px;
+    padding-right: 38px;
 }
 
-/* Status Filter Buttons */
+.search-input::placeholder {
+    color: var(--admin-text-muted);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--admin-neon-green);
+    box-shadow: 0 0 20px var(--admin-glow-green);
+}
+
 .status-filter-buttons {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 4px;
 }
 
+/* Glass filter buttons */
 .filter-btn {
-    padding: 8px 16px;
-    font-size: 0.875rem;
+    padding: 9px 14px;
+    font-size: 0.75rem;
     font-weight: 500;
-    border: 1px solid var(--admin-border);
-    border-radius: 8px;
-    background: var(--admin-card-bg);
-    color: var(--admin-text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--admin-text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
-    background: var(--admin-hover);
-    color: var(--admin-text);
-    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .filter-btn.active {
-    background: #10b981;
-    color: #ffffff;
-    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.35);
 }
 
-/* Action Buttons Container */
-.actions-cell {
-    min-width: 180px;
+/* ==========================================
+   LIVING USER TABLE
+   ========================================== */
+
+.users-table-wrapper {
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid var(--admin-card-border);
+    background: var(--admin-card-bg);
+    backdrop-filter: blur(24px);
+    box-shadow: var(--admin-card-highlight);
 }
 
-[dir="rtl"] .actions-cell {
-    padding-right: 24px !important;
-    /* Move buttons away from the line (right edge) */
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 14px 18px;
     text-align: right;
+    color: var(--admin-text);
+}
+
+[dir="ltr"] .users-table th,
+[dir="ltr"] .users-table td {
+    text-align: left;
+}
+
+/* Header - Transparent, uppercase */
+.users-table th {
+    background: transparent;
+    font-weight: 600;
+    font-size: 10px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Ghost Rows */
+.users-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+/* Hover - Soft white glow */
+.users-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.users-table td {
+    font-size: 0.8125rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.users-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.users-table .disabled-user {
+    opacity: 0.35;
+}
+
+.users-table .no-data {
+    text-align: center !important;
+    padding: 48px !important;
+}
+
+/* GLOWING DOT STATUS BADGES */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #d1d5db;
+    background: transparent;
+}
+
+/* Pulsing dots */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+}
+
+/* Active - Green dot */
+.status-badge.active .status-dot {
+    background: #10b981;
+}
+
+/* Disabled - Red dot */
+.status-badge.disabled .status-dot {
+    background: #f43f5e;
+}
+
+.users-count {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+}
+
+/* Actions */
+.actions-cell {
+    min-width: 90px;
+    text-align: center !important;
 }
 
 .action-buttons {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
 }
 
-[dir="rtl"] .action-buttons {
-    justify-content: flex-start;
-}
-
-/* Risk Score Legend */
-.risk-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 14px 18px;
-    background: var(--admin-hover);
-    border-radius: 10px;
-    margin-top: 16px;
-}
-
-.risk-legend .legend-item {
-    display: flex;
+/* Glass Icon Buttons */
+.action-icon-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.75rem;
-    font-weight: 500;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--admin-text-secondary);
+}
+
+.action-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
     color: var(--admin-text);
 }
 
-.risk-legend .legend-item .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+.action-icon-btn.success {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.3);
 }
 
-.risk-legend .legend-item.excellent .dot {
-    background: #22c55e;
-    /* Green - Low Risk */
+.action-icon-btn.success:hover {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.5);
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
 }
 
-.risk-legend .legend-item.good .dot {
-    background: #14b8a6;
-    /* Teal - Low-Medium Risk */
+.action-icon-btn.danger {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
 }
 
-.risk-legend .legend-item.warning .dot {
-    background: #f59e0b;
-    /* Orange - Medium Risk */
+.action-icon-btn.danger:hover {
+    background: rgba(248, 113, 113, 0.15);
+    border-color: rgba(248, 113, 113, 0.5);
+    box-shadow: 0 0 15px rgba(248, 113, 113, 0.3);
 }
 
-.risk-legend .legend-item.danger .dot {
+.action-icon-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* ==========================================
+   MODAL - Frosted Glass
+   ========================================== */
+
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.admin-modal {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 26px 30px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+        0 0 80px rgba(16, 185, 129, 0.1),
+        0 25px 80px rgba(0, 0, 0, 0.7);
+    animation: modalIn 0.25s ease-out;
+    backdrop-filter: blur(24px);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.admin-modal h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--admin-text);
+}
+
+.admin-modal p {
+    margin: 0 0 22px 0;
+    color: var(--admin-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.admin-modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+[dir="rtl"] .admin-modal .modal-actions {
+    justify-content: flex-start;
+}
+
+.modal-warning h3 {
+    color: #fbbf24;
+}
+
+.modal-error h3 {
+    color: #f87171;
+}
+
+.modal-success h3 {
+    color: #4ade80;
+}
+
+/* ==========================================
+   MUI CHARTS - Neon Glow Effects
+   ========================================== */
+
+.admin-dashboard.dark .MuiChartsLegend-label {
+    fill: #e5e7eb !important;
+}
+
+.admin-dashboard.dark .MuiChartsAxis-tickLabel {
+    fill: #6b7280 !important;
+}
+
+.admin-dashboard.dark .MuiChartsAxis-line {
+    stroke: rgba(255, 255, 255, 0.04) !important;
+}
+
+.admin-dashboard.dark .MuiChartsGrid-line {
+    stroke: rgba(255, 255, 255, 0.03) !important;
+    stroke-dasharray: 4 4;
+}
+
+/* Neon glowing chart line */
+.admin-dashboard.dark .MuiLineElement-root {
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+}
+
+.admin-dashboard.dark .MuiAreaElement-root {
+    fill-opacity: 0.2;
+}
+
+/* ==========================================
+   LIGHT MODE OVERRIDES - Professional Look
+   ========================================== */
+
+/* Remove all neon glows in light mode */
+.admin-dashboard.light .summary-card .card-icon {
+    box-shadow: none;
+}
+
+.admin-dashboard.light .summary-card.contracts .card-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.admin-dashboard.light .summary-card.analyzed .card-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.admin-dashboard.light .summary-card.users .card-icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+}
+
+.admin-dashboard.light .summary-card.time .card-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+/* Light mode card value - solid dark text */
+.admin-dashboard.light .summary-card .card-value {
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: #0f172a;
+    background-clip: unset;
+    color: #0f172a;
+}
+
+/* Contracts card - blue value also in light mode */
+.admin-dashboard.light .summary-card.contracts .card-value {
+    -webkit-text-fill-color: #2563eb;
+    color: #2563eb;
+}
+
+/* Light mode hover - subtle blue instead of green glow */
+.admin-dashboard.light .summary-card:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Light mode status badges - no glow */
+.admin-dashboard.light .status-badge.active {
+    color: #059669;
+    filter: none;
+}
+
+.admin-dashboard.light .status-badge.active .status-dot {
+    background: #10b981;
+    box-shadow: none;
+}
+
+.admin-dashboard.light .status-badge.disabled {
+    color: #dc2626;
+    filter: none;
+}
+
+.admin-dashboard.light .status-badge.disabled .status-dot {
     background: #ef4444;
-    /* Red - High Risk */
+    box-shadow: none;
 }
 
-/* Responsive */
+/* Light mode action buttons - professional */
+.admin-dashboard.light .action-icon-btn {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #64748b;
+}
+
+.admin-dashboard.light .action-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #334155;
+}
+
+.admin-dashboard.light .action-icon-btn.success {
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.admin-dashboard.light .action-icon-btn.success:hover {
+    background: rgba(16, 185, 129, 0.1);
+    box-shadow: none;
+}
+
+.admin-dashboard.light .action-icon-btn.danger {
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.admin-dashboard.light .action-icon-btn.danger:hover {
+    background: rgba(220, 38, 38, 0.1);
+    box-shadow: none;
+}
+
+/* Light mode filter buttons */
+.admin-dashboard.light .filter-btn {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #64748b;
+}
+
+.admin-dashboard.light .filter-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.admin-dashboard.light .filter-btn.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Light mode range buttons */
+.admin-dashboard.light .range-btn {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #64748b;
+}
+
+.admin-dashboard.light .range-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.admin-dashboard.light .range-btn.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-color: rgba(59, 130, 246, 0.25);
+    box-shadow: none;
+}
+
+/* Light mode search input */
+.admin-dashboard.light .search-input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Light mode legend dots - no glow */
+.admin-dashboard.light .risk-legend .legend-item .dot {
+    box-shadow: none;
+    animation: none;
+}
+
+/* Light mode loading spinner */
+.admin-dashboard.light .loading-spinner {
+    border-top-color: #2563eb;
+    box-shadow: none;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
 @media (max-width: 1200px) {
     .charts-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -669,138 +1173,19 @@
 
 @media (max-width: 600px) {
     .admin-dashboard {
-        padding: 20px 15px;
+        padding: 20px 16px;
     }
 
     .admin-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .admin-tabs {
-        flex-wrap: wrap;
+        font-size: 1.25rem;
     }
 
     .summary-cards {
         grid-template-columns: 1fr;
     }
 
-    .search-form {
-        flex-direction: column;
-    }
-
     .users-table th,
     .users-table td {
         padding: 12px 14px;
-        font-size: 0.875rem;
     }
-}
-
-/* MUI Charts Dark Mode Override */
-.admin-dashboard.dark .MuiChartsLegend-label {
-    fill: #ffffff !important;
-}
-
-.admin-dashboard.dark .MuiChartsAxis-tickLabel {
-    fill: rgba(255, 255, 255, 0.7) !important;
-}
-
-.admin-dashboard.dark .MuiChartsAxis-line {
-    stroke: rgba(255, 255, 255, 0.2) !important;
-}
-
-.admin-dashboard.light .MuiChartsLegend-label {
-    fill: #1a1a2e !important;
-}
-
-.admin-dashboard.light .MuiChartsAxis-tickLabel {
-    fill: rgba(0, 0, 0, 0.6) !important;
-}
-
-.admin-dashboard.light .MuiChartsAxis-line {
-    stroke: rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Modal Styles */
-.admin-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.admin-modal {
-    background: var(--admin-card-bg);
-    border: 1px solid var(--admin-border);
-    border-radius: 16px;
-    padding: 28px 32px;
-    max-width: 440px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    animation: slideUp 0.25s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.admin-modal h3 {
-    margin: 0 0 12px 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--admin-text);
-}
-
-.admin-modal p {
-    margin: 0 0 24px 0;
-    color: var(--admin-text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-
-.admin-modal .modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-}
-
-[dir="rtl"] .admin-modal .modal-actions {
-    justify-content: flex-start;
-}
-
-.modal-warning h3 {
-    color: #f59e0b;
-}
-
-.modal-error h3 {
-    color: #ef4444;
-}
-
-.modal-success h3 {
-    color: #22c55e;
 }

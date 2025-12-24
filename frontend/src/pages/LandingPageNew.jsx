@@ -43,7 +43,7 @@ const DashboardMockup = ({ isRTL }) => (
                 {isRTL ? 'גרור חוזה לכאן להעלאה' : 'Drag contract here to upload'}
             </p>
             <p className="mock-upload-hint">
-                {isRTL ? 'או לחץ לבחירת קובץ • PDF עד 10MB' : 'or click to select file • PDF up to 10MB'}
+                {isRTL ? 'או לחץ לבחירת קובץ • PDF עד 25MB' : 'or click to select file • PDF up to 25MB'}
             </p>
             <button className="mock-upload-btn">
                 {isRTL ? 'בחר קובץ' : 'Select File'}

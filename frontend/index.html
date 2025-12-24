@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>RentGuard 360</title>
+    <style>
+      body { margin: 0; background: #0B0E13; }
+      #root:empty::after {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 40px;
+        margin: calc(50vh - 20px) auto;
+        border: 3px solid #1E2530;
+        border-top-color: #10B981;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
     <div id="root"></div>

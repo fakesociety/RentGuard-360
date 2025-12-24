@@ -156,13 +156,15 @@ const UploadPage = () => {
                             onDragLeave={handleDragLeave}
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
+                            onClick={() => !file && fileInputRef.current?.click()}
+                            style={{ cursor: file ? 'default' : 'pointer' }}
                         >
                             {!file ? (
                                 <div className="drop-content">
                                     <div className="drop-icon">📄</div>
                                     <h3>{t('upload.dragDrop')}</h3>
                                     <p>{t('upload.or')}</p>
-                                    <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
+                                    <Button variant="secondary" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
                                         {t('upload.selectFile')}
                                     </Button>
                                     <p className="drop-hint">{t('upload.maxSize')}</p>

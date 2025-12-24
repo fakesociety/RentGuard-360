@@ -5,8 +5,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeToggle } from './components/Toggle';
 import LanguageToggle from './components/LanguageToggle';
 import Button from './components/Button';
-import Card from './components/Card';
-import Input from './components/Input';
+import { Shield } from 'lucide-react';
 import DashboardPage from './pages/DashboardPage';
 import DashboardBento from './pages/DashboardBento';
 import UploadPage from './pages/UploadPage';
@@ -81,7 +80,7 @@ const Navigation = () => {
       <div className="nav-inner">
         {/* Logo - Keep English */}
         <Link to="/dashboard" className="nav-logo">
-          <span className="logo-icon">🛡️</span>
+          <Shield size={22} className="logo-icon" />
           <span className="logo-text">RentGuard 360</span>
         </Link>
 

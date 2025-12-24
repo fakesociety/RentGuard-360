@@ -305,7 +305,7 @@
 .recommendation-text {
     margin: 0 0 16px 0;
     font-size: 15px;
-    color: #047857;
+    color: #000000;
     line-height: 1.8;
     font-weight: 500;
 }
@@ -498,8 +498,8 @@
 }
 
 [data-theme="dark"] .recommendation-section .section-icon {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    background: oklab(71.319% -0.12169 0.03627 / 0.2);
+    color: #ffffff;
 }
 
 [data-theme="dark"] .recommendation-box {
@@ -508,7 +508,11 @@
 }
 
 [data-theme="dark"] .recommendation-text {
-    color: #d1fae5;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .recommendation-box .recommendation-text {
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .copy-button {
