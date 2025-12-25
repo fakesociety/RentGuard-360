@@ -498,7 +498,6 @@
 }
 
 [data-theme="dark"] .recommendation-section .section-icon {
-    background: oklab(71.319% -0.12169 0.03627 / 0.2);
     color: #ffffff;
 }
 

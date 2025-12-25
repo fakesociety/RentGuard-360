@@ -570,7 +570,7 @@ const LandingPageNew = () => {
                 >
                     {isPaused && <span className="carousel-paused">⏸</span>}
                     <button className="carousel-arrow" onClick={prevSlide} aria-label="Previous">
-                        {isRTL ? '›' : '‹'}
+                        ‹
                     </button>
                     <div className="carousel-content" key={currentSlide}>
                         <div className="carousel-icon">{benefits[currentSlide].icon}</div>
@@ -578,7 +578,7 @@ const LandingPageNew = () => {
                         <p>{isRTL ? benefits[currentSlide].descHe : benefits[currentSlide].descEn}</p>
                     </div>
                     <button className="carousel-arrow" onClick={nextSlide} aria-label="Next">
-                        {isRTL ? '‹' : '›'}
+                        ›
                     </button>
                 </motion.div>
                 <div className="carousel-dots">

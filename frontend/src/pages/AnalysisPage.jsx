@@ -26,101 +26,6 @@ const AnalysisPage = () => {
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
     const [editedClauses, setEditedClauses] = useState({});
     const [copiedIndex, setCopiedIndex] = useState(null);
-
-    // ========== MOCK DATA FOR TESTING ==========
-    const USE_MOCK = false; // Set to true for local testing without backend
-
-    const MOCK_ANALYSIS = {
-        contractId: 'mock-contract-123',
-        fileName: 'חוזה_שכירות_לדוגמה.pdf',
-        uploadDate: new Date().toISOString(),
-        analysis_result: {
-            is_contract: true,
-            overall_risk_score: 62,
-            score_breakdown: {
-                financial_terms: { score: 14, deductions: [{ rule: 'F1', points: -6, reason: 'ערבון גבוה מדי' }] },
-                tenant_rights: { score: 12, deductions: [{ rule: 'T1', points: -8, reason: 'חסר התראה לפני כניסה' }] },
-                termination_clauses: { score: 16, deductions: [{ rule: 'E1', points: -4, reason: 'תנאי יציאה לא ברורים' }] },
-                liability_repairs: { score: 10, deductions: [{ rule: 'L2', points: -10, reason: 'בלאי סביר על השוכר' }] },
-                legal_compliance: { score: 10, deductions: [{ rule: 'C3', points: -10, reason: 'ויתור על זכויות סטטוטוריות' }] }
-            },
-            summary: 'חוזה שכירות בלתי מוגנת לתקופה של 12 חודשים. נמצאו 4 סעיפים לתשומת לב, מתוכם 2 בסיכון גבוה. מומלץ לנהל משא ומתן על סעיפי הקנסות.',
-            issues: [
-                {
-                    rule_id: 'F1',
-                    clause_topic: 'קנס איחור בתשלום',
-                    original_text: 'במקרה של איחור בתשלום שכר הדירה יחויב השוכר בקנס של 500 ₪ לכל יום איחור ללא הגבלה.',
-                    risk_level: 'High',
-                    penalty_points: 8,
-                    legal_basis: 'חוק שכירות הוגנת 2017 - סעיף 25',
-                    explanation: 'קנס איחור של 500 ₪ ליום הוא מוגזם ועלול להיחשב כסעיף מקפח. לפי החוק, קנסות צריכים להיות סבירים ומידתיים.',
-                    suggested_fix: 'במקרה של איחור בתשלום שכר הדירה מעל 7 ימים, יחויב השוכר בריבית פיגורים של 2% לחודש, ולא יותר מ-10% מסכום החוב.'
-                },
-                {
-                    rule_id: 'T1',
-                    clause_topic: 'כניסה לדירה ללא התראה',
-                    original_text: 'המשכיר רשאי להיכנס לדירה בכל עת לצורך בדיקות ותיקונים.',
-                    risk_level: 'High',
-                    penalty_points: 7,
-                    legal_basis: 'זכות הפרטיות - חוק יסוד כבוד האדם וחירותו',
-                    explanation: 'כניסה ללא התראה מראש פוגעת בפרטיות השוכר. החוק דורש התראה מראש.',
-                    suggested_fix: 'המשכיר רשאי להיכנס לדירה לצורך בדיקות ותיקונים, בתיאום מראש של 48 שעות לפחות, למעט במקרי חירום.'
-                },
-                {
-                    rule_id: 'E1',
-                    clause_topic: 'ביטול חוזה מיידי',
-                    original_text: 'המשכיר רשאי לבטל את החוזה באופן מיידי וללא התראה אם השוכר הפר תנאי כלשהו.',
-                    risk_level: 'Medium',
-                    penalty_points: 5,
-                    legal_basis: 'חוק שכירות הוגנת 2017 - סעיף 18',
-                    explanation: 'ביטול מיידי ללא התראה אינו הוגן. יש לתת לשוכר הזדמנות לתקן הפרות.',
-                    suggested_fix: 'המשכיר יהיה רשאי לבטל את החוזה לאחר מתן התראה בכתב של 30 יום, ולאחר שניתנה לשוכר הזדמנות סבירה לתקן את ההפרה.'
-                },
-                {
-                    rule_id: 'L2',
-                    clause_topic: 'בלאי סביר',
-                    original_text: 'השוכר אחראי לכל נזק לדירה כולל בלאי סביר.',
-                    risk_level: 'Low',
-                    penalty_points: 3,
-                    legal_basis: 'חוק שכירות הוגנת 2017 - סעיף 6',
-                    explanation: 'בלאי סביר הוא באחריות המשכיר על פי חוק. סעיף זה מנוגד לחוק.',
-                    suggested_fix: 'השוכר אחראי לנזקים שנגרמו באשמתו, למעט בלאי סביר הנובע משימוש רגיל בדירה.'
-                }
-            ]
-        },
-        sanitizedText: `חוזה שכירות בלתי מוגנת
-
-1. הצדדים לחוזה
-המשכיר: ישראל ישראלי, ת.ז. 123456789
-השוכר: יעקב כהן, ת.ז. 987654321
-
-2. תקופת השכירות
-תקופת השכירות הינה 12 חודשים, החל מתאריך 01/01/2025 ועד 31/12/2025.
-
-3. דמי שכירות
-דמי השכירות החודשיים הינם 5,000 ₪, ישולמו עד ה-5 לכל חודש.
-
-4. קנס איחור בתשלום
-במקרה של איחור בתשלום שכר הדירה יחויב השוכר בקנס של 500 ₪ לכל יום איחור ללא הגבלה.
-
-5. כניסה לדירה
-המשכיר רשאי להיכנס לדירה בכל עת לצורך בדיקות ותיקונים.
-
-6. ביטול חוזה
-המשכיר רשאי לבטל את החוזה באופן מיידי וללא התראה אם השוכר הפר תנאי כלשהו.
-
-7. אחריות לנזקים
-השוכר אחראי לכל נזק לדירה כולל בלאי סביר.
-
-8. ערבון
-השוכר ישלם ערבון בסך 15,000 ₪ עם חתימת החוזה.
-
-חתימות:
-_________________    _________________
-    המשכיר              השוכר`
-    };
-    // ========== END MOCK DATA ==========
-
     const [pollCount, setPollCount] = useState(0);
     const MAX_POLL_ATTEMPTS = 12; // 12 attempts = ~2 minutes total
     const INITIAL_DELAY = 15000; // Wait 15s before first poll (analysis takes 30-60s)
@@ -162,15 +67,6 @@ _________________    _________________
             }
             // Don't reset error during polling - otherwise the polling useEffect won't trigger
             // setError(null) will happen when data is successfully fetched
-
-            // Use mock data for testing
-            if (USE_MOCK) {
-                console.log('Using MOCK data for testing');
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
-                setAnalysis(MOCK_ANALYSIS);
-                setError(null);
-                return;
-            }
 
             const decodedId = decodeURIComponent(contractId);
             console.log('Fetching analysis for:', decodedId);

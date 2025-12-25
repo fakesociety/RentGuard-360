@@ -7,7 +7,6 @@ import LanguageToggle from './components/LanguageToggle';
 import Button from './components/Button';
 import { Shield } from 'lucide-react';
 import DashboardPage from './pages/DashboardPage';
-import DashboardBento from './pages/DashboardBento';
 import UploadPage from './pages/UploadPage';
 import ContractsPage from './pages/ContractsPage';
 import AnalysisPage from './pages/AnalysisPage';
@@ -195,7 +194,6 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/dashboard-demo" element={<ProtectedRoute><DashboardBento /></ProtectedRoute>} />
           <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
           <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
           <Route path="/analysis/:contractId" element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>} />
