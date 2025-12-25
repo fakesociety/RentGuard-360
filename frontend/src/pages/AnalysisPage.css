@@ -118,6 +118,8 @@
     line-height: 1.8;
     margin: 0;
     text-align: start;
+    unicode-bidi: plaintext;
+    /* Auto-detect text direction - English shows LTR, Hebrew shows RTL */
 }
 
 /* Old summary style (fallback) */

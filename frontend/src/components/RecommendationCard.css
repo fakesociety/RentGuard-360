@@ -137,12 +137,6 @@
     backdrop-filter: none;
 }
 
-[data-theme="dark"] .recommendation-icon,
-.dark .recommendation-icon,
-:root.dark .recommendation-icon {
-    color: #451a03 !important;
-    /* very dark brown */
-}
 
 [data-theme="dark"] .recommendation-title,
 .dark .recommendation-title,
