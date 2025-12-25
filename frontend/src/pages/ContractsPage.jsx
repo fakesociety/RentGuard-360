@@ -115,9 +115,15 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
 
             {/* Card Footer - Actions */}
             <div className="card-footer">
-                <Link to={`/analysis/${encodeURIComponent(contract.contractId)}`} className="view-btn">
-                    {t('contracts.viewAnalysis')}
-                </Link>
+                {isAnalyzed ? (
+                    <Link to={`/analysis/${encodeURIComponent(contract.contractId)}`} className="view-btn">
+                        {t('contracts.viewAnalysis')}
+                    </Link>
+                ) : (
+                    <span className="view-btn disabled">
+                        {isFailed ? (isRTL ? 'ניתוח נכשל' : 'Analysis Failed') : (isRTL ? 'ממתין...' : 'Pending...')}
+                    </span>
+                )}
                 <div className="action-buttons">
                     {/* Export Dropdown */}
                     <div className="dropdown-container">

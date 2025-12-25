@@ -576,6 +576,16 @@
     color: #059669;
 }
 
+.view-btn.disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.view-btn.disabled:hover {
+    color: #94a3b8;
+}
+
 .action-buttons {
     display: flex;
     gap: 4px;
