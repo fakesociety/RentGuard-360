@@ -7,38 +7,8 @@ import { ThemeToggle } from '../components/Toggle';
 import LanguageToggle from '../components/LanguageToggle';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2, X } from 'lucide-react';
-import Footer from '../components/Footer';
+import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2 } from 'lucide-react';
 import './LandingPageNew.css';
-
-// Registration Prompt Modal Component
-const RegisterPromptModal = ({ isOpen, onClose, onRegister, isRTL }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="register-prompt-backdrop" onClick={onClose}>
-            <div className="register-prompt-modal" onClick={(e) => e.stopPropagation()}>
-                <button className="modal-close-btn" onClick={onClose}>
-                    <X size={20} />
-                </button>
-                <div className="modal-icon">
-                    <Shield size={48} />
-                </div>
-                <h3>{isRTL ? 'הרשמה נדרשת' : 'Registration Required'}</h3>
-                <p>
-                    {isRTL
-                        ? 'כדי להעלות ולנתח חוזים, יש להירשם לאתר בחינם.'
-                        : 'To upload and analyze contracts, please register for free.'}
-                </p>
-                <button className="cta-btn large" onClick={onRegister}>
-                    {isRTL ? 'הרשמה חינם' : 'Register Free'}
-                </button>
-                <p className="modal-note">
-                    {isRTL ? '✨ ללא צורך בכרטיס אשראי' : '✨ No credit card required'}
-                </p>
-            </div>
-        </div>
-    );
-};
 
 // Animation variants
 const fadeInUp = {
@@ -53,7 +23,7 @@ const staggerChildren = {
 // ===== CSS MOCKUPS - Matching actual app design =====
 
 // Dashboard Mockup (exactly like UploadPage)
-const DashboardMockup = ({ isRTL, onUploadClick }) => (
+const DashboardMockup = ({ isRTL }) => (
     <div className="mockup-dashboard-real">
         {/* Header Bar */}
         <div className="mock-header">
@@ -65,7 +35,7 @@ const DashboardMockup = ({ isRTL, onUploadClick }) => (
         </div>
 
         {/* Upload Zone - Exactly like our UploadPage */}
-        <div className="mock-upload-zone" onClick={onUploadClick} style={{ cursor: 'pointer' }}>
+        <div className="mock-upload-zone">
             <div className="mock-upload-icon">
                 <Upload size={48} strokeWidth={1.5} />
             </div>
@@ -75,7 +45,7 @@ const DashboardMockup = ({ isRTL, onUploadClick }) => (
             <p className="mock-upload-hint">
                 {isRTL ? 'או לחץ לבחירת קובץ • PDF עד 25MB' : 'or click to select file • PDF up to 25MB'}
             </p>
-            <button className="mock-upload-btn" onClick={(e) => { e.stopPropagation(); onUploadClick(); }}>
+            <button className="mock-upload-btn">
                 {isRTL ? 'בחר קובץ' : 'Select File'}
             </button>
         </div>
@@ -100,7 +70,7 @@ const DashboardMockup = ({ isRTL, onUploadClick }) => (
 );
 
 // Live Demo - Contracts Grid Mockup (exactly like ContractsPage cards view)
-const ContractsGridMockup = ({ isRTL, onViewClick }) => (
+const ContractsGridMockup = ({ isRTL }) => (
     <div className="mockup-contracts-grid">
         {/* Contract Card 1 - SAFE (Green) */}
         <div className="mock-contract-card">
@@ -136,7 +106,7 @@ const ContractsGridMockup = ({ isRTL, onViewClick }) => (
                 </div>
             </div>
             <div className="card-actions">
-                <button className="action-link" onClick={onViewClick}>{isRTL ? 'צפה בניתוח' : 'View Analysis'}</button>
+                <button className="action-link">{isRTL ? 'צפה בניתוח' : 'View Analysis'}</button>
                 <div className="action-icons">
                     <Download size={16} />
                     <Edit2 size={16} />
@@ -234,33 +204,13 @@ const ContractsGridMockup = ({ isRTL, onViewClick }) => (
 );
 
 // Contract Viewer Mockup (like our AnalysisPage)
-const ContractViewerMockup = ({ isRTL, onScoreClick }) => (
+const ContractViewerMockup = ({ isRTL }) => (
     <div className="mockup-viewer-real">
         {/* Sidebar Score Summary */}
         <div className="mock-sidebar">
-            <div className="mock-score-circle-svg" onClick={onScoreClick} style={{ cursor: 'pointer' }}>
-                <svg viewBox="0 0 36 36" className="circular-progress">
-                    {/* Background circle */}
-                    <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="rgba(245, 158, 11, 0.2)"
-                        strokeWidth="3"
-                    />
-                    {/* Progress circle - 62% */}
-                    <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#F59E0B"
-                        strokeWidth="3"
-                        strokeDasharray="62, 100"
-                        strokeLinecap="round"
-                    />
-                </svg>
-                <div className="score-text">
-                    <span className="mock-score-value">62</span>
-                    <span className="mock-score-label">/100</span>
-                </div>
+            <div className="mock-score-circle">
+                <span className="mock-score-value">62</span>
+                <span className="mock-score-label">/100</span>
             </div>
             <span className="mock-risk-badge warning">{isRTL ? 'סיכון בינוני' : 'Medium Risk'}</span>
             <div className="mock-breakdown">
@@ -358,9 +308,6 @@ const LandingPageNew = () => {
     const [loading, setLoading] = useState(false);
     const [tempEmail, setTempEmail] = useState('');
     const dropdownRef = useRef(null);
-
-    // Registration prompt state
-    const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
 
     // Carousel state
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -607,7 +554,7 @@ const LandingPageNew = () => {
                     animate={{ opacity: 1, y: 0, rotateY: 0 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
                 >
-                    <DashboardMockup isRTL={isRTL} onUploadClick={() => setShowRegisterPrompt(true)} />
+                    <DashboardMockup isRTL={isRTL} />
                 </motion.div>
             </section>
 
@@ -662,7 +609,7 @@ const LandingPageNew = () => {
                     animate={contractsInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <ContractsGridMockup isRTL={isRTL} onViewClick={() => setShowRegisterPrompt(true)} />
+                    <ContractsGridMockup isRTL={isRTL} />
                 </motion.div>
             </section>
 
@@ -674,7 +621,7 @@ const LandingPageNew = () => {
                     animate={featureInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.6 }}
                 >
-                    <ContractViewerMockup isRTL={isRTL} onScoreClick={() => setShowRegisterPrompt(true)} />
+                    <ContractViewerMockup isRTL={isRTL} />
                 </motion.div>
 
                 <motion.div
@@ -709,18 +656,20 @@ const LandingPageNew = () => {
             </section>
 
             {/* ===== FOOTER ===== */}
-            <Footer />
-
-            {/* Registration Prompt Modal */}
-            <RegisterPromptModal
-                isOpen={showRegisterPrompt}
-                onClose={() => setShowRegisterPrompt(false)}
-                onRegister={() => {
-                    setShowRegisterPrompt(false);
-                    toggleAuth('register');
-                }}
-                isRTL={isRTL}
-            />
+            <footer className="lr-footer">
+                <div className="footer-content">
+                    <div className="footer-logo">
+                        <Shield size={20} />
+                        <span>RentGuard 360</span>
+                    </div>
+                    <p className="footer-credit">
+                        {isRTL ? 'נבנה באהבה ע"י' : 'Built with ❤️ by'}{' '}
+                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                        {' & '}
+                        <a href="https://github.com/MoTy" target="_blank" rel="noopener noreferrer">Moty</a>
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 };
