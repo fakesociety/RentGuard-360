@@ -6,11 +6,11 @@
    ============================================ */
 :root {
     /* Background Colors - 3-Level Hierarchy */
-    --bg-page: #E5E7EB;
-    /* Level 1: Page background (visible gray for contrast) */
+    --bg-page: #F0F2F5;
+    /* Level 1: Page background (slightly gray) */
     --bg-card: #FFFFFF;
     /* Level 2: Card surfaces (pure white) */
-    --bg-inset: #F3F4F6;
+    --bg-inset: #F7F8FA;
     /* Level 3: Inset/nested elements */
 
     /* Legacy aliases for compatibility */

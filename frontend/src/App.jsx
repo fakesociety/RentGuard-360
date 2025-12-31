@@ -160,10 +160,10 @@ const Navigation = () => {
           ))}
           <div className="mobile-menu-divider"></div>
           <Link to="/settings" className="mobile-menu-link" onClick={() => setShowMobileMenu(false)}>
-            <span>הגדרות</span>
+            <span>{t('nav.settings')}</span>
           </Link>
           <button className="mobile-menu-link logout" onClick={handleLogout}>
-            <span>התנתקות</span>
+            <span>{t('nav.logout')}</span>
           </button>
         </div>
       )}
@@ -181,7 +181,7 @@ function App() {
     return (
       <div className="app-loading">
         <div className="loading-spinner"></div>
-        <p>טוען RentGuard 360...</p>
+        <p>Loading RentGuard 360...</p>
       </div>
     );
   }

@@ -38,7 +38,7 @@
 }
 
 .logo-icon {
-  color: #3b82f6;
+  color: var(--accent-primary);
   flex-shrink: 0;
 }
 

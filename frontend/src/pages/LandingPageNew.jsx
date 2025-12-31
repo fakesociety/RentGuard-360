@@ -8,6 +8,7 @@ import LanguageToggle from '../components/LanguageToggle';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2 } from 'lucide-react';
+import Footer from '../components/Footer';
 import './LandingPageNew.css';
 
 // Animation variants
@@ -302,6 +303,7 @@ const LandingPageNew = () => {
     const [authModal, setAuthModal] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
@@ -400,6 +402,13 @@ const LandingPageNew = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            setError(isRTL ? 'הסיסמאות לא תואמות' : 'Passwords do not match');
+            return;
+        }
+
         setLoading(true);
         const result = await register(email, password, name);
         if (result.success) {
@@ -490,6 +499,8 @@ const LandingPageNew = () => {
                                 <Input type="password" label={t('auth.password')} value={password}
                                     onChange={(e) => setPassword(e.target.value)} required
                                     helperText={t('auth.passwordHint')} />
+                                <Input type="password" label={isRTL ? 'אימות סיסמה' : 'Confirm Password'} value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)} required />
                                 {error && <p className="auth-error">{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.registerButton')}
@@ -656,20 +667,7 @@ const LandingPageNew = () => {
             </section>
 
             {/* ===== FOOTER ===== */}
-            <footer className="lr-footer">
-                <div className="footer-content">
-                    <div className="footer-logo">
-                        <Shield size={20} />
-                        <span>RentGuard 360</span>
-                    </div>
-                    <p className="footer-credit">
-                        {isRTL ? 'נבנה באהבה ע"י' : 'Built with ❤️ by'}{' '}
-                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
-                        {' & '}
-                        <a href="https://github.com/MoTy" target="_blank" rel="noopener noreferrer">Moty</a>
-                    </p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

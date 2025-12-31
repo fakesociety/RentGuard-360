@@ -141,10 +141,10 @@ const AnalysisPage = () => {
 
     if (isLoading) {
         return (
-            <div className="analysis-page" dir="rtl">
+            <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="loading-state">
                     <div className="loading-spinner"></div>
-                    <p>טוען תוצאות ניתוח...</p>
+                    <p>{t('analysis.loading')}</p>
                 </div>
             </div>
         );
