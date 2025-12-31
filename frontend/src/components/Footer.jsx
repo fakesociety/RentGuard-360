@@ -1,40 +1,72 @@
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Shield } from 'lucide-react';
+import { Shield, Cloud, Lock, Cpu, Mail, Clock } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
-    const currentYear = new Date().getFullYear();
     const { isRTL } = useLanguage();
-    const { isDark } = useTheme();
+    const { theme } = useTheme();
 
     return (
-        <footer className={`app-footer ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <footer className={`app-footer ${theme}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="footer-container">
-                <div className="footer-content">
-
-                    {/* Logo */}
-                    <div className="footer-brand">
-                        <Shield size={22} className="footer-shield" />
-                        <span className="footer-name">RentGuard 360</span>
+                {/* Main Row - 3 Columns */}
+                <div className="footer-row">
+                    {/* Column 1: Logo & Brand */}
+                    <div className="footer-col col-brand">
+                        <div className="footer-logo">
+                            <Shield size={18} className="footer-shield" />
+                            <span className="footer-name">RentGuard 360</span>
+                        </div>
+                        <p className="footer-tagline">
+                            {isRTL ? 'ההגנה שלך בחוזה השכירות' : 'Your Rental Contract Guardian'}
+                        </p>
                     </div>
 
-                    {/* Credits */}
-                    <div className="footer-credits">
-                        <span>{isRTL ? 'נבנה ע"י' : 'Built by'}</span>
-                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
-                        <span>&</span>
-                        <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
-                        <span className="footer-divider">|</span>
-                        <span>{isRTL ? 'פרויקט גמר מחשוב ענן' : 'Cloud Computing Final Project'}</span>
+                    {/* Column 2: Features */}
+                    <div className="footer-col col-features">
+                        <div className="features-row">
+                            <div className="footer-feature">
+                                <Cloud size={14} />
+                                <span>{isRTL ? 'אחסון מאובטח' : 'Secure Storage'}</span>
+                            </div>
+                            <div className="footer-feature">
+                                <Lock size={14} />
+                                <span>{isRTL ? 'ללא מידע אישי' : 'No Personal Data'}</span>
+                            </div>
+                            <div className="footer-feature">
+                                <Cpu size={14} />
+                                <span>{isRTL ? 'AI מתקדם' : 'Advanced AI'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Column 3: Contact & Credits */}
+                    <div className="footer-col col-contact">
+                        <div className="contact-inner">
+                            <div className="contact-row">
+                                <Mail size={14} />
+                                <a href="mailto:projForruppin@gmail.com">projForruppin@gmail.com</a>
+                            </div>
+                            <div className="contact-row">
+                                <Clock size={14} />
+                                <span>{isRTL ? 'תגובה עד 24 שעות' : 'Response within 24h'}</span>
+                            </div>
+                            <div className="credits-row">
+                                {isRTL ? 'נבנה ע"י' : 'Built by'}{' '}
+                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                                {' & '}
+                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Copyright */}
-                <p className="footer-copyright">
-                    © {currentYear} RentGuard 360
-                </p>
+                {/* Copyright Row */}
+                <div className="footer-copyright">
+                    © 2025 RentGuard 360 | AI-Lawyers Team
+                </div>
             </div>
         </footer>
     );
