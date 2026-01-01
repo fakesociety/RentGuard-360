@@ -38,19 +38,37 @@ def lambda_handler(event, context):
         # Parse request body
         body = json.loads(event.get('body', '{}'))
         
+        # SECURITY FIX: Extract userId from JWT token claims (not body!)
+        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+        user_id = claims.get('sub')  # 'sub' is the Cognito user ID
+        
+        # Fallback for transition period (TODO: remove after full deployment)
+        if not user_id:
+            user_id = body.get('userId', '').strip()
+            print(f"WARNING: Using userId from body - this is deprecated!")
+        
         contract_id = body.get('contractId', '').strip()
-        user_id = body.get('userId', '').strip()
         edited_clauses = body.get('editedClauses', {})
         full_edited_text = body.get('fullEditedText', '')
         
         # Validate required fields
-        if not all([contract_id, user_id]):
+        if not contract_id:
             return {
                 'statusCode': 400,
                 'headers': headers,
                 'body': json.dumps({
                     'success': False,
-                    'error': 'contractId and userId are required'
+                    'error': 'contractId is required'
+                })
+            }
+        
+        if not user_id:
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Unauthorized - no valid user identity'
                 })
             }
         
@@ -67,8 +85,9 @@ def lambda_handler(event, context):
         timestamp = datetime.utcnow().isoformat()
         
         # 1. Save edited contract text to S3
-        # Create a new key for the edited version
-        edited_key = contract_id.replace('.pdf', '') + f'_edited_{timestamp.replace(":", "-")}.txt'
+        # OPTIMIZATION: Use a fixed key for the edited version to avoid spamming S3 with multiple versions
+        # This will overwrite the previous edited version
+        edited_key = contract_id.replace('.pdf', '') + '_edited.txt'
         
         s3.put_object(
             Bucket=BUCKET_NAME,
@@ -83,34 +102,18 @@ def lambda_handler(event, context):
             }
         )
         
-        # 2. Update DynamoDB with edit history
+        # 2. Update DynamoDB
         table = dynamodb.Table(TABLE_NAME)
         
-        # Get current item to find existing edits
-        try:
-            response = table.get_item(Key={'contractId': contract_id})
-            existing_item = response.get('Item', {})
-            edit_history = existing_item.get('editHistory', [])
-        except Exception:
-            edit_history = []
-        
-        # Add new edit entry
-        new_edit = {
-            'timestamp': timestamp,
-            'editedKey': edited_key,
-            'clausesEdited': len(edited_clauses),
-            'actions': {k: v.get('action', 'unknown') for k, v in edited_clauses.items()}
-        }
-        edit_history.append(new_edit)
-        
-        # Update the contract record
+        # Update the contract record with the latest edit info
+        # We perform an UPSERT on the specific edit fields rather than appending to a history list
         table.update_item(
             Key={'contractId': contract_id},
-            UpdateExpression='SET editHistory = :history, lastEditedAt = :timestamp, editedVersion = :version',
+            UpdateExpression='SET lastEditedAt = :timestamp, editedVersion = :version, editsCount = :count',
             ExpressionAttributeValues={
-                ':history': edit_history,
                 ':timestamp': timestamp,
-                ':version': edited_key
+                ':version': edited_key,
+                ':count': len(edited_clauses)
             }
         )
         

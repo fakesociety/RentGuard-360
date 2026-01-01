@@ -140,6 +140,7 @@ const translations = {
             sortBy: 'מיון לפי:',
             sortDate: 'תאריך',
             sortScore: 'ציון סיכון',
+            uploadDate: 'תאריך העלאה',
         },
         // Upload Page
         upload: {
@@ -148,7 +149,7 @@ const translations = {
             dragDrop: 'שחררו את ה-PDF כאן',
             or: 'או לחצו לבחירת קובץ',
             selectFile: 'בחירת קבצים',
-            maxSize: 'גודל מקסימלי: 25MB | PDF בלבד',
+            maxSize: 'גודל מקסימלי: 5MB | PDF בלבד',
             termsLabel: 'אני מאשר/ת שקראתי והבנתי את',
             termsLink: 'תנאי השימוש ומדיניות הפרטיות',
             uploadBtn: 'העלאת חוזה לניתוח',
@@ -182,7 +183,9 @@ const translations = {
             iAgree: 'קראתי ואני מסכים/ה',
             close: 'סגור',
             pdfOnly: 'רק קבצי PDF מותרים',
-            fileTooLarge: 'גודל הקובץ חייב להיות פחות מ-25MB',
+            fileTooLarge: 'גודל הקובץ חייב להיות פחות מ-5MB',
+            fileTooSmall: 'הקובץ קטן מדי - ייתכן שהוא ריק או פגום',
+            fileNameTooLong: 'שם הקובץ ארוך מדי (מקסימום 100 תווים)',
             uploadFailed: 'ההעלאה נכשלה. נסו שוב.',
         },
         // Analysis Page
@@ -430,6 +433,7 @@ const translations = {
             sortBy: 'Sort by:',
             sortDate: 'Date',
             sortScore: 'Risk Score',
+            uploadDate: 'Upload Date',
         },
         // Upload Page
         upload: {
@@ -438,7 +442,7 @@ const translations = {
             dragDrop: 'Drop PDF here',
             or: 'or click to select file',
             selectFile: 'Select Files',
-            maxSize: 'Max size: 25MB | PDF only',
+            maxSize: 'Max size: 5MB | PDF only',
             termsLabel: 'I confirm that I have read and understood the',
             termsLink: 'Terms of Service and Privacy Policy',
             uploadBtn: 'Upload Contract for Analysis',
@@ -472,7 +476,9 @@ const translations = {
             iAgree: 'I have read and agree',
             close: 'Close',
             pdfOnly: 'Only PDF files are allowed',
-            fileTooLarge: 'File size must be less than 25MB',
+            fileTooLarge: 'File size must be less than 5MB',
+            fileTooSmall: 'File is too small - may be empty or corrupted',
+            fileNameTooLong: 'Filename is too long (max 100 characters)',
             uploadFailed: 'Upload failed. Please try again.',
         },
         // Analysis Page

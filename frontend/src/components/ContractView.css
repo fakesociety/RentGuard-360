@@ -192,13 +192,20 @@
     margin: 0;
 }
 
-.consult-btn {
+/* Clause Actions Container */
+.clause-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
+}
+
+/* Generalized Action Button */
+.action-btn {
     width: 32px;
     height: 32px;
     border: none;
     border-radius: 50%;
-    background: #f0f0f0;
     cursor: pointer;
     font-size: 1rem;
     display: flex;
@@ -207,13 +214,47 @@
     transition: all 0.15s ease;
 }
 
-.consult-btn:hover:not(:disabled) {
-    background: #e0e0e0;
+.action-btn:hover:not(:disabled) {
     transform: scale(1.1);
 }
 
-.consult-btn:disabled {
+.action-btn:disabled {
     opacity: 0.5;
+}
+
+/* Consult Button Specifics */
+.consult-btn {
+    background: #f0f0f0;
+}
+
+.consult-btn:hover:not(:disabled) {
+    background: #e0e0e0;
+}
+
+/* Revert Button Specifics */
+.revert-btn {
+    background: #fee2e2;
+    color: #dc2626 !important;
+}
+
+.revert-btn:hover {
+    background: #fecaca;
+}
+
+/* Popup Revert Button */
+.popup-revert-btn {
+    padding: 12px 24px;
+    background: #fee2e2;
+    color: #b91c1c !important;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.popup-revert-btn:hover {
+    background: #fecaca;
 }
 
 /* ===== AI Explanation ===== */
@@ -420,6 +461,55 @@
 .save-status.error {
     color: #dc2626 !important;
     background: rgba(239, 68, 68, 0.12);
+}
+
+/* Clear Edits Button */
+.export-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #f0f0f0;
+    color: #666666 !important;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.export-btn-secondary:hover {
+    background: #e0e0e0;
+    border-color: #c0c0c0;
+    color: #dc2626 !important;
+}
+
+/* Save to Cloud Button */
+.export-btn-cloud {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+}
+
+.export-btn-cloud:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.export-btn-cloud:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* ===== Hebrew Popup Editor ===== */

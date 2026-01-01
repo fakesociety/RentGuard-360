@@ -143,7 +143,7 @@ const ContactPage = () => {
                                 </li>
                                 <li>
                                     <strong>{isRTL ? 'בעיות בהעלאה?' : 'Upload issues?'}</strong>
-                                    <span>{isRTL ? 'וודאו שהקובץ בפורמט PDF ומתחת ל-25MB.' : 'Make sure the file is PDF format and under 25MB.'}</span>
+                                    <span>{isRTL ? 'וודאו שהקובץ בפורמט PDF ומתחת ל-5MB.' : 'Make sure the file is PDF format and under 5MB.'}</span>
                                 </li>
                                 <li>
                                     <strong>{isRTL ? 'שאלות על התוצאות?' : 'Questions about results?'}</strong>

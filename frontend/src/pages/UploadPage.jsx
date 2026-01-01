@@ -32,12 +32,20 @@ const UploadPage = () => {
     const [showTermsModal, setShowTermsModal] = useState(false);
 
     const validateFile = (file) => {
-        const maxSize = 25 * 1024 * 1024; // 25MB
+        const maxSize = 5 * 1024 * 1024; // 5MB - standard for rental contracts
+        const minSize = 30 * 1024; // 30KB - minimum for a valid PDF with content
+        const maxFileNameLength = 100; // Max filename length
         if (!file.type.includes('pdf')) {
             return t('upload.pdfOnly');
         }
         if (file.size > maxSize) {
             return t('upload.fileTooLarge');
+        }
+        if (file.size < minSize) {
+            return t('upload.fileTooSmall');
+        }
+        if (file.name.length > maxFileNameLength) {
+            return t('upload.fileNameTooLong');
         }
         return null;
     };

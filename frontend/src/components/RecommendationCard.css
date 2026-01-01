@@ -71,14 +71,17 @@
 }
 
 /* ===== Button ===== */
+.recommendation-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
 .recommendation-apply-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    align-self: flex-start;
-    margin-right: 28px;
-    margin-top: 4px;
     padding: 8px 16px;
     min-width: 100px;
     background: #ffffff;
@@ -97,11 +100,45 @@
     border-color: #fbbf24;
 }
 
-.recommendation-apply-btn.applied {
-    background: #fef3c7;
-    border-color: #fcd34d;
-    color: #92400e;
-    cursor: default;
+/* Applied State Container */
+.applied-state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Applied Text Badge */
+.applied-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #059669;
+    /* Green text */
+    font-family: 'Heebo', 'Assistant', 'Segoe UI', sans-serif;
+}
+
+/* Revert Button */
+.recommendation-revert-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: 'Heebo', 'Assistant', 'Segoe UI', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recommendation-revert-btn:hover {
+    background: #fecaca;
+    transform: translateY(-1px);
 }
 
 .recommendation-apply-btn svg {

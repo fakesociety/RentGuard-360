@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { getAnalysis, consultClause, saveEditedContract } from '../services/api';
 import { exportToWord, exportToPDF, exportEditedContract } from '../services/ExportService';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -14,9 +14,12 @@ import './LegalCard.css';
 
 const AnalysisPage = () => {
     const { contractId } = useParams();
+    const { state } = useLocation(); // Get passed state from navigation
     const { t, isRTL } = useLanguage();
-    const [analysis, setAnalysis] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+
+    // Initialize with passed contract data if available (instant load)
+    const [analysis, setAnalysis] = useState(state?.contract || null);
+    const [isLoading, setIsLoading] = useState(!state?.contract); // Only show loading if no data passed
     const [error, setError] = useState(null);
     const [expandedIssue, setExpandedIssue] = useState(null);
     const [consultingIssue, setConsultingIssue] = useState(null);
@@ -71,7 +74,15 @@ const AnalysisPage = () => {
             const decodedId = decodeURIComponent(contractId);
             console.log('Fetching analysis for:', decodedId);
             const data = await getAnalysis(decodedId);
-            setAnalysis(data);
+            setAnalysis(prev => ({
+                ...prev, // Keep existing metadata (like from navigation state)
+                ...data, // Overwrite with fresh data
+                // Ensure metadata persists if api returns nulls but we had them in state
+                fileName: data.fileName || prev?.fileName || data.fileName,
+                propertyAddress: data.propertyAddress || prev?.propertyAddress || data.propertyAddress,
+                landlordName: data.landlordName || prev?.landlordName || data.landlordName,
+                uploadDate: data.uploadDate || prev?.uploadDate || data.uploadDate,
+            }));
             setError(null); // Clear error on success
         } catch (err) {
             console.error('Failed to fetch analysis:', err);
@@ -197,21 +208,42 @@ const AnalysisPage = () => {
                 {/* Sticky Sidebar - Left */}
                 <aside className="analysis-sidebar">
                     <Card variant="glass" padding="md" className="sidebar-card">
-                        {/* Contract Info */}
-                        <div className="contract-details">
-                            <div className="contract-file-icon">📄</div>
-                            <h3 className="contract-file-name">
-                                {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
-                            </h3>
-                            {analysis?.propertyAddress && (
-                                <p className="contract-meta-item">📍 {analysis.propertyAddress}</p>
-                            )}
-                            {analysis?.landlordName && (
-                                <p className="contract-meta-item">👤 {analysis.landlordName}</p>
-                            )}
-                            {analysis?.uploadDate && (
-                                <p className="contract-meta-item">📅 {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}</p>
-                            )}
+                        {/* Contract Brand Card - Premium Design */}
+                        <div className="contract-hero-card animate-slideIn">
+                            <div className="contract-card-header">
+                                <div className="contract-icon-wrapper">
+                                    <span className="contract-icon-main">📄</span>
+                                    <div className="icon-glow"></div>
+                                </div>
+                                <h3 className="contract-hero-title">
+                                    {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
+                                </h3>
+                            </div>
+
+                            <div className="contract-hero-meta">
+                                {analysis?.propertyAddress && (
+                                    <div className="meta-block">
+                                        <span className="meta-label">{t('contracts.propertyAddress')}</span>
+                                        <span className="meta-value address-value">{analysis.propertyAddress}</span>
+                                    </div>
+                                )}
+                                <div className="meta-row">
+                                    {analysis?.landlordName && (
+                                        <div className="meta-block half-width">
+                                            <span className="meta-label">{t('contracts.landlordName')}</span>
+                                            <span className="meta-value">{analysis.landlordName}</span>
+                                        </div>
+                                    )}
+                                    {analysis?.uploadDate && (
+                                        <div className="meta-block half-width">
+                                            <span className="meta-label">{t('contracts.uploadDate')}</span>
+                                            <span className="meta-value">
+                                                {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         <div className="sidebar-divider"></div>
@@ -466,11 +498,21 @@ const AnalysisPage = () => {
                     )}
 
                     {activeTab === 'issues' && issues.length === 0 && (
-                        <Card variant="glass" padding="lg" className="no-issues animate-slideUp">
+                        <Card variant="glass" padding="lg" className={`no-issues animate-slideUp ${result?.is_contract === false ? 'not-contract' : ''}`}>
                             <div className="no-issues-content">
-                                <span className="no-issues-icon">✅</span>
-                                <h3>{t('analysis.noIssues')}</h3>
-                                <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
+                                {result?.is_contract === false ? (
+                                    <>
+                                        <span className="no-issues-icon warning">⚠️</span>
+                                        <h3>{isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}</h3>
+                                        <p>{isRTL ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. אנא העלו חוזה שכירות למגורים בפורמט PDF.' : 'The uploaded document does not appear to be a valid rental contract. Please upload a residential rental contract in PDF format.'}</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="no-issues-icon">✅</span>
+                                        <h3>{t('analysis.noIssues')}</h3>
+                                        <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
+                                    </>
+                                )}
                             </div>
                         </Card>
                     )}
@@ -481,6 +523,7 @@ const AnalysisPage = () => {
                             contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
                             backendClauses={analysis?.clauses_list || analysis?.clauses || []}
                             issues={issues}
+                            contractId={analysis?.contractId || contractId}
                             onClauseChange={(clauseId, text, action) => {
                                 setEditedClauses(prev => ({
                                     ...prev,

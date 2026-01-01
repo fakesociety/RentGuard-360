@@ -169,6 +169,27 @@ def create_fallback_response(error_message):
     }
 
 
+def detect_language(text):
+    """Simple language detection - checks if text is primarily Hebrew/English."""
+    if not text or len(text) < 100:
+        return 'unknown'
+    
+    sample = text[:2000]  # Check first 2000 chars
+    hebrew_count = sum(1 for c in sample if '\u0590' <= c <= '\u05FF')
+    english_count = sum(1 for c in sample if 'a' <= c.lower() <= 'z')
+    other_count = sum(1 for c in sample if ord(c) > 127 and not ('\u0590' <= c <= '\u05FF'))
+    
+    total_letters = hebrew_count + english_count + other_count
+    if total_letters == 0:
+        return 'unknown'
+    
+    # If more than 30% is non-Hebrew/English characters, it's probably unsupported
+    if other_count / total_letters > 0.3:
+        return 'unsupported'
+    
+    return 'supported'
+
+
 def recalculate_scores(analysis_json):
     """
     חישוב ציון מסונכרן לחלוטין.
@@ -275,6 +296,22 @@ def lambda_handler(event, context):
                 'contractId': contract_id,
                 'analysis_result': {'error': 'No text', 'is_contract': False, 'overall_risk_score': 0, 'issues': []},
                 'bucket': bucket, 'key': key, 'clauses': clauses_list, 'sanitizedText': ''
+            }
+        
+        # Check language support
+        lang = detect_language(sanitized_text)
+        if lang == 'unsupported':
+            return {
+                'contractId': contract_id,
+                'analysis_result': {
+                    'error': 'המסמך בשפה לא נתמכת',
+                    'error_en': 'Document is in an unsupported language',
+                    'is_contract': False,
+                    'overall_risk_score': 0,
+                    'issues': [],
+                    'summary': 'המערכת תומכת רק בחוזים בעברית או באנגלית.'
+                },
+                'bucket': bucket, 'key': key, 'clauses': clauses_list, 'sanitizedText': sanitized_text
             }
         
         MAX_TEXT = 25000
