@@ -10,8 +10,8 @@
     /* Level 1: Page background (slightly gray) */
     --bg-card: #FFFFFF;
     /* Level 2: Card surfaces (pure white) */
-    --bg-inset: #F7F8FA;
-    /* Level 3: Inset/nested elements */
+    --bg-inset: #E8EBEF;
+    /* Level 3: Inset/nested elements (darker for visible contrast) */
 
     /* Legacy aliases for compatibility */
     --bg-primary: var(--bg-page);
@@ -176,8 +176,8 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
-    max-width: 100vw;
+    overflow-x: clip;
+    max-width: 100%;
 }
 
 body {
@@ -189,8 +189,8 @@ body {
     background-color: var(--bg-primary);
     transition: background-color var(--transition-normal), color var(--transition-normal);
     -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden;
-    max-width: 100vw;
+    overflow-x: clip;
+    max-width: 100%;
 
     /* App-like feel: disable text selection globally */
     -webkit-user-select: none;
@@ -203,6 +203,57 @@ body {
 
 #root {
     min-height: 100vh;
+}
+
+/* ============================================
+   REUSABLE PAGE CONTAINER
+   Use this class on all page wrappers for:
+   - Full-width background
+   - Centered content (max 1200px)
+   ============================================ */
+.page-container {
+    min-height: 100vh;
+    padding: var(--space-xl) var(--space-md);
+    background: var(--bg-page);
+}
+
+.page-container>*:not(.section-band):not(.section-band-alt) {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   SECTION BANDS - Alternating Backgrounds
+   Use for complex pages with gray/white sections
+   ============================================ */
+
+/* Full-width section with PAGE background (gray) */
+.section-band {
+    width: 100vw;
+    /* Logical properties work for both LTR and RTL */
+    margin-inline: calc(-50vw + 50%);
+    padding: var(--space-2xl) var(--space-md);
+    background: var(--bg-page);
+    box-sizing: border-box;
+}
+
+/* Full-width section with CARD background (white) */
+.section-band-alt {
+    width: 100vw;
+    /* Logical properties work for both LTR and RTL */
+    margin-inline: calc(-50vw + 50%);
+    padding: var(--space-2xl) var(--space-md);
+    background: var(--bg-card);
+    box-sizing: border-box;
+}
+
+/* Center content inside bands */
+.section-band>*,
+.section-band-alt>* {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Remove focus outline globally (for cleaner UI) */

@@ -182,17 +182,30 @@
 
 /* ===== RESPONSIVE ===== */
 
-/* Tablet */
+/* Tablet - Center like mobile */
 @media (max-width: 768px) {
     .footer-row {
+        flex-direction: column;
         flex-wrap: wrap;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .col-brand,
+    .col-contact,
+    [dir="rtl"] .col-brand,
+    [dir="rtl"] .col-contact {
+        align-items: center;
     }
 
     .col-features {
         flex-basis: 100%;
-        padding-bottom: 0.5rem;
+        padding: 0.5rem 0;
         margin-bottom: 0.5rem;
+        border-top: 1px solid var(--glass-border);
         border-bottom: 1px solid var(--glass-border);
+        border-left: none;
+        border-right: none;
     }
 }
 

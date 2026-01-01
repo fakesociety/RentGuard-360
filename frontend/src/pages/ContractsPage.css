@@ -3,11 +3,9 @@
  * Inspired by Stripe, Linear, Monday.com
  */
 
-/* Page Layout */
+/* Page Layout - uses .page-container for base styles */
 .contracts-page {
-    min-height: 100vh;
     padding: 32px 40px;
-    background: transparent;
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -146,7 +144,7 @@
 
 .btn-secondary {
     padding: 10px 18px;
-    background: #f1f5f9;
+    background: var(--bg-card);
     color: #475569;
     border: none;
     border-radius: 8px;
