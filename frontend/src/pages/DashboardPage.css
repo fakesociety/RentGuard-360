@@ -1,9 +1,16 @@
 .dashboard-page {
     min-height: 100vh;
     padding: var(--space-xl) var(--space-md);
-    background: var(--bg-secondary);
+    padding-bottom: 50px;
+    background: var(--bg-page);
+    /* Full width background, content centered via inner elements or padding */
+}
+
+/* Inner content wrapper for centering - exclude section-bands */
+.dashboard-page>*:not(.section-band):not(.section-band-alt) {
     max-width: 1200px;
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .welcome-section {
@@ -83,10 +90,11 @@
     margin-bottom: var(--space-2xl);
 }
 
-.section-title {
+.dashboard-page .section-title {
     font-size: var(--font-size-xl);
     color: var(--text-primary);
     margin-bottom: var(--space-lg);
+    text-align: center;
 }
 
 .actions-grid {
@@ -99,16 +107,30 @@
     text-align: center;
 }
 
+/* Cards on white backgrounds - light mode uses page background */
+.action-card-inset {
+    background: var(--bg-page) !important;
+}
+
+/* Dark mode: use glass background for better appearance */
+[data-theme="dark"] .action-card-inset {
+    background: var(--glass-bg) !important;
+}
+
 .action-icon-wrapper {
     width: 64px;
     height: 64px;
     border-radius: 16px;
-    background: var(--bg-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto var(--space-md);
     color: var(--accent-primary);
+}
+
+/* Remove background in dark mode only */
+[data-theme="dark"] .action-icon-wrapper {
+    background: transparent;
 }
 
 .action-card h3 {
@@ -186,11 +208,16 @@
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: var(--space-xl);
-    background: var(--bg-card);
+    background: var(--bg-page);
     border-radius: var(--radius-lg);
     padding: var(--space-xl);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
+}
+
+/* Dark mode: use glass background for better appearance */
+[data-theme="dark"] .differentiators-container {
+    background: var(--glass-bg);
 }
 
 .differentiators-image {
@@ -318,6 +345,11 @@
     .step-arrow {
         transform: rotate(90deg);
         font-size: 1.5rem;
+    }
+
+    /* RTL: Rotate arrow to point DOWN (left arrow rotated -90deg = down) */
+    [dir="rtl"] .step-arrow {
+        transform: rotate(-90deg);
     }
 }
 
