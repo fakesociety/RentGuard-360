@@ -333,7 +333,7 @@ const ContractsPage = () => {
 
     if (isLoading) {
         return (
-            <div className="contracts-page" dir="rtl">
+            <div className="contracts-page page-container" dir="rtl">
                 <div className="loading-container">
                     <RefreshCw size={32} className="spinning" />
                     <p>{t('contracts.loading')}</p>
@@ -343,7 +343,7 @@ const ContractsPage = () => {
     }
 
     return (
-        <div className="contracts-page" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="contracts-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Refresh Toast */}
             {isRefreshing && (
                 <div className="refresh-toast">

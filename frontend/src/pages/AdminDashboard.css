@@ -6,11 +6,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ==========================================
-   DEEP SPACE ENVIRONMENT
+   DEEP SPACE ENVIRONMENT - uses .page-container
    ========================================== */
 
 .admin-dashboard {
-    min-height: calc(100vh - 80px);
     padding: 32px 24px;
     max-width: 1400px;
     margin: 0 auto;

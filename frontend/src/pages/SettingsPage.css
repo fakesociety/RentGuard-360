@@ -1,7 +1,6 @@
+/* Uses .page-container for base styles */
 .settings-page {
-    min-height: 100vh;
     padding: var(--space-xl) var(--space-md);
-    background: var(--bg-secondary);
     max-width: 700px;
     margin: 0 auto;
 }
@@ -16,14 +15,14 @@
     margin-bottom: var(--space-xl);
 }
 
-.section-title {
+.settings-page .section-title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     margin-bottom: var(--space-md);
 }
 
-.section-title.danger {
+.settings-page .section-title.danger {
     color: var(--accent-danger);
 }
 

@@ -14,7 +14,6 @@ const AdminDashboard = () => {
     const { isAdmin, userAttributes } = useAuth();
     const { t, isRTL } = useLanguage();
     const { isDark } = useTheme();
-
     const [activeTab, setActiveTab] = useState('stats');
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
@@ -205,7 +204,7 @@ const AdminDashboard = () => {
     // Access denied
     if (!isAdmin) {
         return (
-            <div className={`admin-dashboard ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="access-denied">
                     <h1>🔒 {t('admin.accessDenied')}</h1>
                     <p>{t('admin.noPermission')}</p>
@@ -215,7 +214,7 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className={`admin-dashboard ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="admin-header">
                 <h1>{t('admin.title')}</h1>
                 <p>{isRTL ? 'שלום' : 'Hello'}, {userAttributes?.name || 'Admin'}</p>

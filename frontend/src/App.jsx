@@ -1,3 +1,18 @@
+/**
+ * ============================================
+ *  RentGuard 360 - App.jsx
+ *  Main Application Shell
+ * ============================================
+ * 
+ * This file contains:
+ * - Top Navbar (Desktop & Mobile)
+ * - Hamburger Mobile Menu
+ * - Main Application Routing
+ * - Footer (shown when authenticated)
+ * 
+ * NOTE: Footer.jsx is a shared component used here AND in LandingPage.jsx
+ * ============================================
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
