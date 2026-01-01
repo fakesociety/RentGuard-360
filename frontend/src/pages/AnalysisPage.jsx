@@ -141,7 +141,7 @@ const AnalysisPage = () => {
 
     if (isLoading) {
         return (
-            <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="loading-state">
                     <div className="loading-spinner"></div>
                     <p>{t('analysis.loading')}</p>
@@ -159,7 +159,7 @@ const AnalysisPage = () => {
         }[error.type] || '⚠️';
 
         return (
-            <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className={`error-state error-${error.type}`}>
                     <div className="error-icon">{errorIcon}</div>
                     <h2>{error.title}</h2>
@@ -187,7 +187,7 @@ const AnalysisPage = () => {
     const scoreBreakdown = result?.score_breakdown || {};
 
     return (
-        <div className="analysis-page" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="analysis-header animate-fadeIn">
                 <Link to="/contracts" className="back-link">{isRTL ? '→' : '←'} {t('analysis.backToContracts')}</Link>
                 <h1>{t('analysis.title')}</h1>

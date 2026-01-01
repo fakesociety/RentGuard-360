@@ -1,7 +1,6 @@
+/* Uses .page-container for base styles */
 .upload-page {
-    min-height: 100vh;
     padding: var(--space-xl) var(--space-md);
-    background: var(--bg-secondary);
 }
 
 .upload-container {

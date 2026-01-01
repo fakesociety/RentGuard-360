@@ -114,7 +114,7 @@ const UploadPage = () => {
     };
 
     return (
-        <div className="upload-page" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="upload-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="upload-container">
                 <div className="upload-header animate-fadeIn">
                     <h1>{t('upload.title')}</h1>

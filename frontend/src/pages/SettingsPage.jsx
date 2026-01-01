@@ -17,7 +17,7 @@ const SettingsPage = () => {
     };
 
     return (
-        <div className="settings-page" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="settings-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <h1 className="settings-title animate-fadeIn">{isRTL ? 'הגדרות' : 'Settings'}</h1>
 
             {/* Profile Section */}

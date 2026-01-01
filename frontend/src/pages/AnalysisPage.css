@@ -1,9 +1,8 @@
+/* Uses .page-container for base styles */
 .analysis-page {
-    min-height: 100vh;
     padding: var(--space-md);
     padding-bottom: 120px;
     /* Space for footer */
-    background: var(--bg-secondary);
 }
 
 .analysis-header {
@@ -277,7 +276,7 @@
     /* Chrome/Safari */
 }
 
-.section-title {
+.analysis-page .section-title {
     font-size: var(--font-size-md);
     color: var(--text-primary);
     margin-bottom: var(--space-sm);
@@ -476,7 +475,7 @@
     margin-bottom: var(--space-xl);
 }
 
-.section-title {
+.analysis-page .section-title {
     font-size: var(--font-size-xl);
     color: var(--text-primary);
     margin-bottom: var(--space-lg);
