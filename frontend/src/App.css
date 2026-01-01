@@ -140,14 +140,24 @@
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 8px);
+  /* LTR: align to right edge of button */
   right: 0;
+  left: auto;
   width: 280px;
+  max-width: calc(100vw - 32px);
   background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
+  z-index: 1000;
+}
+
+/* RTL: profile button is on the LEFT, so dropdown should open to the RIGHT */
+[dir="rtl"] .profile-dropdown {
+  right: auto;
+  left: 0;
 }
 
 @keyframes slideDown {
@@ -788,6 +798,19 @@
 /* ================================
    RESPONSIVE
    ================================ */
+
+/* Tablet breakpoint (iPad Pro, etc.) */
+@media (max-width: 1024px) {
+  .profile-dropdown {
+    width: 260px;
+  }
+
+  .nav-inner {
+    padding: var(--space-md) var(--space-lg);
+  }
+}
+
+/* Small tablet / Large phone breakpoint */
 @media (max-width: 768px) {
   .nav-links-desktop {
     display: none;

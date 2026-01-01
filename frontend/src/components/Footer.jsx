@@ -1,33 +1,48 @@
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Shield, Mail, Clock } from 'lucide-react';
+import { Shield, Cloud, Lock, Cpu, Mail, Clock } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
-    const currentYear = new Date().getFullYear();
     const { isRTL } = useLanguage();
-    const { isDark } = useTheme();
+    const { theme } = useTheme();
 
     return (
-        <footer className={`app-footer ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <footer className={`app-footer ${theme}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="footer-container">
+                {/* Main Row - 3 Columns */}
                 <div className="footer-row">
-
-                    {/* Brand Column */}
+                    {/* Column 1: Logo & Brand */}
                     <div className="footer-col col-brand">
-                        <Shield size={22} className="footer-shield" />
-                        <span className="footer-name">RentGuard 360</span>
+                        <div className="footer-logo">
+                            <Shield size={18} className="footer-shield" />
+                            <span className="footer-name">RentGuard 360</span>
+                        </div>
+                        <p className="footer-tagline">
+                            {isRTL ? 'ההגנה שלך בחוזה השכירות' : 'Your Rental Contract Guardian'}
+                        </p>
                     </div>
 
-                    {/* Features Column */}
+                    {/* Column 2: Features */}
                     <div className="footer-col col-features">
                         <div className="features-row">
-                            <span>{isRTL ? 'פרויקט גמר מחשוב ענן' : 'Cloud Computing Final Project'}</span>
+                            <div className="footer-feature">
+                                <Cloud size={14} />
+                                <span>{isRTL ? 'אחסון מאובטח' : 'Secure Storage'}</span>
+                            </div>
+                            <div className="footer-feature">
+                                <Lock size={14} />
+                                <span>{isRTL ? 'ללא מידע אישי' : 'No Personal Data'}</span>
+                            </div>
+                            <div className="footer-feature">
+                                <Cpu size={14} />
+                                <span>{isRTL ? 'AI מתקדם' : 'Advanced AI'}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Contact Column */}
+                    {/* Column 3: Contact & Credits */}
                     <div className="footer-col col-contact">
                         <div className="contact-inner">
                             <div className="contact-row">
