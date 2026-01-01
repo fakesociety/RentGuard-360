@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lightbulb, Check } from 'lucide-react';
+import { Lightbulb, Check, RotateCcw } from 'lucide-react';
 import './RecommendationCard.css';
 
 /**
@@ -10,6 +10,7 @@ const RecommendationCard = ({
     title = 'הצעה לתיקון',
     suggestion,
     onApply,
+    onRevert,
     isApplied = false
 }) => {
     if (!suggestion) return null;
@@ -30,15 +31,33 @@ const RecommendationCard = ({
                     {suggestion}
                 </p>
 
-                {/* Ghost/Outline Apply Button */}
-                <button
-                    className={`recommendation-apply-btn ${isApplied ? 'applied' : ''}`}
-                    onClick={onApply}
-                    disabled={isApplied}
-                >
-                    <Check size={16} />
-                    <span>{isApplied ? 'הוחל' : 'החל תיקון'}</span>
-                </button>
+                {/* Action Buttons */}
+                <div className="recommendation-actions">
+                    {isApplied ? (
+                        <div className="applied-state">
+                            <span className="applied-badge">
+                                <Check size={14} />
+                                הוחל
+                            </span>
+                            <button
+                                className="recommendation-revert-btn"
+                                onClick={onRevert}
+                                title="בטל שינויים וחזור למקור"
+                            >
+                                <RotateCcw size={14} />
+                                <span>בטל</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            className="recommendation-apply-btn"
+                            onClick={onApply}
+                        >
+                            <Check size={16} />
+                            <span>החל תיקון</span>
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );

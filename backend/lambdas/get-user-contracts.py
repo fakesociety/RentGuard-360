@@ -10,26 +10,32 @@ table = dynamodb.Table(TABLE_NAME)
 
 def lambda_handler(event, context):
     try:
-        # 1. קבלת ה-userId מהבקשה
-        # (במערכת אמיתית זה מגיע מה-Token, כאן נסמוך על הפרמטר)
-        query_params = event.get('queryStringParameters') or {}
-        user_id = query_params.get('userId')
+        # SECURITY FIX: Extract userId from JWT token claims (not query params!)
+        # The Cognito authorizer adds claims to the request context
+        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+        user_id = claims.get('sub')  # 'sub' is the Cognito user ID
+        
+        # Fallback to query params ONLY for backwards compatibility during transition
+        # TODO: Remove this fallback after frontend is updated
+        if not user_id:
+            query_params = event.get('queryStringParameters') or {}
+            user_id = query_params.get('userId')
+            print(f"WARNING: Using userId from query params - this is deprecated!")
         
         if not user_id:
             return {
-                'statusCode': 400,
+                'statusCode': 401,
                 'headers': {
                     "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Headers": "Content-Type,Authorization",
                     "Access-Control-Allow-Methods": "OPTIONS,GET"
                 },
-                'body': json.dumps("Error: Missing userId parameter")
+                'body': json.dumps({"error": "Unauthorized - no valid user identity"})
             }
 
         print(f"Fetching contracts for user: {user_id}")
 
-        # 2. שליפת כל החוזים של המשתמש הזה
-        # אנחנו משתמשים ב-Query כי זה הרבה יותר יעיל מ-Scan
+        # Query contracts for this user only
         response = table.query(
             KeyConditionExpression=Key('userId').eq(user_id)
         )

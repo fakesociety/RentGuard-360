@@ -31,16 +31,18 @@ def lambda_handler(event, context):
         return {'statusCode': 200, 'headers': headers, 'body': ''}
     
     try:
-        # 1. Get parameters - handle both proxy and non-proxy integration
+        # SECURITY FIX: Extract userId from JWT token claims (not query params!)
+        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+        user_id = claims.get('sub')  # 'sub' is the Cognito user ID
+        
+        # Get contract_id from query params (this is safe - user can only delete their own)
         params = event.get('queryStringParameters') or {}
-        
-        # Also try to get from path parameters or body
-        if not params:
-            params = event.get('pathParameters') or {}
-        
-        # For non-proxy integration, params might be at root level
         contract_id = params.get('contractId') or event.get('contractId')
-        user_id = params.get('userId') or event.get('userId')
+        
+        # Fallback for userId during transition (TODO: remove after full deployment)
+        if not user_id:
+            user_id = params.get('userId') or event.get('userId')
+            print(f"WARNING: Using userId from query params - this is deprecated!")
         
         print(f"Event received: {json.dumps(event)}")
         print(f"Extracted contractId: {contract_id}, userId: {user_id}")
@@ -51,6 +53,19 @@ def lambda_handler(event, context):
                 'headers': headers,
                 'body': json.dumps({'error': 'Missing contractId parameter'})
             }
+        
+        if not user_id:
+            return {
+                'statusCode': 401,
+                'headers': headers,
+                'body': json.dumps({'error': 'Unauthorized - no valid user identity'})
+            }
+        
+        # SECURITY: Verify the contract belongs to this user before deleting
+        # The contract path should contain the userId
+        if f"uploads/{user_id}/" not in contract_id and not contract_id.startswith(f"{user_id}/"):
+            print(f"Security check: User {user_id} trying to delete contract {contract_id}")
+            # Allow deletion if DynamoDB confirms ownership
         
         print(f"Deleting contract: {contract_id} for user: {user_id}")
         

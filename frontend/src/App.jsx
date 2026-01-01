@@ -186,9 +186,6 @@ const Navigation = () => {
   );
 };
 
-// SettingsPage is now imported from ./pages/SettingsPage
-// LandingPage is now imported from ./pages/LandingPage
-
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
 

@@ -48,8 +48,16 @@ def lambda_handler(event, context):
         if isinstance(body, str):
             body = json.loads(body)
         
+        # SECURITY FIX: Extract userId from JWT token claims (not body!)
+        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+        user_id = claims.get('sub')  # 'sub' is the Cognito user ID
+        
+        # Fallback for transition period (TODO: remove after full deployment)
+        if not user_id:
+            user_id = body.get('userId')
+            print(f"WARNING: Using userId from body - this is deprecated!")
+        
         contract_id = body.get('contractId')
-        user_id = body.get('userId')
         new_file_name = body.get('fileName', '').strip() if body.get('fileName') else None
         property_address = body.get('propertyAddress', '').strip() if body.get('propertyAddress') else None
         landlord_name = body.get('landlordName', '').strip() if body.get('landlordName') else None
@@ -64,9 +72,9 @@ def lambda_handler(event, context):
         
         if not user_id:
             return {
-                'statusCode': 400,
+                'statusCode': 401,
                 'headers': headers,
-                'body': json.dumps({'error': 'userId is required'})
+                'body': json.dumps({'error': 'Unauthorized - no valid user identity'})
             }
         
         # Build update expression dynamically

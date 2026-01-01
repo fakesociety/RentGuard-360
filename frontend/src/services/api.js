@@ -36,45 +36,66 @@ const getAuthToken = async () => {
 
 /**
  * Generic API call with Cognito authentication
+ * Includes 30-second timeout and offline detection
  */
 const apiCall = async (endpoint, options = {}) => {
+    // Check if offline
+    if (!navigator.onLine) {
+        throw new Error('אין חיבור לאינטרנט. אנא בדוק את החיבור ונסה שוב.');
+    }
+
     const token = await getAuthToken();
 
     const url = `${API_BASE_URL}${endpoint}`;
     console.log(`API Call: ${url}`);
 
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json',
-            ...options.headers,
-        },
-    });
-
-    // Check for HTML response (error page)
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-        console.error('Received HTML instead of JSON - API endpoint may be wrong');
-        throw new Error('API configuration error');
-    }
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`API Error ${response.status}:`, errorText);
-        throw new Error(`API Error: ${response.status}`);
-    }
-
-    const text = await response.text();
-    if (!text) {
-        return { items: [] }; // Empty response for no data
-    }
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
-        return JSON.parse(text);
-    } catch (e) {
-        console.error('Failed to parse JSON:', text.substring(0, 100));
-        throw new Error('Invalid response from server');
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+        });
+
+        clearTimeout(timeoutId);
+
+        // Check for HTML response (error page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+            console.error('Received HTML instead of JSON - API endpoint may be wrong');
+            throw new Error('API configuration error');
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`API Error ${response.status}:`, errorText);
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const text = await response.text();
+        if (!text) {
+            return { items: [] }; // Empty response for no data
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse JSON:', text.substring(0, 100));
+            throw new Error('Invalid response from server');
+        }
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('הבקשה נכשלה - הזמן הקצוב עבר. נסה שוב.');
+        }
+        throw error;
     }
 };
 

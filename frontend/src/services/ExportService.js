@@ -231,126 +231,197 @@ export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report
         }
     };
 
-    // Title - English for PDF (Hebrew not supported)
-    doc.setFontSize(22);
-    doc.setFont(undefined, 'bold');
-    doc.text('Contract Analysis Report', pageWidth / 2, y, { align: 'center' });
-    y += 8;
+    // --- HEADER ---
+    doc.setFillColor(13, 17, 23); // Dark background
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RentGuard 360', margin, 20);
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    // doc.setTextColor(150, 150, 150);
+    doc.text('AI Contract Analysis Report', margin, 28);
 
     doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, y, { align: 'center' });
-    y += 5;
-    doc.setTextColor(100, 100, 100);
-    doc.text('For Hebrew content, please use Word export', pageWidth / 2, y, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
-    y += 15;
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, 20, { align: 'right' });
 
-    // Risk Score - Visual representation
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('Risk Score', margin, y);
+    y = 55;
+
+    // --- WARNING FOR HEBREW ---
+    doc.setFillColor(255, 243, 205);
+    doc.setDrawColor(255, 238, 186);
+    doc.rect(margin, y, contentWidth, 12, 'FD');
+    doc.setTextColor(133, 100, 4);
+    doc.setFontSize(9);
+    doc.text('Note: For full Hebrew text support, please use the Word export option.', margin + 5, y + 7);
+    y += 25;
+
+    // --- OVERALL RISK SCORE ---
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Risk Assessment', margin, y);
     y += 10;
 
-    // Draw score bar
-    const barWidth = 100;
-    const barHeight = 20;
-    const scoreWidth = (riskScore / 100) * barWidth;
+    // Draw visual gauge background
+    const gaugeWidth = contentWidth;
+    const gaugeHeight = 10;
+    doc.setFillColor(230, 230, 230);
+    doc.roundedRect(margin, y, gaugeWidth, gaugeHeight, 5, 5, 'F');
 
-    // Background bar
-    doc.setFillColor(60, 60, 60);
-    doc.roundedRect(margin, y, barWidth, barHeight, 3, 3, 'F');
+    // Calculate score width
+    const scoreWidth = (riskScore / 100) * gaugeWidth;
 
-    // Score fill
-    const scoreColor = riskScore >= 70 ? [220, 53, 69] : riskScore >= 40 ? [255, 193, 7] : [40, 167, 69];
-    doc.setFillColor(...scoreColor);
-    doc.roundedRect(margin, y, scoreWidth, barHeight, 3, 3, 'F');
+    // Determine color
+    let r, g, b;
+    if (riskScore >= 75) { r = 220; g = 53; b = 69; } // Red
+    else if (riskScore >= 40) { r = 255; g = 193; b = 7; } // Yellow
+    else { r = 40; g = 167; b = 69; } // Green
 
-    // Score text
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`${riskScore}/100`, margin + 5, y + 14);
-    doc.setTextColor(0, 0, 0);
-    y += barHeight + 15;
+    doc.setFillColor(r, g, b);
+    doc.roundedRect(margin, y, Math.max(scoreWidth, 5), gaugeHeight, 5, 5, 'F');
 
-    // Category Scores
-    const categoryNames = {
-        financial_terms: 'Financial Terms',
-        tenant_rights: 'Tenant Rights',
-        termination_clauses: 'Termination & Exit',
-        liability_repairs: 'Liability & Repairs',
-        legal_compliance: 'Legal Compliance',
-    };
+    y += 18;
+    doc.setFontSize(28);
+    doc.setTextColor(r, g, b);
+    doc.text(`${riskScore}`, margin, y);
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text('/ 100 Risk Score', margin + 15 + (riskScore.toString().length * 10), y);
 
+    y += 20;
+
+    // --- SCORE BREAKDOWN ---
     if (Object.keys(breakdown).length > 0) {
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
         doc.text('Category Breakdown', margin, y);
-        y += 8;
+        y += 10;
 
+        const categoryNames = {
+            financial_terms: 'Financial Terms',
+            tenant_rights: 'Tenant Rights',
+            termination_clauses: 'Termination & Exit',
+            liability_repairs: 'Liability & Repairs',
+            legal_compliance: 'Legal Compliance',
+        };
+
+        // Draw refined table-like structure
         Object.entries(breakdown).forEach(([key, data]) => {
+            checkPageBreak(15);
             const score = data.score || 0;
-            const catBarWidth = 60;
-            const catScoreWidth = (score / 20) * catBarWidth;
+            const fullScore = 20;
+            const pct = score / fullScore;
 
             doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`${categoryNames[key] || key}:`, margin, y + 5);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(categoryNames[key] || key, margin, y);
 
             // Mini bar
-            doc.setFillColor(60, 60, 60);
-            doc.roundedRect(margin + 80, y, catBarWidth, 8, 2, 2, 'F');
+            const barW = 80;
+            const barH = 4;
+            const barX = margin + 50;
+            const barY = y - 3;
 
-            const catColor = score >= 16 ? [40, 167, 69] : score >= 10 ? [255, 193, 7] : [220, 53, 69];
-            doc.setFillColor(...catColor);
-            doc.roundedRect(margin + 80, y, catScoreWidth, 8, 2, 2, 'F');
+            doc.setFillColor(230, 230, 230);
+            doc.rect(barX, barY, barW, barH, 'F');
 
-            doc.text(`${score}/20`, margin + 145, y + 5);
-            y += 12;
+            // Fill
+            let cr, cg, cb;
+            if (score <= 10) { cr = 220; cg = 53; cb = 69; } // Bad (low score in category might be bad depending on context, assuming high score = good protection)
+            else if (score < 16) { cr = 255; cg = 193; cb = 7; }
+            else { cr = 40; cg = 167; cb = 69; }
+
+            doc.setFillColor(cr, cg, cb);
+            doc.rect(barX, barY, barW * pct, barH, 'F');
+
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${score}/${fullScore}`, barX + barW + 10, y);
+
+            y += 10;
         });
-        y += 10;
     }
 
-    // Issues Summary (no Hebrew)
+    y += 15;
+
+    // --- ISSUES FOUND ---
     if (issues.length > 0) {
-        checkPageBreak(30);
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text(`Issues Found: ${issues.length}`, margin, y);
-        y += 8;
+        checkPageBreak(40);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 15;
+
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Identified Issues (${issues.length})`, margin, y);
+        y += 15;
 
         issues.forEach((issue, idx) => {
-            checkPageBreak(20);
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
+            checkPageBreak(40);
 
-            const riskColor = issue.risk_level === 'High' ? [220, 53, 69] :
-                issue.risk_level === 'Medium' ? [255, 193, 7] : [40, 167, 69];
-            doc.setTextColor(...riskColor);
-            doc.text(`[${issue.risk_level || 'Medium'}]`, margin, y);
+            // Risk Badge
+            const riskLevel = issue.risk_level || 'Medium';
+            let badgeColor = [255, 193, 7]; // Yellow
+            if (riskLevel === 'High' || riskLevel === 'Critical') badgeColor = [220, 53, 69]; // Red
+            if (riskLevel === 'Low') badgeColor = [40, 167, 69]; // Green
+
+            doc.setFillColor(...badgeColor);
+            doc.roundedRect(margin, y - 4, 20, 6, 2, 2, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(riskLevel.toUpperCase(), margin + 2, y);
+
+            // Issue Title (sanitized for Hebrew chars)
             doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
 
-            // Topic in English or show "(Hebrew)"
-            const topic = /[\u0590-\u05FF]/.test(issue.clause_topic) ?
-                `Issue ${idx + 1} (see Word for details)` : issue.clause_topic;
-            doc.text(topic, margin + 25, y);
+            // If topic has Hebrew, show generic
+            const hasHebrew = /[\u0590-\u05FF]/.test(issue.clause_topic || '');
+            const title = hasHebrew ? `Issue #${idx + 1}` : (issue.clause_topic || `Issue #${idx + 1}`);
 
+            doc.text(title, margin + 25, y);
+
+            // Points deduction
             if (issue.penalty_points) {
                 doc.setTextColor(220, 53, 69);
-                doc.text(`-${issue.penalty_points} pts`, pageWidth - margin - 20, y);
-                doc.setTextColor(0, 0, 0);
+                doc.text(`-${issue.penalty_points} pts`, pageWidth - margin, y, { align: 'right' });
             }
-            y += 7;
+
+            y += 8;
+
+            // Details
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(80, 80, 80);
+
+            // Add Explanation if not Hebrew, otherwise static message
+            // Note: issue.explanation is likely Hebrew.
+
+            doc.text('Refer to the Word document for full explanation and original clause text.', margin, y);
+            y += 5;
+            doc.text('This issue impacts your protection score.', margin, y);
+
+            y += 15;
         });
     }
 
-    // Footer note
-    y = doc.internal.pageSize.getHeight() - 15;
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text('For full Hebrew support, please export to Word (.docx)', pageWidth / 2, y, { align: 'center' });
+    // --- FOOTER ---
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${i} of ${pageCount} | RentGuard 360`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    }
 
-    // Save
     doc.save(`${fileName}.pdf`);
 };
 

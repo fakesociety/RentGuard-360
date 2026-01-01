@@ -12,6 +12,7 @@ const ContractView = ({
     contractText = '',
     backendClauses = [],
     issues = [],
+    contractId = null,  // NEW: for localStorage persistence
     onClauseChange,
     onExportEdited,
     onSaveToCloud
@@ -24,6 +25,8 @@ const ContractView = ({
     // Modal editing state
     const [selectedClause, setSelectedClause] = useState(null);
     const [editingText, setEditingText] = useState('');
+    const [confirmRevertId, setConfirmRevertId] = useState(null); // ID of clause to revert
+    const [showClearAllConfirm, setShowClearAllConfirm] = useState(false); // State for Clear All modal
 
     // AI Consultation state
     const [consultingClauseId, setConsultingClauseId] = useState(null);
@@ -36,6 +39,34 @@ const ContractView = ({
     const bottomRef = useRef(null);
     const [showScrollButton, setShowScrollButton] = useState(true); // Always show initially
     const [isAtBottom, setIsAtBottom] = useState(false);
+
+    // Load saved edits from localStorage on mount
+    useEffect(() => {
+        if (!contractId) return;
+        const storageKey = `rentguard_edits_${contractId}`;
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                setEditedClauses(parsed);
+                console.log(`Loaded ${Object.keys(parsed).length} saved edits for contract`);
+            }
+        } catch (e) {
+            console.warn('Failed to load saved edits:', e);
+        }
+    }, [contractId]);
+
+    // Auto-save edits to localStorage when changed
+    useEffect(() => {
+        if (!contractId || Object.keys(editedClauses).length === 0) return;
+        const storageKey = `rentguard_edits_${contractId}`;
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(editedClauses));
+            console.log(`Auto-saved ${Object.keys(editedClauses).length} edits to localStorage`);
+        } catch (e) {
+            console.warn('Failed to save edits:', e);
+        }
+    }, [contractId, editedClauses]);
 
     // Track scroll position - check both container and window
     useEffect(() => {
@@ -157,6 +188,32 @@ const ContractView = ({
     const extractClauseNumber = (text) => {
         const match = text?.match(/^(\d+\.)\s*/);
         return match ? match[1] : null;
+    };
+
+    // Request revert (open confirmation)
+    const requestRevert = (clauseId, e) => {
+        if (e) e.stopPropagation();
+        setConfirmRevertId(clauseId);
+    };
+
+    // Confirm revert action
+    const confirmRevert = () => {
+        if (confirmRevertId) {
+            const newEdited = { ...editedClauses };
+            delete newEdited[confirmRevertId];
+            setEditedClauses(newEdited);
+
+            // Close editor if open for this clause
+            if (selectedClause?.id === confirmRevertId) {
+                closeEditor();
+            }
+            setConfirmRevertId(null);
+        }
+    };
+
+    // Cancel revert
+    const cancelRevert = () => {
+        setConfirmRevertId(null);
     };
 
     // Save edit from popup
@@ -338,17 +395,19 @@ const ContractView = ({
                                             {getClauseText(clause)}
                                         </p>
 
-                                        {/* Consult AI Button - hide if already has answer */}
-                                        {!clauseExplanations[clause.id] && (
-                                            <button
-                                                className="consult-btn no-print"
-                                                onClick={(e) => handleConsultClause(clause, e)}
-                                                disabled={consultingClauseId === clause.id}
-                                                title="קבל הסבר על הסעיף"
-                                            >
-                                                {consultingClauseId === clause.id ? '⏳' : '💡'}
-                                            </button>
-                                        )}
+                                        <div className="clause-actions no-print">
+                                            {/* Consult AI Button - hide if already has answer */}
+                                            {!clauseExplanations[clause.id] && (
+                                                <button
+                                                    className="action-btn consult-btn"
+                                                    onClick={(e) => handleConsultClause(clause, e)}
+                                                    disabled={consultingClauseId === clause.id}
+                                                    title="קבל הסבר על הסעיף"
+                                                >
+                                                    {consultingClauseId === clause.id ? '⏳' : '💡'}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -384,6 +443,7 @@ const ContractView = ({
                                                 [clause.id]: { text: clause.issue.suggested_fix, action: 'accepted' }
                                             }));
                                         }}
+                                        onRevert={(e) => requestRevert(clause.id, e)}
                                     />
                                 )}
                             </div>
@@ -418,6 +478,35 @@ const ContractView = ({
                     <button className="export-btn-main" onClick={handleExport}>
                         📝 ייצוא ל-Word
                     </button>
+
+                    {/* Clear Edits Button */}
+                    {Object.keys(editedClauses).length > 0 && (
+                        <button
+                            className="export-btn-secondary"
+                            onClick={() => setShowClearAllConfirm(true)}
+                        >
+                            🗑️ נקה עריכות ({Object.keys(editedClauses).length})
+                        </button>
+                    )}
+
+                    {/* Save to Cloud Button */}
+                    {onSaveToCloud && Object.keys(editedClauses).length > 0 && (
+                        <button
+                            className="export-btn-cloud"
+                            onClick={handleSaveToCloud}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? '⏳ שומר...' : '☁️ שמור לענן'}
+                        </button>
+                    )}
+
+                    {/* Save Status */}
+                    {saveStatus === 'success' && (
+                        <span className="save-status success">✅ נשמר בהצלחה!</span>
+                    )}
+                    {saveStatus === 'error' && (
+                        <span className="save-status error">❌ שגיאה בשמירה</span>
+                    )}
                 </div>
 
                 {/* Bottom anchor for scroll */}
@@ -506,6 +595,17 @@ const ContractView = ({
                             <button className="popup-save-btn" onClick={saveEdit}>
                                 ✓ שמור שינויים
                             </button>
+
+                            {/* Revert Button in Popup */}
+                            {selectedClause.isEdited && (
+                                <button
+                                    className="popup-revert-btn"
+                                    onClick={(e) => requestRevert(selectedClause.id, e)}
+                                >
+                                    ↩️ חזור למקור
+                                </button>
+                            )}
+
                             <button className="popup-cancel-btn" onClick={closeEditor}>
                                 ביטול
                             </button>
@@ -519,6 +619,89 @@ const ContractView = ({
                 <div className="error-toast no-print">
                     {consultError}
                     <button onClick={() => setConsultError(null)}>✕</button>
+                </div>
+            )}
+
+            {/* Custom Revert Confirmation Modal */}
+            {confirmRevertId && (
+                <div className="clause-editor-modal" onClick={cancelRevert}>
+                    <div
+                        className="clause-popup-content"
+                        onClick={e => e.stopPropagation()}
+                        style={{ maxWidth: '400px', padding: '0' }}
+                    >
+                        <div className="popup-header" style={{ borderBottom: 'none', padding: '24px 24px 0' }}>
+                            <h3 style={{ fontSize: '1.125rem' }}>⚠️ אישור ביטול</h3>
+                        </div>
+                        <div className="popup-body" style={{ padding: '16px 24px 32px', textAlign: 'center' }}>
+                            <p style={{ margin: 0, fontSize: '1rem', color: '#555' }}>
+                                האם אתה בטוח שברצונך לבטל את העריכה ולחזור לטקסט המקורי?
+                            </p>
+                        </div>
+                        <div className="popup-footer" style={{ justifyContent: 'center', background: '#f9fafb' }}>
+                            <button
+                                className="popup-revert-btn"
+                                onClick={confirmRevert}
+                                style={{ width: 'auto', minWidth: '120px' }}
+                            >
+                                כן, בטל עריכה
+                            </button>
+                            <button
+                                className="popup-cancel-btn"
+                                onClick={cancelRevert}
+                                style={{ width: 'auto', minWidth: '120px' }}
+                            >
+                                לא, השאר
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Clear All Edits Confirmation Modal */}
+            {showClearAllConfirm && (
+                <div className="clause-editor-modal" onClick={() => setShowClearAllConfirm(false)}>
+                    <div
+                        className="clause-popup-content"
+                        onClick={e => e.stopPropagation()}
+                        style={{ maxWidth: '400px', padding: '0' }}
+                    >
+                        <div className="popup-header" style={{ borderBottom: 'none', padding: '24px 24px 0' }}>
+                            <h3 style={{ fontSize: '1.125rem' }}>⚠️ מחיקת כל העריכות</h3>
+                        </div>
+                        <div className="popup-body" style={{ padding: '16px 24px 32px', textAlign: 'center' }}>
+                            <p style={{ margin: 0, fontSize: '1rem', color: '#555' }}>
+                                האם אתה בטוח שברצונך למחוק את כל העריכות שביצעת בחוזה זה?
+                                <br />
+                                <span style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '8px', display: 'block' }}>
+                                    פעולה זו אינה הפיכה.
+                                </span>
+                            </p>
+                        </div>
+                        <div className="popup-footer" style={{ justifyContent: 'center', background: '#f9fafb' }}>
+                            <button
+                                className="popup-revert-btn"
+                                onClick={() => {
+                                    setEditedClauses({});
+                                    if (contractId) {
+                                        localStorage.removeItem(`rentguard_edits_${contractId}`);
+                                    }
+                                    setSaveStatus(null);
+                                    setShowClearAllConfirm(false);
+                                }}
+                                style={{ width: 'auto', minWidth: '120px' }}
+                            >
+                                כן, מחק הכל
+                            </button>
+                            <button
+                                className="popup-cancel-btn"
+                                onClick={() => setShowClearAllConfirm(false)}
+                                style={{ width: 'auto', minWidth: '120px' }}
+                            >
+                                ביטול
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

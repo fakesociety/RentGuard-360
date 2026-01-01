@@ -11,6 +11,20 @@ def lambda_handler(event, context):
     Delete a user from Cognito (admin only).
     This action is PERMANENT and cannot be undone.
     """
+    # SECURITY: Verify Admin Group
+    claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+    groups = claims.get('cognito:groups', '')
+    
+    if 'Admins' not in str(groups):
+        return {
+            'statusCode': 403,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            },
+            'body': json.dumps({'error': 'Admin access required'})
+        }
+    
     # DEBUG: Log the entire incoming event
     print("=" * 50)
     print("DELETE USER LAMBDA INVOKED")

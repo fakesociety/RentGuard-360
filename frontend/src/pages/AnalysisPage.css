@@ -47,28 +47,126 @@
     padding: var(--space-lg) !important;
 }
 
-.contract-details {
-    text-align: center;
+/* Contract Hero Card - Premium Glassmorphic Design */
+.contract-hero-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
-.contract-file-icon {
-    font-size: 32px;
-    margin-bottom: var(--space-xs);
+.contract-hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 60%);
+    pointer-events: none;
 }
 
-.contract-file-name {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
+.contract-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.contract-icon-wrapper {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    color: var(--primary);
+}
+
+.contract-icon-main {
+    font-size: 24px;
+    z-index: 2;
+}
+
+.icon-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--primary);
+    filter: blur(20px);
+    opacity: 0.2;
+    border-radius: 50%;
+}
+
+.contract-hero-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-    word-break: break-word;
+    margin: 0;
     line-height: 1.3;
+    word-break: break-word;
 }
 
-.contract-meta-item {
+.contract-hero-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.meta-row {
+    display: flex;
+    gap: 16px;
+}
+
+.meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.meta-block.half-width {
+    flex: 1;
+}
+
+.meta-label {
     font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
     color: var(--text-secondary);
-    margin: 2px 0;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.address-value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* RTL Support for Card */
+[dir="rtl"] .contract-card-header {
+    text-align: right;
+}
+
+[dir="rtl"] .contract-hero-card {
+    text-align: right;
 }
 
 .sidebar-divider {
@@ -603,6 +701,20 @@
 
 .no-issues p {
     color: var(--text-secondary);
+}
+
+/* Not a Contract Warning State */
+.no-issues.not-contract {
+    border: 1px solid var(--accent-warning);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.no-issues.not-contract h3 {
+    color: var(--accent-warning);
+}
+
+.no-issues-icon.warning {
+    filter: none;
 }
 
 /* Loading & Error States */

@@ -116,7 +116,11 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
             {/* Card Footer - Actions */}
             <div className="card-footer">
                 {isAnalyzed ? (
-                    <Link to={`/analysis/${encodeURIComponent(contract.contractId)}`} className="view-btn">
+                    <Link
+                        to={`/analysis/${encodeURIComponent(contract.contractId)}`}
+                        state={{ contract }}
+                        className="view-btn"
+                    >
                         {t('contracts.viewAnalysis')}
                     </Link>
                 ) : (
@@ -173,6 +177,10 @@ const ContractsPage = () => {
     // Filter/Sort state
     const [sortBy, setSortBy] = useState('date'); // 'date' | 'score'
     const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const contractsPerPage = 20;
 
     useEffect(() => { fetchContracts(); }, [user]);
 
@@ -315,7 +323,13 @@ const ContractsPage = () => {
             setSortBy(newSortBy);
             setSortOrder('desc');
         }
+        setCurrentPage(1); // Reset to first page on sort change
     };
+
+    // Pagination logic
+    const totalPages = Math.ceil(sortedContracts.length / contractsPerPage);
+    const startIndex = (currentPage - 1) * contractsPerPage;
+    const paginatedContracts = sortedContracts.slice(startIndex, startIndex + contractsPerPage);
 
     if (isLoading) {
         return (
@@ -460,7 +474,7 @@ const ContractsPage = () => {
                 </div>
             ) : (
                 <div className="contracts-grid">
-                    {sortedContracts.map(contract => (
+                    {paginatedContracts.map(contract => (
                         <ContractCard
                             key={contract.contractId}
                             contract={contract}
@@ -472,6 +486,29 @@ const ContractsPage = () => {
                             isRTL={isRTL}
                         />
                     ))}
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="pagination-controls">
+                    <button
+                        className="pagination-btn"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        {isRTL ? '→' : '←'}
+                    </button>
+                    <span className="pagination-info">
+                        {isRTL ? `עמוד ${currentPage} מתוך ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                    </span>
+                    <button
+                        className="pagination-btn"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        {isRTL ? '←' : '→'}
+                    </button>
                 </div>
             )}
         </div>

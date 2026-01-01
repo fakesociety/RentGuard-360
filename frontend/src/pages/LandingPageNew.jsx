@@ -73,7 +73,7 @@ const DashboardMockup = ({ isRTL, onUploadClick }) => (
                 {isRTL ? 'גרור חוזה לכאן להעלאה' : 'Drag contract here to upload'}
             </p>
             <p className="mock-upload-hint">
-                {isRTL ? 'או לחץ לבחירת קובץ • PDF עד 25MB' : 'or click to select file • PDF up to 25MB'}
+                {isRTL ? 'או לחץ לבחירת קובץ • PDF עד 5MB' : 'or click to select file • PDF up to 5MB'}
             </p>
             <button className="mock-upload-btn" onClick={(e) => { e.stopPropagation(); onUploadClick(); }}>
                 {isRTL ? 'בחר קובץ' : 'Select File'}
@@ -445,8 +445,18 @@ const LandingPageNew = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Validate empty/whitespace
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedEmail || !trimmedPassword) {
+            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            return;
+        }
+
         setLoading(true);
-        const result = await login(email, password);
+        const result = await login(trimmedEmail, password);
         if (!result.success) setError(result.error || 'Login failed');
         setLoading(false);
     };
@@ -455,6 +465,22 @@ const LandingPageNew = () => {
         e.preventDefault();
         setError('');
 
+        // Trim all inputs
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+
+        // Validate empty/whitespace fields
+        if (!trimmedName || !trimmedEmail || !password) {
+            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            return;
+        }
+
+        // Check name length
+        if (trimmedName.length < 2 || trimmedName.length > 50) {
+            setError(isRTL ? 'שם חייב להיות בין 2-50 תווים' : 'Name must be 2-50 characters');
+            return;
+        }
+
         // Check if passwords match
         if (password !== confirmPassword) {
             setError(isRTL ? 'הסיסמאות לא תואמות' : 'Passwords do not match');
@@ -462,10 +488,10 @@ const LandingPageNew = () => {
         }
 
         setLoading(true);
-        const result = await register(email, password, name);
+        const result = await register(trimmedEmail, password, trimmedName);
         if (result.success) {
-            setTempEmail(email);
-            localStorage.setItem('rentguard_pending_verification', email);
+            setTempEmail(trimmedEmail);
+            localStorage.setItem('rentguard_pending_verification', trimmedEmail);
             setAuthModal('confirm');
         } else {
             setError(result.error || 'Registration failed');
@@ -529,9 +555,9 @@ const LandingPageNew = () => {
                             <form onSubmit={handleLogin} className="auth-form">
                                 <h3>{t('auth.login')}</h3>
                                 <Input type="email" label={t('auth.email')} value={email}
-                                    onChange={(e) => setEmail(e.target.value)} required />
+                                    onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password}
-                                    onChange={(e) => setPassword(e.target.value)} required />
+                                    onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
                                 {error && <p className="auth-error">{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.loginButton')}
@@ -548,14 +574,14 @@ const LandingPageNew = () => {
                             <form onSubmit={handleRegister} className="auth-form">
                                 <h3>{t('auth.register')}</h3>
                                 <Input label={t('auth.fullName')} value={name}
-                                    onChange={(e) => setName(e.target.value)} required />
+                                    onChange={(e) => setName(e.target.value)} required maxLength={50} />
                                 <Input type="email" label={t('auth.email')} value={email}
-                                    onChange={(e) => setEmail(e.target.value)} required />
+                                    onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password}
-                                    onChange={(e) => setPassword(e.target.value)} required
+                                    onChange={(e) => setPassword(e.target.value)} required maxLength={128}
                                     helperText={t('auth.passwordHint')} />
                                 <Input type="password" label={isRTL ? 'אימות סיסמה' : 'Confirm Password'} value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)} required />
+                                    onChange={(e) => setConfirmPassword(e.target.value)} required maxLength={128} />
                                 {error && <p className="auth-error">{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.registerButton')}
@@ -573,7 +599,7 @@ const LandingPageNew = () => {
                                 <h3>{t('auth.confirmTitle')}</h3>
                                 <p className="confirm-msg">{t('auth.confirmMessage')} <strong>{tempEmail}</strong></p>
                                 <Input label={t('auth.confirmCode')} value={code}
-                                    onChange={(e) => setCode(e.target.value)} required placeholder="123456" />
+                                    onChange={(e) => setCode(e.target.value)} required placeholder="123456" maxLength={6} />
                                 {error && <p className="auth-error">{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.confirmButton')}
