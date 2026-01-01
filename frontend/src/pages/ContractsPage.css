@@ -841,3 +841,53 @@
 .form-group input::placeholder {
     color: #94a3b8;
 }
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+    .contracts-page {
+        padding: 16px 12px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header-content h1 {
+        font-size: 22px;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .score-gauge {
+        align-self: center;
+    }
+
+    .card-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}

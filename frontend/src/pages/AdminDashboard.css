@@ -1189,3 +1189,66 @@
         padding: 12px 14px;
     }
 }
+
+/* Tablet (iPad Mini/Air) */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .tab-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .tab-buttons .tab-btn {
+        width: 100%;
+    }
+
+    .users-controls {
+        flex-direction: column;
+    }
+
+    .search-container {
+        width: 100%;
+    }
+
+    .status-filter-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+    .admin-dashboard {
+        padding: 16px 12px;
+    }
+
+    .admin-header h1 {
+        font-size: 1.125rem;
+    }
+
+    .summary-card {
+        padding: 14px;
+    }
+
+    .card-value {
+        font-size: 1.25rem;
+    }
+
+    .chart-card {
+        padding: 16px;
+    }
+
+    .chart-card h3 {
+        font-size: 0.875rem;
+    }
+
+    .range-btn {
+        padding: 4px 8px;
+        font-size: 0.5625rem;
+    }
+}

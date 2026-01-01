@@ -40,6 +40,25 @@
     }
 }
 
+/* Mobile (iPhone Pro) */
+@media (max-width: 600px) {
+    .contact-page {
+        padding: var(--space-lg) var(--space-sm);
+    }
+
+    .contact-header h1 {
+        font-size: var(--font-size-2xl);
+    }
+
+    .contact-header p {
+        font-size: var(--font-size-base);
+    }
+
+    .contact-info {
+        order: -1;
+    }
+}
+
 /* Form Card */
 .contact-form-card h3 {
     color: var(--text-primary);

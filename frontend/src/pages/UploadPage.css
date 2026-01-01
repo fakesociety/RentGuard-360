@@ -549,3 +549,109 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+/* iPad Pro / Small laptop */
+@media (max-width: 1024px) {
+    .upload-page {
+        padding: var(--space-lg) var(--space-md);
+    }
+
+    .upload-container {
+        max-width: 550px;
+    }
+}
+
+/* Tablet (iPad Mini/Air) */
+@media (max-width: 768px) {
+    .upload-header h1 {
+        font-size: var(--font-size-2xl);
+    }
+
+    .upload-header p {
+        font-size: var(--font-size-base);
+    }
+
+    .drop-zone {
+        padding: var(--space-xl);
+    }
+
+    .terms-modal {
+        max-width: 90%;
+        max-height: 85vh;
+    }
+}
+
+/* Mobile (iPhone Pro) */
+@media (max-width: 600px) {
+    .upload-page {
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    .upload-container {
+        max-width: 100%;
+    }
+
+    .upload-header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .drop-content h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    .drop-icon {
+        font-size: 44px;
+    }
+
+    .file-preview {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .file-info {
+        text-align: center;
+    }
+
+    .success-actions {
+        flex-direction: column;
+    }
+
+    .metadata-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .terms-modal-footer {
+        flex-direction: column;
+    }
+}
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+    .upload-header h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .upload-header p {
+        font-size: var(--font-size-sm);
+    }
+
+    .drop-hint {
+        font-size: var(--font-size-xs);
+    }
+
+    .drop-icon {
+        font-size: 36px;
+    }
+
+    .terms-modal-header h2 {
+        font-size: var(--font-size-lg);
+    }
+
+    .terms-modal-content {
+        padding: var(--space-md);
+    }
+}

@@ -574,3 +574,48 @@
         padding: 16px;
     }
 }
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+    .legal-card-header {
+        padding: 14px 16px;
+    }
+
+    .legal-title {
+        font-size: 1rem;
+    }
+
+    .legal-card-content.expanded {
+        padding: 0 16px 16px;
+    }
+
+    .legal-section {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .section-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .original-quote,
+    .legal-basis-text,
+    .tip-text {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .recommendation-box {
+        padding: 14px;
+    }
+
+    .recommendation-text {
+        font-size: 14px;
+    }
+
+    .copy-button {
+        width: 100%;
+        justify-content: center;
+    }
+}

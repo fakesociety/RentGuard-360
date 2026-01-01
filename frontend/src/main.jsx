@@ -5,7 +5,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import './styles/design-system.css';
-import './index.css';
 import App from './App.jsx';
 
 createRoot(document.getElementById('root')).render(

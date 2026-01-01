@@ -176,6 +176,8 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 body {
@@ -187,6 +189,8 @@ body {
     background-color: var(--bg-primary);
     transition: background-color var(--transition-normal), color var(--transition-normal);
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+    max-width: 100vw;
 
     /* App-like feel: disable text selection globally */
     -webkit-user-select: none;
@@ -195,6 +199,10 @@ body {
     user-select: none;
     cursor: default;
     caret-color: transparent;
+}
+
+#root {
+    min-height: 100vh;
 }
 
 /* Remove focus outline globally (for cleaner UI) */
