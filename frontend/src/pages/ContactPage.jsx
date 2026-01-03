@@ -52,116 +52,118 @@ const ContactPage = () => {
     };
 
     return (
-        <div className="contact-page" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="contact-container">
-                <div className="contact-header animate-fadeIn">
-                    <h1>📧 {t('nav.contact')}</h1>
-                    <p>{isRTL ? 'יש לכם שאלה או צריכים עזרה? אנחנו כאן בשבילכם!' : 'Have a question or need help? We\'re here for you!'}</p>
-                </div>
+        <div className="contact-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="contact-header animate-fadeIn">
+                <h1>📧 {t('nav.contact')}</h1>
+                <p>{isRTL ? 'יש לכם שאלה או צריכים עזרה? אנחנו כאן בשבילכם!' : 'Have a question or need help? We\'re here for you!'}</p>
+            </div>
 
-                <div className="contact-content">
-                    <Card variant="elevated" padding="lg" className="contact-form-card animate-slideUp">
-                        {submitStatus === 'success' ? (
-                            <div className="success-message">
-                                <span className="success-icon">✅</span>
-                                <h3>{isRTL ? 'ההודעה נשלחה!' : 'Message Sent!'}</h3>
-                                <p>{isRTL ? 'נחזור אליכם תוך 24 שעות.' : 'We\'ll get back to you within 24 hours.'}</p>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setSubmitStatus(null)}
-                                >
-                                    {isRTL ? 'שליחת הודעה נוספת' : 'Send Another Message'}
-                                </Button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleSubmit}>
-                                <h3>{isRTL ? 'שלחו לנו הודעה' : 'Send Us a Message'}</h3>
+            <div className="contact-content">
+                <Card variant="elevated" padding="lg" className="contact-form-card animate-slideUp">
+                    {submitStatus === 'success' ? (
+                        <div className="success-message">
+                            <span className="success-icon">✅</span>
+                            <h3>{isRTL ? 'ההודעה נשלחה!' : 'Message Sent!'}</h3>
+                            <p>{isRTL ? 'נחזור אליכם תוך 24 שעות.' : 'We\'ll get back to you within 24 hours.'}</p>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setSubmitStatus(null)}
+                            >
+                                {isRTL ? 'שליחת הודעה נוספת' : 'Send Another Message'}
+                            </Button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit}>
+                            <h3>{isRTL ? 'שלחו לנו הודעה' : 'Send Us a Message'}</h3>
 
-                                <div className="form-row">
-                                    <Input
-                                        label={isRTL ? 'שם' : 'Name'}
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder={isRTL ? 'ישראל ישראלי' : 'John Smith'}
-                                    />
-                                    <Input
-                                        label={isRTL ? 'אימייל' : 'Email'}
-                                        name="email"
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="example@email.com"
-                                    />
-                                </div>
-
+                            <div className="form-row">
                                 <Input
-                                    label={isRTL ? 'נושא' : 'Subject'}
-                                    name="subject"
-                                    value={formData.subject}
+                                    label={isRTL ? 'שם' : 'Name'}
+                                    name="name"
+                                    value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    placeholder={isRTL ? 'במה נוכל לעזור?' : 'How can we help?'}
+                                    placeholder={isRTL ? 'ישראל ישראלי' : 'John Smith'}
                                 />
+                                <Input
+                                    label={isRTL ? 'אימייל' : 'Email'}
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="example@email.com"
+                                />
+                            </div>
 
-                                <div className="textarea-wrapper">
-                                    <label className="input-label">{isRTL ? 'הודעה' : 'Message'}</label>
-                                    <textarea
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder={isRTL ? 'תארו את הבעיה או השאלה שלכם בפירוט...' : 'Describe your issue or question in detail...'}
-                                        rows={5}
-                                        className="contact-textarea"
-                                    />
-                                </div>
+                            <Input
+                                label={isRTL ? 'נושא' : 'Subject'}
+                                name="subject"
+                                value={formData.subject}
+                                onChange={handleChange}
+                                required
+                                placeholder={isRTL ? 'במה נוכל לעזור?' : 'How can we help?'}
+                            />
 
-                                {error && <p className="form-error">{error}</p>}
+                            <div className="textarea-wrapper">
+                                <label className="input-label">{isRTL ? 'הודעה' : 'Message'}</label>
+                                <textarea
+                                    name="message"
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder={isRTL ? 'תארו את הבעיה או השאלה שלכם בפירוט...' : 'Describe your issue or question in detail...'}
+                                    rows={5}
+                                    className="contact-textarea"
+                                />
+                            </div>
 
-                                <Button
-                                    variant="primary"
-                                    fullWidth
-                                    loading={isSubmitting}
-                                    type="submit"
-                                >
-                                    {isSubmitting ? (isRTL ? 'שולח...' : 'Sending...') : (isRTL ? 'שליחת הודעה' : 'Send Message')}
-                                </Button>
-                            </form>
-                        )}
+                            {error && <p className="form-error">{error}</p>}
+
+                            <Button
+                                variant="primary"
+                                fullWidth
+                                loading={isSubmitting}
+                                type="submit"
+                            >
+                                {isSubmitting ? (isRTL ? 'שולח...' : 'Sending...') : (isRTL ? 'שליחת הודעה' : 'Send Message')}
+                            </Button>
+                        </form>
+                    )}
+                </Card>
+
+                <div className="contact-info animate-slideUp" style={{ animationDelay: '100ms' }}>
+                    <Card variant="glass" padding="md">
+                        <h4>📍 {isRTL ? 'עזרה מהירה' : 'Quick Help'}</h4>
+                        <ul className="help-list">
+                            <li>
+                                <strong>{isRTL ? 'הניתוח מראה "מעבד..."?' : 'Analysis shows "Processing"?'}</strong>
+                                <span>{isRTL ? 'הניתוח נמשך עד 2 דקות. הדף מתעדכן אוטומטית - אין צורך לרענן.' : 'Analysis takes up to 2 minutes. The page auto-updates - no need to refresh.'}</span>
+                            </li>
+                            <li>
+                                <strong>{isRTL ? 'דרישות הקובץ?' : 'File requirements?'}</strong>
+                                <span>{isRTL ? 'PDF בלבד, בין 30KB ל-5MB. שם קובץ עד 100 תווים.' : 'PDF only, between 30KB and 5MB. Filename up to 100 characters.'}</span>
+                            </li>
+                            <li>
+                                <strong>{isRTL ? 'איך לייצא את הניתוח?' : 'How to export analysis?'}</strong>
+                                <span>{isRTL ? 'בדף הניתוח, לחצו על "ייצוא" לקבלת דוח Word או PDF.' : 'On the analysis page, click "Export" to get a Word or PDF report.'}</span>
+                            </li>
+                            <li>
+                                <strong>{isRTL ? 'מה משמעות הציון?' : 'What does the score mean?'}</strong>
+                                <span>{isRTL ? '100 = מושלם. נקודות מנוכות לפי חומרת הסעיפים הבעייתיים.' : '100 = perfect. Points are deducted based on issue severity.'}</span>
+                            </li>
+                        </ul>
                     </Card>
 
-                    <div className="contact-info animate-slideUp" style={{ animationDelay: '100ms' }}>
-                        <Card variant="glass" padding="md">
-                            <h4>📍 {isRTL ? 'עזרה מהירה' : 'Quick Help'}</h4>
-                            <ul className="help-list">
-                                <li>
-                                    <strong>{isRTL ? 'הניתוח לוקח יותר מדי זמן?' : 'Analysis taking too long?'}</strong>
-                                    <span>{isRTL ? 'בדרך כלל מסתיים תוך 60 שניות. נסו לרענן את הדף.' : 'Usually completes within 60 seconds. Try refreshing the page.'}</span>
-                                </li>
-                                <li>
-                                    <strong>{isRTL ? 'בעיות בהעלאה?' : 'Upload issues?'}</strong>
-                                    <span>{isRTL ? 'וודאו שהקובץ בפורמט PDF ומתחת ל-5MB.' : 'Make sure the file is PDF format and under 5MB.'}</span>
-                                </li>
-                                <li>
-                                    <strong>{isRTL ? 'שאלות על התוצאות?' : 'Questions about results?'}</strong>
-                                    <span>{isRTL ? 'ה-AI שלנו מספק הסברים לכל ממצא.' : 'Our AI provides explanations for every finding.'}</span>
-                                </li>
-                            </ul>
-                        </Card>
-
-                        <Card variant="glass" padding="md">
-                            <h4>⏰ {isRTL ? 'זמן תגובה' : 'Response Time'}</h4>
-                            <p className="response-info">
-                                {isRTL
-                                    ? <>אנחנו בדרך כלל עונים תוך <strong>24 שעות</strong> בימי עבודה. לבעיות דחופות, הוסיפו "דחוף" בנושא ההודעה.</>
-                                    : <>We usually respond within <strong>24 hours</strong> on business days. For urgent issues, add "Urgent" to the subject line.</>
-                                }
-                            </p>
-                        </Card>
-                    </div>
+                    <Card variant="glass" padding="md">
+                        <h4>⏰ {isRTL ? 'זמן תגובה' : 'Response Time'}</h4>
+                        <p className="response-info">
+                            {isRTL
+                                ? <>אנחנו בדרך כלל עונים תוך <strong>24 שעות</strong> בימי עבודה. לבעיות דחופות, הוסיפו "דחוף" בנושא ההודעה.</>
+                                : <>We usually respond within <strong>24 hours</strong> on business days. For urgent issues, add "Urgent" to the subject line.</>
+                            }
+                        </p>
+                    </Card>
                 </div>
             </div>
         </div>
