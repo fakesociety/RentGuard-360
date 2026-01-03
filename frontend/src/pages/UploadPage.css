@@ -137,16 +137,18 @@
 
 /* Dark Mode for Drop Zone */
 [data-theme="dark"] .drop-zone {
-    background: rgba(20, 184, 166, 0.05) !important;
+    background: var(--glass-bg) !important;
     border: 2px dashed rgba(45, 212, 191, 0.4) !important;
 }
 
 [data-theme="dark"] .drop-zone:hover {
-    background: rgba(20, 184, 166, 0.1) !important;
-    border-color: #2dd4bf !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    /* Emerald green tint */
+    border-color: #10B981 !important;
+    /* Emerald green border */
     box-shadow:
-        0 0 0 4px rgba(45, 212, 191, 0.1),
-        0 0 30px rgba(45, 212, 191, 0.15);
+        0 0 0 4px rgba(16, 185, 129, 0.1),
+        0 0 30px rgba(16, 185, 129, 0.2);
 }
 
 [data-theme="dark"] .drop-zone.dragging {
