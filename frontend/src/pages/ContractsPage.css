@@ -244,9 +244,18 @@
     color: #94a3b8;
 }
 
+.card-header-info {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    flex: 1;
+    min-width: 0;
+}
+
 .card-header-content {
     flex: 1;
     min-width: 0;
+    margin-bottom: var(--space-sm);
 }
 
 .card-title {
@@ -456,10 +465,13 @@
 }
 
 /* Card Status Row */
-.card-status-row {
+.card-status-row,
+.status-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
 }
 
 .analyzed-date {

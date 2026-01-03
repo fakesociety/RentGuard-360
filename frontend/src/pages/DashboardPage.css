@@ -1,9 +1,27 @@
+/* 
+ * Dashboard Page - Modern SaaS Design
+ * Welcome, Stats, Actions, Guide, and Differentiators
+ * 
+ * STRUCTURE:
+ * 1. Page Layout
+ * 2. Welcome Section
+ * 3. Stats Section
+ * 4. Actions Section
+ * 5. Guide Section
+ * 6. Differentiators Section
+ * 7. Animations
+ * 8. Media Queries
+ */
+
+/* ============================================
+   1. PAGE LAYOUT
+   ============================================ */
+
 .dashboard-page {
     min-height: 100vh;
     padding: var(--space-xl) var(--space-md);
     padding-bottom: 50px;
     background: var(--bg-page);
-    /* Full width background, content centered via inner elements or padding */
 }
 
 /* Inner content wrapper for centering - exclude section-bands */
@@ -12,6 +30,10 @@
     margin-left: auto;
     margin-right: auto;
 }
+
+/* ============================================
+   2. WELCOME SECTION
+   ============================================ */
 
 .welcome-section {
     text-align: center;
@@ -30,7 +52,10 @@
     font-size: var(--font-size-lg);
 }
 
-/* Stats Section */
+/* ============================================
+   3. STATS SECTION
+   ============================================ */
+
 .stats-section {
     margin-bottom: var(--space-2xl);
 }
@@ -39,18 +64,6 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--space-lg);
-}
-
-@media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 .stat-card {
@@ -85,7 +98,10 @@
     color: var(--text-secondary);
 }
 
-/* Actions Section */
+/* ============================================
+   4. ACTIONS SECTION
+   ============================================ */
+
 .actions-section {
     margin-bottom: var(--space-2xl);
 }
@@ -144,7 +160,10 @@
     margin-bottom: var(--space-lg);
 }
 
-/* Guide Section */
+/* ============================================
+   5. GUIDE SECTION
+   ============================================ */
+
 .guide-card h2 {
     text-align: center;
     color: var(--text-primary);
@@ -199,7 +218,10 @@
     font-size: var(--font-size-sm);
 }
 
-/* ===== Differentiators Section ===== */
+/* ============================================
+   6. DIFFERENTIATORS SECTION
+   ============================================ */
+
 .differentiators-section {
     margin-top: var(--space-2xl);
 }
@@ -312,7 +334,52 @@
     line-height: 1.6;
 }
 
-/* Responsive */
+/* ============================================
+   7. ANIMATIONS
+   ============================================ */
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideUp {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   8. MEDIA QUERIES
+   ============================================ */
+
+/* Large Tablet / Small Laptop */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Tablet with Differentiators */
 @media (max-width: 900px) {
     .differentiators-container {
         grid-template-columns: 1fr;
@@ -347,7 +414,7 @@
         font-size: 1.5rem;
     }
 
-    /* RTL: Rotate arrow to point DOWN (left arrow rotated -90deg = down) */
+    /* RTL: Rotate arrow to point DOWN */
     [dir="rtl"] .step-arrow {
         transform: rotate(-90deg);
     }
@@ -378,6 +445,13 @@
     }
 }
 
+/* Mobile */
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Small Mobile (iPhone SE) */
 @media (max-width: 480px) {
     .welcome-title {
@@ -402,36 +476,5 @@
         width: 40px;
         height: 40px;
         font-size: 20px;
-    }
-}
-
-/* Animations */
-.animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
-}
-
-.animate-slideUp {
-    animation: slideUp 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }

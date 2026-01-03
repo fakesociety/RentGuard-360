@@ -59,12 +59,14 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
         <div className="contract-card">
             {/* Card Header */}
             <div className="card-header">
-                <div className="card-icon">
-                    <FileText size={20} />
-                </div>
-                <div className="card-header-content">
-                    <h3 className="card-title">{contract.fileName || (isRTL ? 'חוזה ללא שם' : 'Untitled Contract')}</h3>
-                    <span className="card-date">{formatDate(contract.uploadDate)}</span>
+                <div className="card-header-info">
+                    <div className="card-icon">
+                        <FileText size={20} />
+                    </div>
+                    <div className="card-header-content">
+                        <h3 className="card-title">{contract.fileName || (isRTL ? 'חוזה ללא שם' : 'Untitled Contract')}</h3>
+                        <span className="card-date">{formatDate(contract.uploadDate)}</span>
+                    </div>
                 </div>
                 {/* Score Gauge */}
                 {hasScore ? (
