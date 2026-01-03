@@ -70,7 +70,8 @@
 /* ========== DARK MODE ENHANCEMENTS ========== */
 [data-theme="dark"] .card-elevated {
     box-shadow: var(--shadow-lg);
-    border-color: rgba(255, 255, 255, 0.06);
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
 }
 
 [data-theme="dark"] .card-elevated:hover {

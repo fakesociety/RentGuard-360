@@ -1,13 +1,43 @@
-.contact-page {
-    min-height: 100vh;
-    padding: var(--space-xl) var(--space-md);
-    background: var(--bg-secondary);
+/* 
+ * ContactPage.css - Contact Page Styles
+ * Contact form, help cards, response info
+ * 
+ * STRUCTURE:
+ * 1. Page Layout
+ * 2. Page Header
+ * 3. Content Layout
+ * 4. Form Card
+ * 5. Textarea
+ * 6. Messages (Error/Success)
+ * 7. Info Cards
+ * 8. Media Queries (768px, 600px, 480px)
+ * 
+ * NOTE: 
+ * - Uses .page-container for base layout (from design-system.css)
+ * - Uses .animate-fadeIn, .animate-slideUp (from design-system.css)
+ */
+
+/* ============================================
+   1. PAGE LAYOUT
+   ============================================ */
+
+/* 
+ * Contact Page Layout Fix:
+ * Same approach as Settings page - use flexbox to fill remaining space
+ * so the --bg-page background extends to the footer with no gap.
+ */
+
+
+/* All direct children get centered with max-width */
+.contact-page>* {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.contact-container {
-    max-width: 1000px;
-    margin: 0 auto;
-}
+/* ============================================
+   2. PAGE HEADER
+   ============================================ */
 
 .contact-header {
     text-align: center;
@@ -26,7 +56,10 @@
     font-size: var(--font-size-lg);
 }
 
-/* Content Layout */
+/* ============================================
+   3. CONTENT LAYOUT
+   ============================================ */
+
 .contact-content {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
@@ -34,32 +67,10 @@
     align-items: start;
 }
 
-@media (max-width: 768px) {
-    .contact-content {
-        grid-template-columns: 1fr;
-    }
-}
+/* ============================================
+   4. FORM CARD
+   ============================================ */
 
-/* Mobile (iPhone Pro) */
-@media (max-width: 600px) {
-    .contact-page {
-        padding: var(--space-lg) var(--space-sm);
-    }
-
-    .contact-header h1 {
-        font-size: var(--font-size-2xl);
-    }
-
-    .contact-header p {
-        font-size: var(--font-size-base);
-    }
-
-    .contact-info {
-        order: -1;
-    }
-}
-
-/* Form Card */
 .contact-form-card h3 {
     color: var(--text-primary);
     margin-bottom: var(--space-lg);
@@ -78,13 +89,10 @@
     gap: var(--space-md);
 }
 
-@media (max-width: 480px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-}
+/* ============================================
+   5. TEXTAREA
+   ============================================ */
 
-/* Textarea */
 .textarea-wrapper {
     display: flex;
     flex-direction: column;
@@ -126,7 +134,10 @@
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
-/* Error Message */
+/* ============================================
+   6. MESSAGES (ERROR/SUCCESS)
+   ============================================ */
+
 .form-error {
     color: var(--accent-danger);
     font-size: var(--font-size-sm);
@@ -136,7 +147,6 @@
     text-align: center;
 }
 
-/* Success Message */
 .success-message {
     text-align: center;
     padding: var(--space-xl);
@@ -158,7 +168,10 @@
     margin-bottom: var(--space-lg);
 }
 
-/* Info Cards */
+/* ============================================
+   7. INFO CARDS
+   ============================================ */
+
 .contact-info {
     display: flex;
     flex-direction: column;
@@ -201,33 +214,39 @@
     line-height: 1.6;
 }
 
-/* Animations */
-.animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
-}
+/* ============================================
+   8. MEDIA QUERIES
+   ============================================ */
 
-.animate-slideUp {
-    animation: slideUp 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
+/* Tablet (iPad Mini/Air) */
+@media (max-width: 768px) {
+    .contact-content {
+        grid-template-columns: 1fr;
     }
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+/* Mobile (iPhone Pro) */
+@media (max-width: 600px) {
+    .contact-page {
+        padding: var(--space-lg) var(--space-sm);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .contact-header h1 {
+        font-size: var(--font-size-2xl);
+    }
+
+    .contact-header p {
+        font-size: var(--font-size-base);
+    }
+
+    .contact-info {
+        order: -1;
+    }
+}
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }

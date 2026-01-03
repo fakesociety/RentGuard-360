@@ -1,15 +1,75 @@
-/* Uses .page-container for base styles */
-.settings-page {
-    padding: var(--space-xl) var(--space-md);
-    max-width: 700px;
-    margin: 0 auto;
+/* 
+ * SettingsPage.css - Settings Page Styles
+ * User settings, profile, appearance, notifications
+ * 
+ * STRUCTURE:
+ * 1. Page Layout
+ * 2. Page Title
+ * 3. Section Headers
+ * 4. Profile Section
+ * 5. Setting Rows
+ * 6. Theme Preview
+ * 7. About Section
+ * 8. Danger Card
+ * 9. Animations
+ * 10. Media Queries (768px, 600px, 480px)
+ */
+
+/* ============================================
+   1. PAGE LAYOUT
+   ============================================ */
+
+/* 
+ * Settings Page Layout Fix:
+
+ * How it works:
+ * 1. .app-container becomes a flex column (stacks nav, main, footer vertically)
+ * 2. .app-main gets flex: 1, which means "grow to fill all available space"
+ * 3. This pushes the footer to the bottom, and .app-main's background 
+ *    (--bg-page) fills the entire area with no gap.
+ * 
+ * The :has() selector applies these ONLY when settings-page is present,
+ * so other pages are not affected.
+ */
+.app-container:has(.settings-page) {
+    display: flex;
+    flex-direction: column;
 }
+
+.app-main:has(.settings-page) {
+    background: var(--bg-page);
+    flex: 1;
+}
+
+/* Note: .page-container provides the full-width background */
+.settings-page {
+    min-height: 100vh;
+    padding: var(--space-xl) var(--space-md);
+    padding-bottom: 0;
+    /* Remove bottom padding - let content extend to footer */
+}
+
+/* All direct children get centered with max-width */
+.settings-page>* {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   2. PAGE TITLE
+   ============================================ */
 
 .settings-title {
     font-size: var(--font-size-3xl);
     color: var(--text-primary);
     margin-bottom: var(--space-xl);
+    text-align: center;
 }
+
+/* ============================================
+   3. SECTION HEADERS
+   ============================================ */
 
 .settings-section {
     margin-bottom: var(--space-xl);
@@ -20,13 +80,19 @@
     font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
 }
 
 .settings-page .section-title.danger {
     color: var(--accent-danger);
 }
 
-/* Profile Info */
+/* ============================================
+   4. PROFILE SECTION
+   ============================================ */
+
 .profile-info-grid {
     display: flex;
     align-items: center;
@@ -72,7 +138,10 @@
     font-weight: var(--font-weight-medium);
 }
 
-/* Setting Rows */
+/* ============================================
+   5. SETTING ROWS
+   ============================================ */
+
 .setting-row {
     display: flex;
     justify-content: space-between;
@@ -91,7 +160,10 @@
     color: var(--text-tertiary);
 }
 
-/* Theme Preview */
+/* ============================================
+   6. THEME PREVIEW
+   ============================================ */
+
 .theme-preview {
     display: flex;
     align-items: center;
@@ -108,14 +180,15 @@
     overflow: hidden;
     box-shadow: var(--shadow-md);
     transition: all var(--transition-normal);
+    border: 1px solid var(--glass-border);
 }
 
 .preview-card.light {
-    background: #f5f5f7;
+    background: var(--bg-page);
 }
 
 .preview-card.dark {
-    background: #1c1c1e;
+    background: #151a23;
 }
 
 .preview-header {
@@ -134,11 +207,11 @@
 }
 
 .preview-card.light .preview-line {
-    background: #e8e8ed;
+    background: var(--bg-inset);
 }
 
 .preview-card.dark .preview-line {
-    background: #2c2c2e;
+    background: #1E2530;
 }
 
 .preview-line.short {
@@ -151,7 +224,10 @@
     color: var(--text-secondary);
 }
 
-/* About Section */
+/* ============================================
+   7. ABOUT SECTION
+   ============================================ */
+
 .about-info {
     display: flex;
     flex-direction: column;
@@ -174,12 +250,22 @@
     font-weight: var(--font-weight-medium);
 }
 
-/* Danger Card */
+/* ============================================
+   8. DANGER CARD
+   ============================================ */
+
 .danger-card {
-    border: 1px solid rgba(255, 59, 48, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
 }
 
-/* Animations */
+[data-theme="dark"] .danger-card {
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* ============================================
+   9. ANIMATIONS
+   ============================================ */
+
 .animate-fadeIn {
     animation: fadeIn 0.5s ease-out forwards;
 }
@@ -210,12 +296,15 @@
     }
 }
 
-/* Responsive */
+/* ============================================
+   10. MEDIA QUERIES
+   ============================================ */
 
 /* Tablet (iPad Mini/Air) */
 @media (max-width: 768px) {
-    .settings-page {
-        padding: var(--space-lg) var(--space-sm);
+    .settings-page>* {
+        max-width: 100%;
+        padding: 0 var(--space-sm);
     }
 
     .settings-title {

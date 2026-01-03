@@ -23,7 +23,7 @@ const SettingsPage = () => {
             {/* Profile Section */}
             <section className="settings-section animate-slideUp">
                 <h2 className="section-title">👤 {isRTL ? 'פרופיל' : 'Profile'}</h2>
-                <Card variant="glass" padding="lg">
+                <Card variant="elevated" padding="lg">
                     <div className="profile-info-grid">
                         <div className="profile-avatar-large">
                             {(userAttributes?.name || userAttributes?.email || 'U').charAt(0).toUpperCase()}
