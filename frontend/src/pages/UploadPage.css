@@ -1,4 +1,28 @@
-/* Uses .page-container for base styles */
+/* 
+ * Upload Page - Clean & Modern Design
+ * Teal-themed with smooth animations
+ * 
+ * STRUCTURE:
+ * 1. Page Layout
+ * 2. Header
+ * 3. Drop Zone (base, hover, dragging, has-file)
+ * 4. Drop Zone Dark Mode
+ * 5. File Preview & Editing
+ * 6. Upload Progress
+ * 7. Success Card
+ * 8. Analyzing/Loading States
+ * 9. Metadata Card
+ * 10. Error Message
+ * 11. Terms Section
+ * 12. Terms Modal
+ * 13. Animations
+ * 14. Media Queries
+ */
+
+/* ============================================
+   1. PAGE LAYOUT
+   ============================================ */
+
 .upload-page {
     padding: var(--space-xl) var(--space-md);
 }
@@ -7,6 +31,16 @@
     max-width: 600px;
     margin: 0 auto;
 }
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* ============================================
+   2. HEADER
+   ============================================ */
 
 .upload-header {
     text-align: center;
@@ -25,26 +59,16 @@
     font-size: var(--font-size-lg);
 }
 
-.upload-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-}
+/* ============================================
+   3. DROP ZONE
+   ============================================ */
 
-/* Drop Zone - Vibrant Teal Design */
+/* Base Drop Zone - Vibrant Teal Design */
 .drop-zone {
-    /* Dashed teal border */
     border: 2px dashed rgba(20, 184, 166, 0.5) !important;
-    /* teal-500/50 */
-
-    /* Subtle teal background */
     background: linear-gradient(135deg,
             rgba(240, 253, 250, 0.9) 0%,
-            /* teal-50 */
-            rgba(204, 251, 241, 0.5) 100%
-            /* teal-100 */
-        ) !important;
-
+            rgba(204, 251, 241, 0.5) 100%) !important;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,9 +94,9 @@
     opacity: 1;
 }
 
+/* Hover State */
 .drop-zone:hover {
     border-color: #14b8a6 !important;
-    /* teal-500 */
     background: linear-gradient(135deg,
             rgba(204, 251, 241, 0.7) 0%,
             rgba(153, 246, 228, 0.4) 100%) !important;
@@ -82,9 +106,9 @@
     transform: translateY(-2px);
 }
 
+/* Dragging State */
 .drop-zone.dragging {
     border-color: #0d9488 !important;
-    /* teal-600 */
     background: linear-gradient(135deg,
             rgba(153, 246, 228, 0.6) 0%,
             rgba(94, 234, 212, 0.3) 100%) !important;
@@ -94,13 +118,14 @@
         0 12px 40px rgba(20, 184, 166, 0.25);
 }
 
+/* Has File State */
 .drop-zone.has-file {
     border-style: solid !important;
     border-color: #10b981 !important;
-    /* emerald-500 */
     background: rgba(240, 253, 250, 0.9) !important;
 }
 
+/* Drop Content */
 .drop-content {
     display: flex;
     flex-direction: column;
@@ -113,29 +138,28 @@
 .drop-icon {
     font-size: 56px;
     filter: hue-rotate(150deg) saturate(1.5);
-    /* Make it teal-ish */
 }
 
 .drop-content h3 {
     font-size: var(--font-size-xl);
     color: #0f766e;
-    /* teal-700 */
     font-weight: 700;
 }
 
 .drop-content p {
     color: #14b8a6;
-    /* teal-500 */
 }
 
 .drop-hint {
     font-size: var(--font-size-sm);
     color: #2dd4bf;
-    /* teal-400 */
     margin-top: var(--space-sm);
 }
 
-/* Dark Mode for Drop Zone */
+/* ============================================
+   4. DROP ZONE DARK MODE
+   ============================================ */
+
 [data-theme="dark"] .drop-zone {
     background: var(--glass-bg) !important;
     border: 2px dashed rgba(45, 212, 191, 0.4) !important;
@@ -143,9 +167,7 @@
 
 [data-theme="dark"] .drop-zone:hover {
     background: rgba(16, 185, 129, 0.15) !important;
-    /* Emerald green tint */
     border-color: #10B981 !important;
-    /* Emerald green border */
     box-shadow:
         0 0 0 4px rgba(16, 185, 129, 0.1),
         0 0 30px rgba(16, 185, 129, 0.2);
@@ -158,20 +180,20 @@
 
 [data-theme="dark"] .drop-content h3 {
     color: #5eead4;
-    /* teal-300 */
 }
 
 [data-theme="dark"] .drop-content p {
     color: #94a3b8;
-    /* slate-400 */
 }
 
 [data-theme="dark"] .drop-hint {
     color: #2dd4bf;
-    /* teal-400 */
 }
 
-/* File Preview */
+/* ============================================
+   5. FILE PREVIEW & EDITING
+   ============================================ */
+
 .file-preview {
     display: flex;
     align-items: center;
@@ -234,7 +256,10 @@
     font-weight: 500;
 }
 
-/* Upload Progress */
+/* ============================================
+   6. UPLOAD PROGRESS
+   ============================================ */
+
 .upload-progress {
     margin-top: var(--space-lg);
     width: 100%;
@@ -261,7 +286,10 @@
     font-size: var(--font-size-sm);
 }
 
-/* Success Card */
+/* ============================================
+   7. SUCCESS CARD
+   ============================================ */
+
 .success-card {
     background: rgba(52, 199, 89, 0.1);
     border: 1px solid var(--accent-success);
@@ -287,43 +315,6 @@
     color: var(--text-secondary);
 }
 
-/* Analyzing status with spinner */
-.analyzing-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--accent-primary);
-    font-weight: var(--font-weight-medium);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-}
-
-.mini-spinner {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(16, 185, 129, 0.3);
-    border-top-color: var(--accent-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 .upload-confirm {
     font-size: var(--font-size-sm);
     color: var(--accent-success) !important;
@@ -342,7 +333,32 @@
     gap: var(--space-md);
 }
 
-/* Metadata Card */
+/* ============================================
+   8. ANALYZING/LOADING STATES
+   ============================================ */
+
+.analyzing-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-primary);
+    font-weight: var(--font-weight-medium);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.mini-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   9. METADATA CARD
+   ============================================ */
+
 .metadata-card h3 {
     margin-bottom: var(--space-md);
     color: var(--text-primary);
@@ -354,7 +370,10 @@
     gap: var(--space-md);
 }
 
-/* Error Message */
+/* ============================================
+   10. ERROR MESSAGE
+   ============================================ */
+
 .error-message {
     padding: var(--space-md);
     background: rgba(255, 59, 48, 0.1);
@@ -364,43 +383,10 @@
     text-align: center;
 }
 
-/* Upload Button */
-.upload-button {
-    margin-top: var(--space-md);
-}
+/* ============================================
+   11. TERMS SECTION
+   ============================================ */
 
-/* Animations */
-.animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
-}
-
-.animate-slideUp {
-    animation: slideUp 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===== Terms Section ===== */
 .terms-section {
     background: var(--bg-tertiary);
     border-radius: var(--radius-md);
@@ -445,7 +431,10 @@
     color: var(--accent-secondary);
 }
 
-/* ===== Terms Modal ===== */
+/* ============================================
+   12. TERMS MODAL
+   ============================================ */
+
 .terms-modal-overlay {
     position: fixed;
     top: 0;
@@ -471,18 +460,6 @@
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
 }
 
 .terms-modal-header {
@@ -545,14 +522,82 @@
     justify-content: center;
 }
 
-/* Disabled upload button */
+/* Upload Button */
+.upload-button {
+    margin-top: var(--space-md);
+}
+
 .upload-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* ============================================
-   RESPONSIVE BREAKPOINTS
+   13. ANIMATIONS
+   ============================================ */
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideUp {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============================================
+   14. MEDIA QUERIES
    ============================================ */
 
 /* iPad Pro / Small laptop */
