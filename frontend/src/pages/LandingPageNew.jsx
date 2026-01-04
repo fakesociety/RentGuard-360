@@ -457,7 +457,17 @@ const LandingPageNew = () => {
 
         setLoading(true);
         const result = await login(trimmedEmail, password);
-        if (!result.success) setError(result.error || 'Login failed');
+        if (!result.success) {
+            // Translate login errors
+            let errorMsg = result.error;
+            if (isRTL) {
+                if (errorMsg.includes('Incorrect') || errorMsg.includes('password')) errorMsg = 'שם משתמש או סיסמה שגויים';
+                else if (errorMsg.includes('not confirmed') || errorMsg.includes('confirm')) errorMsg = 'המשתמש לא אומת. לחץ על הרשמה להמשך.';
+                else if (errorMsg.includes('not exist') || errorMsg.includes('User')) errorMsg = 'המשתמש לא קיים';
+                else errorMsg = 'ההתחברות נכשלה. נסה שוב.';
+            }
+            setError(errorMsg);
+        }
         setLoading(false);
     };
 
@@ -494,7 +504,29 @@ const LandingPageNew = () => {
             localStorage.setItem('rentguard_pending_verification', trimmedEmail);
             setAuthModal('confirm');
         } else {
-            setError(result.error || 'Registration failed');
+            // Check if user exists but not confirmed - redirect to verification
+            if (result.error && result.error.includes('already exists')) {
+                setTempEmail(trimmedEmail);
+                localStorage.setItem('rentguard_pending_verification', trimmedEmail);
+                // Try to resend the code
+                try {
+                    await resendCode(trimmedEmail);
+                    setAuthModal('confirm');
+                    setError('');
+                } catch (resendErr) {
+                    // If resend fails, user might already be confirmed
+                    setError(isRTL ? 'המשתמש קיים. נסה להתחבר.' : 'User exists. Try logging in.');
+                }
+            } else {
+                // Translate common errors
+                let errorMsg = result.error;
+                if (isRTL) {
+                    if (errorMsg.includes('Password')) errorMsg = 'הסיסמה חייבת לכלול לפחות 8 תווים, אות גדולה, אות קטנה ומספר';
+                    else if (errorMsg.includes('email')) errorMsg = 'כתובת אימייל לא תקינה';
+                    else errorMsg = 'ההרשמה נכשלה. נסה שוב.';
+                }
+                setError(errorMsg);
+            }
         }
         setLoading(false);
     };
@@ -509,12 +541,39 @@ const LandingPageNew = () => {
             setAuthModal('login');
             setEmail(tempEmail);
         } else {
-            setError(result.error || 'Verification failed');
+            // Translate errors to Hebrew
+            let errorMsg = result.error;
+            if (isRTL) {
+                if (errorMsg.includes('Invalid') || errorMsg.includes('code')) errorMsg = 'קוד אימות שגוי';
+                else if (errorMsg.includes('expired')) errorMsg = 'הקוד פג תוקף. לחץ על שלח קוד חדש';
+                else errorMsg = 'האימות נכשל. נסה שוב.';
+            }
+            setError(errorMsg);
+        }
+        setLoading(false);
+    };
+
+    const handleResendCode = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            await resendCode(tempEmail);
+            setError(isRTL ? 'קוד חדש נשלח לאימייל שלך' : 'New code sent to your email');
+        } catch (err) {
+            setError(isRTL ? 'שליחת הקוד נכשלה. נסה שוב.' : 'Failed to resend code. Try again.');
         }
         setLoading(false);
     };
 
     const toggleAuth = (type) => {
+        // Check if user has pending verification
+        const pendingEmail = localStorage.getItem('rentguard_pending_verification');
+        if (type === 'register' && pendingEmail) {
+            setTempEmail(pendingEmail);
+            setError('');
+            setAuthModal('confirm');
+            return;
+        }
         setError('');
         setAuthModal(authModal === type ? null : type);
     };
@@ -600,10 +659,16 @@ const LandingPageNew = () => {
                                 <p className="confirm-msg">{t('auth.confirmMessage')} <strong>{tempEmail}</strong></p>
                                 <Input label={t('auth.confirmCode')} value={code}
                                     onChange={(e) => setCode(e.target.value)} required placeholder="123456" maxLength={6} />
-                                {error && <p className="auth-error">{error}</p>}
+                                {error && <p className={error.includes('נשלח') || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.confirmButton')}
                                 </Button>
+                                <p className="auth-switch">
+                                    {isRTL ? 'לא קיבלת את הקוד?' : "Didn't receive the code?"}{' '}
+                                    <button type="button" onClick={handleResendCode} disabled={loading}>
+                                        {isRTL ? 'שלח קוד חדש' : 'Resend Code'}
+                                    </button>
+                                </p>
                             </form>
                         )}
                     </div>
