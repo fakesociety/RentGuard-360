@@ -345,7 +345,8 @@ const ContractViewerMockup = ({ isRTL, onScoreClick }) => (
 // ===== MAIN LANDING PAGE =====
 
 const LandingPageNew = () => {
-    const { login, register, confirmRegistration, isAuthenticated, resendCode } = useAuth();
+    // DAN DID IT - Added forgotPassword and resetUserPassword from useAuth for forgot password feature
+    const { login, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword } = useAuth();
     const { t, isRTL } = useLanguage();
 
     // Auth form state
@@ -359,6 +360,11 @@ const LandingPageNew = () => {
     const [loading, setLoading] = useState(false);
     const [tempEmail, setTempEmail] = useState('');
     const dropdownRef = useRef(null);
+
+    // DAN DID IT - Added state variables for forgot password flow
+    // Forgot password state
+    const [resetCode, setResetCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
 
     // Registration prompt state
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
@@ -442,6 +448,41 @@ const LandingPageNew = () => {
         return <Navigate to="/dashboard" replace />;
     }
 
+    // DAN DID IT - Helper function to translate AWS Cognito errors to Hebrew
+    const translateError = (errorMessage) => {
+        if (!isRTL) return errorMessage; // Return English as-is
+        
+        const errorTranslations = {
+            'Attempt limit exceeded, please try after some time': 'חרגת ממספר הניסיונות המותר, נסה שוב מאוחר יותר',
+            'Invalid verification code provided': 'קוד אימות שגוי',
+            'User does not exist': 'משתמש לא קיים',
+            'Incorrect username or password': 'שם משתמש או סיסמה שגויים',
+            'Password did not conform with policy': 'הסיסמה לא עומדת בדרישות המערכת',
+            'An account with the given email already exists': 'כתובת האימייל כבר קיימת במערכת',
+            'Invalid password format': 'פורמט סיסמה לא תקין',
+            'Cannot reset password for the user as there is no registered/verified email': 'לא ניתן לאפס סיסמה - אין אימייל רשום',
+            'User is disabled': 'המשתמש מושבת',
+            'Failed to send reset code': 'שליחת קוד איפוס נכשלה',
+            'Failed to reset password': 'איפוס הסיסמה נכשל',
+            'Code mismatch': 'קוד שגוי',
+            'Expired code': 'הקוד פג תוקף'
+        };
+
+        // Check for exact match
+        if (errorTranslations[errorMessage]) {
+            return errorTranslations[errorMessage];
+        }
+
+        // Check for partial matches
+        for (const [english, hebrew] of Object.entries(errorTranslations)) {
+            if (errorMessage.includes(english)) {
+                return hebrew;
+            }
+        }
+
+        return errorMessage; // Return original if no translation found
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -457,7 +498,7 @@ const LandingPageNew = () => {
 
         setLoading(true);
         const result = await login(trimmedEmail, password);
-        if (!result.success) setError(result.error || 'Login failed');
+        if (!result.success) setError(translateError(result.error || 'Login failed'));
         setLoading(false);
     };
 
@@ -514,6 +555,54 @@ const LandingPageNew = () => {
         setLoading(false);
     };
 
+    // DAN DID IT - Added handleForgotPassword to send reset code to user's email
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) {
+            setError(isRTL ? 'יש להזין כתובת אימייל' : 'Please enter email address');
+            return;
+        }
+
+        setLoading(true);
+        const result = await forgotPassword(trimmedEmail);
+        if (result.success) {
+            setTempEmail(trimmedEmail);
+            setAuthModal('resetPassword');
+        } else {
+            setError(translateError(result.error || 'Failed to send reset code'));
+        }
+        setLoading(false);
+    };
+
+    // DAN DID IT - Added handleResetPassword to reset password with code and new password
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        if (!resetCode.trim() || !newPassword.trim()) {
+            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            return;
+        }
+
+        setLoading(true);
+        const result = await resetUserPassword(tempEmail, resetCode, newPassword);
+        if (result.success) {
+            setAuthModal('login');
+            setEmail(tempEmail);
+            setPassword('');
+            setResetCode('');
+            setNewPassword('');
+            // Show success message (optional)
+            setError('');
+        } else {
+            setError(translateError(result.error || 'Failed to reset password'));
+        }
+        setLoading(false);
+    };
+
     const toggleAuth = (type) => {
         setError('');
         setAuthModal(authModal === type ? null : type);
@@ -558,6 +647,25 @@ const LandingPageNew = () => {
                                     onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password}
                                     onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
+                                {/* DAN DID IT - Added "Forgot Password?" button to login form */}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setAuthModal('forgotPassword')} 
+                                    className="forgot-password-link"
+                                    style={{ 
+                                        alignSelf: isRTL ? 'flex-start' : 'flex-end',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--primary)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem',
+                                        marginTop: '-0.5rem',
+                                        marginBottom: '0.5rem',
+                                        textDecoration: 'underline'
+                                    }}
+                                >
+                                    {t('auth.forgotPassword')}
+                                </button>
                                 {error && <p className="auth-error">{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.loginButton')}
@@ -604,6 +712,45 @@ const LandingPageNew = () => {
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.confirmButton')}
                                 </Button>
+                            </form>
+                        )}
+                        {/* DAN DID IT - Added forgot password modal where user enters email to receive reset code */}
+                        {authModal === 'forgotPassword' && (
+                            <form onSubmit={handleForgotPassword} className="auth-form">
+                                <h3>{t('auth.forgotPasswordTitle')}</h3>
+                                <p className="confirm-msg">{t('auth.forgotPasswordMessage')}</p>
+                                <Input type="email" label={t('auth.email')} value={email}
+                                    onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
+                                {error && <p className="auth-error">{error}</p>}
+                                <Button variant="primary" fullWidth loading={loading} type="submit">
+                                    {t('auth.sendCodeButton')}
+                                </Button>
+                                <p className="auth-switch">
+                                    <button type="button" onClick={() => toggleAuth('login')}>
+                                        {t('auth.backToLogin')}
+                                    </button>
+                                </p>
+                            </form>
+                        )}
+                        {/* DAN DID IT - Added reset password modal where user enters code and new password */}
+                        {authModal === 'resetPassword' && (
+                            <form onSubmit={handleResetPassword} className="auth-form">
+                                <h3>{t('auth.resetPasswordTitle')}</h3>
+                                <p className="confirm-msg">{t('auth.resetPasswordMessage')} <strong>{tempEmail}</strong></p>
+                                <Input label={t('auth.confirmCode')} value={resetCode}
+                                    onChange={(e) => setResetCode(e.target.value)} required placeholder={t('auth.resetCodePlaceholder')} maxLength={6} />
+                                <Input type="password" label={t('auth.newPassword')} value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)} required maxLength={128}
+                                    helperText={t('auth.passwordHint')} />
+                                {error && <p className="auth-error">{error}</p>}
+                                <Button variant="primary" fullWidth loading={loading} type="submit">
+                                    {t('auth.resetPasswordButton')}
+                                </Button>
+                                <p className="auth-switch">
+                                    <button type="button" onClick={() => toggleAuth('login')}>
+                                        {t('auth.backToLogin')}
+                                    </button>
+                                </p>
                             </form>
                         )}
                     </div>
