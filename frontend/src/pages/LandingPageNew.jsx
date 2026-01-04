@@ -451,7 +451,7 @@ const LandingPageNew = () => {
     // DAN DID IT - Helper function to translate AWS Cognito errors to Hebrew
     const translateError = (errorMessage) => {
         if (!isRTL) return errorMessage; // Return English as-is
-        
+
         const errorTranslations = {
             'Attempt limit exceeded, please try after some time': 'חרגת ממספר הניסיונות המותר, נסה שוב מאוחר יותר',
             'Invalid verification code provided': 'קוד אימות שגוי',
@@ -498,21 +498,7 @@ const LandingPageNew = () => {
 
         setLoading(true);
         const result = await login(trimmedEmail, password);
-<<<<<<< HEAD
-        if (!result.success) {
-            // Translate login errors
-            let errorMsg = result.error;
-            if (isRTL) {
-                if (errorMsg.includes('Incorrect') || errorMsg.includes('password')) errorMsg = 'שם משתמש או סיסמה שגויים';
-                else if (errorMsg.includes('not confirmed') || errorMsg.includes('confirm')) errorMsg = 'המשתמש לא אומת. לחץ על הרשמה להמשך.';
-                else if (errorMsg.includes('not exist') || errorMsg.includes('User')) errorMsg = 'המשתמש לא קיים';
-                else errorMsg = 'ההתחברות נכשלה. נסה שוב.';
-            }
-            setError(errorMsg);
-        }
-=======
         if (!result.success) setError(translateError(result.error || 'Login failed'));
->>>>>>> 69c67b8f294d03a54761aa4bae6b0779e8273c7a
         setLoading(false);
     };
 
@@ -711,11 +697,11 @@ const LandingPageNew = () => {
                                 <Input type="password" label={t('auth.password')} value={password}
                                     onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
                                 {/* DAN DID IT - Added "Forgot Password?" button to login form */}
-                                <button 
-                                    type="button" 
-                                    onClick={() => setAuthModal('forgotPassword')} 
+                                <button
+                                    type="button"
+                                    onClick={() => setAuthModal('forgotPassword')}
                                     className="forgot-password-link"
-                                    style={{ 
+                                    style={{
                                         alignSelf: isRTL ? 'flex-start' : 'flex-end',
                                         background: 'none',
                                         border: 'none',
