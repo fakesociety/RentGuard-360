@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
+// DAN DID IT - Added resetPassword and confirmResetPassword imports for forgot password feature
 import {
     signIn,
     signUp,
@@ -9,6 +10,8 @@ import {
     confirmSignUp,
     fetchAuthSession,
     resendSignUpCode,
+    resetPassword,
+    confirmResetPassword,
 } from 'aws-amplify/auth';
 
 // Configure Amplify
@@ -145,6 +148,33 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // DAN DID IT - Added forgotPassword function to send reset code to user's email
+    const forgotPassword = async (email) => {
+        try {
+            const output = await resetPassword({ username: email });
+            console.log('Password reset initiated:', output);
+            return { success: true, output };
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
+    // DAN DID IT - Added resetUserPassword function to confirm and reset password with code
+    const resetUserPassword = async (email, code, newPassword) => {
+        try {
+            await confirmResetPassword({
+                username: email,
+                confirmationCode: code,
+                newPassword: newPassword,
+            });
+            return { success: true };
+        } catch (error) {
+            console.error('Reset password error:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -157,6 +187,9 @@ export const AuthProvider = ({ children }) => {
             confirmRegistration,
             logout,
             resendCode,
+            // DAN DID IT - Added forgotPassword and resetUserPassword to context
+            forgotPassword,
+            resetUserPassword,
             checkAuthState,
         }}>
             {children}
