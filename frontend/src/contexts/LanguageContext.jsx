@@ -32,6 +32,10 @@ const translations = {
             confirmMessage: 'שלחנו קוד לכתובת',
             confirmCode: 'קוד אימות',
             confirmButton: 'אימות',
+            // DAN DID IT - Added verification success message
+            verificationSuccess: 'אימות הצליח!',
+            verificationSuccessMessage: 'אל תשכח לאמת את האימייל שלך כדי להשתמש באתר',
+            continueToLogin: 'המשך להתחברות',
             // DAN DID IT - Added Hebrew translations for forgot password feature
             forgotPassword: 'שכחת סיסמה?',
             forgotPasswordTitle: 'איפוס סיסמה',
@@ -173,6 +177,10 @@ const translations = {
             analysisStarted: '✓ הניתוח התחיל',
             viewMyContracts: 'צפייה בחוזים שלי',
             uploadAnother: 'העלאת חוזה נוסף',
+            // DAN DID IT - Added email notification message
+            uploadSuccessTitle: 'החוזה הועלה בהצלחה!',
+            uploadSuccessMessage: 'תוצאות הניתוח של החוזה שלך ישלחו לאימייל שלך',
+            goToContracts: 'עבור לחוזים שלי',
             contractDetails: 'פרטי החוזה (אופציונלי)',
             propertyAddress: 'כתובת הנכס',
             addressPlaceholder: 'רחוב ראשי 123, עיר',
@@ -385,6 +393,10 @@ const translations = {
             confirmMessage: 'We sent a code to',
             confirmCode: 'Verification Code',
             confirmButton: 'Verify',
+            // DAN DID IT - Added verification success message (English)
+            verificationSuccess: 'Verification Successful!',
+            verificationSuccessMessage: "Don't forget to verify your email to use the website",
+            continueToLogin: 'Continue to Login',
             // DAN DID IT - Added English translations for forgot password feature
             forgotPassword: 'Forgot password?',
             forgotPasswordTitle: 'Reset Password',
@@ -526,6 +538,10 @@ const translations = {
             analysisStarted: '✓ Analysis started',
             viewMyContracts: 'View My Contracts',
             uploadAnother: 'Upload Another Contract',
+            // DAN DID IT - Added email notification message (English)
+            uploadSuccessTitle: 'Contract Uploaded Successfully!',
+            uploadSuccessMessage: 'Your contract analysis results will be sent to your email',
+            goToContracts: 'Go to My Contracts',
             contractDetails: 'Contract Details (Optional)',
             propertyAddress: 'Property Address',
             addressPlaceholder: '123 Main Street, City',
