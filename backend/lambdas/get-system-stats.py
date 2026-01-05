@@ -87,7 +87,8 @@ def lambda_handler(event, context):
         }
         
         contracts_by_day = {}
-        thirty_days_ago_date = (datetime.utcnow() - timedelta(days=30)).date()
+        # Track min date to build timeline later (default to 30 days ago if no data)
+        min_contract_date = (datetime.utcnow() - timedelta(days=30)).date()
 
         for c in contracts:
             # Risk Score Collection
@@ -107,29 +108,35 @@ def lambda_handler(event, context):
                 except:
                     pass
 
-            # Contracts by Day (Last 30 Days)
-            if c.get('analyzedDate'):
+            # Contracts by Day (All Time)
+            # Fallback to uploadDate if analyzedDate is missing (data integrity issue)
+            date_source = c.get('analyzedDate') or c.get('uploadDate')
+            
+            if date_source:
                 try:
-                    analyzed_date = datetime.fromisoformat(c['analyzedDate'].replace('Z', '+00:00')).date()
-                    if analyzed_date >= thirty_days_ago_date:
-                        date_str = analyzed_date.isoformat()
-                        contracts_by_day[date_str] = contracts_by_day.get(date_str, 0) + 1
+                    analyzed_date = datetime.fromisoformat(date_source.replace('Z', '+00:00')).date()
+                    # Update min date if we find an earlier one
+                    if analyzed_date < min_contract_date:
+                        min_contract_date = analyzed_date
+
+                    date_str = analyzed_date.isoformat()
+                    contracts_by_day[date_str] = contracts_by_day.get(date_str, 0) + 1
                 except:
                     pass
 
         avg_risk_score = round(sum(risk_scores) / len(risk_scores), 1) if risk_scores else 0
         
-        # --- Contracts Timeline (Fill missing days) ---
-        current_date = thirty_days_ago_date
+        # --- Contracts Timeline (All Time) ---
+        current_date_contracts = min_contract_date
         today = datetime.utcnow().date()
         time_series = []
-        while current_date <= today:
-            date_str = current_date.isoformat()
+        while current_date_contracts <= today:
+            date_str = current_date_contracts.isoformat()
             time_series.append({
                 'date': date_str,
                 'analyzed': contracts_by_day.get(date_str, 0)
             })
-            current_date += timedelta(days=1)
+            current_date_contracts += timedelta(days=1)
             
         # --- Average analysis time ---
         analysis_times = []
@@ -156,21 +163,25 @@ def lambda_handler(event, context):
                 users_page = page['Users']
                 user_count += len(users_page)
                 
-                # Aggregate registrations by date (bucket by week or day)
-                # We'll use weekly buckets for the chart (last 10 weeks) or daily if sparse
+                # Aggregate registrations by date
                 for u in users_page:
                     create_date = u.get('UserCreateDate')
                     if create_date:
-                        # Convert to YYYY-MM-DD
                         d_str = create_date.date().isoformat()
                         user_registrations_raw[d_str] += 1
                         
         except Exception as e:
             print(f"Cognito error: {e}")
             
-        # Format User Registrations for Chart (last 60 days for granular view)
+        # Format User Registrations for Chart (All Time)
         user_reg_chart = []
-        reg_start_date = datetime.utcnow().date() - timedelta(days=60)
+        # Find earliest registration date, default to 30 days ago
+        if user_registrations_raw:
+            min_reg_date_str = min(user_registrations_raw.keys())
+            reg_start_date = datetime.fromisoformat(min_reg_date_str).date()
+        else:
+             reg_start_date = datetime.utcnow().date() - timedelta(days=30)
+
         curr = reg_start_date
         while curr <= today:
             d_str = curr.isoformat()

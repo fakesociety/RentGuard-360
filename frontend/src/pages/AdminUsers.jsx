@@ -35,15 +35,18 @@ const AdminUsers = () => {
         message: '',
     });
 
+    // Sorting State
+    const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+
     useEffect(() => {
         fetchAllUsers();
     }, []);
 
     useEffect(() => {
         if (allUsers.length > 0) {
-            filterUsers();
+            filterAndSortUsers();
         }
-    }, [searchQuery, statusFilter, allUsers]);
+    }, [searchQuery, statusFilter, allUsers, sortConfig]);
 
     const fetchAllUsers = async () => {
         setLoading(true);
@@ -59,13 +62,24 @@ const AdminUsers = () => {
         }
     };
 
-    const filterUsers = () => {
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const filterAndSortUsers = () => {
         let filtered = [...allUsers];
+
+        // 1. Filter
         if (statusFilter === 'enabled') {
             filtered = filtered.filter(user => user.enabled);
         } else if (statusFilter === 'disabled') {
             filtered = filtered.filter(user => !user.enabled);
         }
+
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(user =>
@@ -73,8 +87,42 @@ const AdminUsers = () => {
                 (user.name?.toLowerCase().includes(query))
             );
         }
+
+        // 2. Sort
+        filtered.sort((a, b) => {
+            let valA = a[sortConfig.key];
+            let valB = b[sortConfig.key];
+
+            // Handle nulls safely
+            if (valA === null || valA === undefined) valA = '';
+            if (valB === null || valB === undefined) valB = '';
+
+            // Use localeCompare for strings (Case Insensitive & Language Aware)
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return sortConfig.direction === 'asc'
+                    ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+                    : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+            }
+
+            // Normal compare for numbers/booleans
+            if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
         setUsers(filtered);
     };
+
+    const getSortIcon = (columnKey) => {
+        const isActive = sortConfig.key === columnKey;
+        return (
+            <span className={`sort-icon ${isActive ? sortConfig.direction : 'inactive'}`}>
+                {isActive ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}
+            </span>
+        );
+    };
+
+    // ... (rest of action handlers remain same)
 
     const handleDisableUser = async (username) => {
         setModal({
@@ -233,10 +281,30 @@ const AdminUsers = () => {
                             <table className="users-table">
                                 <thead>
                                     <tr>
-                                        <th>{t('admin.email')}</th>
-                                        <th>{t('admin.name')}</th>
-                                        <th>{t('admin.status')}</th>
-                                        <th>{t('admin.joined')}</th>
+                                        <th onClick={() => handleSort('email')} className="sortable-header">
+                                            <div className="th-content">
+                                                {t('admin.email')}
+                                                {getSortIcon('email')}
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('name')} className="sortable-header">
+                                            <div className="th-content">
+                                                {t('admin.name')}
+                                                {getSortIcon('name')}
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('enabled')} className="sortable-header">
+                                            <div className="th-content">
+                                                {t('admin.status')}
+                                                {getSortIcon('enabled')}
+                                            </div>
+                                        </th>
+                                        <th onClick={() => handleSort('createdAt')} className="sortable-header">
+                                            <div className="th-content">
+                                                {t('admin.joined')}
+                                                {getSortIcon('createdAt')}
+                                            </div>
+                                        </th>
                                         <th>{t('admin.actions')}</th>
                                     </tr>
                                 </thead>

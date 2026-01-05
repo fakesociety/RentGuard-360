@@ -104,12 +104,12 @@ const AdminDashboard = () => {
         );
     }
 
-    // Date range calculation
-    const getDateRange = () => {
+    // Unified Date Range Calculation
+    const calculateDateRange = (range) => {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-        switch (dateRange) {
+        switch (range) {
             case '7d':
                 return { start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), end: today };
             case '30d':
@@ -118,25 +118,34 @@ const AdminDashboard = () => {
                 return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
             case 'year':
                 return { start: new Date(now.getFullYear(), 0, 1), end: today };
+            case 'all':
+                return { start: new Date(2020, 0, 1), end: today };
             default:
-                if (dateRange && dateRange.match(/^\d{4}$/)) {
-                    const year = parseInt(dateRange);
+                if (range && range.match(/^\d{4}$/)) {
+                    const year = parseInt(range);
                     return { start: new Date(year, 0, 1), end: new Date(year, 11, 31) };
                 }
                 return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: today };
         }
     };
 
-    const { start: rangeStart, end: rangeEnd } = getDateRange();
+    const { start: rangeStart, end: rangeEnd } = calculateDateRange(dateRange);
+
+    // Safe local date parser to avoid UTC offsets hiding today's data
+    const parseLocalDate = (dateStr) => {
+        if (!dateStr) return new Date();
+        const parts = dateStr.split('-');
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    };
 
     // Filter contracts by day
     const contractsByDay = (stats?.contractsByDay || []).filter(d => {
-        const date = new Date(d.date);
+        const date = parseLocalDate(d.date);
         return date >= rangeStart && date <= rangeEnd;
     });
 
     const lineChartDates = contractsByDay.map(d => {
-        const date = new Date(d.date);
+        const date = parseLocalDate(d.date);
         if (dateRange === 'year' || dateRange.match(/^\d{4}$/)) {
             return date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { month: 'short' });
         }
@@ -144,39 +153,46 @@ const AdminDashboard = () => {
     });
     const lineChartValues = contractsByDay.map(d => d.analyzed);
 
-    // User registrations with date range filtering
-    const getUserDateRange = () => {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        switch (userDateRange) {
-            case '7d':
-                return { start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), end: today };
-            case '30d':
-                return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: today };
-            case 'month':
-                return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
-            case 'year':
-                return { start: new Date(now.getFullYear(), 0, 1), end: today };
-            default:
-                return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: today };
+    // DEBUG: Contracts Data (Restored)
+    useEffect(() => {
+        if (stats?.contracts) {
+            const chartTotal = lineChartValues.reduce((a, b) => a + b, 0);
+            console.log('📉 DEBUG CONTRACTS CHART:', {
+                totalAnalyzedSummary: stats.contracts.analyzed,
+                chartVisibleTotal: chartTotal,
+                dateRangeSelected: dateRange,
+                rangeStart: rangeStart.toLocaleDateString(),
+                rangeEnd: rangeEnd.toLocaleDateString(),
+                rawTimelineData: stats.contractsByDay,
+                filteredTimelineData: contractsByDay,
+                // Show explicitly what is NOT included
+                excludedData: (stats?.contractsByDay || []).filter(d => {
+                    const date = parseLocalDate(d.date);
+                    return date < rangeStart || date > rangeEnd;
+                })
+            });
         }
-    };
+    }, [stats, dateRange, contractsByDay, rangeStart, rangeEnd]);
 
-    const { start: userRangeStart, end: userRangeEnd } = getUserDateRange();
+
+
+    // User registrations with date range filtering
+    const { start: userRangeStart, end: userRangeEnd } = calculateDateRange(userDateRange);
 
     const filteredUserRegs = (stats?.userRegistrations || []).filter(d => {
-        const date = new Date(d.date);
+        const date = parseLocalDate(d.date);
         return date >= userRangeStart && date <= userRangeEnd;
     });
 
-    const userRegDates = filteredUserRegs.map(d => {
-        const date = new Date(d.date);
-        if (userDateRange === 'year') {
-            return date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { month: 'short' });
-        }
-        return date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' });
-    });
-    const userRegValues = filteredUserRegs.map(d => d.count);
+    // Transform for LineChart with time scale
+    const userChartDataset = filteredUserRegs.map(d => ({
+        date: parseLocalDate(d.date),
+        count: d.count
+    }));
+
+
+
+
 
     const formatTime = (seconds) => {
         if (!seconds) return '—';
@@ -265,7 +281,7 @@ const AdminDashboard = () => {
                                         </h3>
                                         <div className="date-range-selector">
                                             <div className="date-range-buttons">
-                                                {['7d', '30d', 'month', 'year'].map(range => (
+                                                {['7d', '30d', 'month', 'year', 'all'].map(range => (
                                                     <button
                                                         key={range}
                                                         className={`range-btn ${dateRange === range ? 'active' : ''}`}
@@ -274,7 +290,8 @@ const AdminDashboard = () => {
                                                         {range === '7d' ? `7 ${t('admin.days')}` :
                                                             range === '30d' ? `30 ${t('admin.days')}` :
                                                                 range === 'month' ? t('admin.thisMonth') :
-                                                                    t('admin.thisYear')}
+                                                                    range === 'year' ? t('admin.thisYear') :
+                                                                        t('admin.allTime') || 'הכל'}
                                                     </button>
                                                 ))}
                                                 <select
@@ -334,7 +351,7 @@ const AdminDashboard = () => {
                                         </h3>
                                         <div className="date-range-selector">
                                             <div className="date-range-buttons">
-                                                {['7d', '30d', 'month', 'year'].map(range => (
+                                                {['7d', '30d', 'month', 'year', 'all'].map(range => (
                                                     <button
                                                         key={range}
                                                         className={`range-btn ${userDateRange === range ? 'active' : ''}`}
@@ -343,7 +360,8 @@ const AdminDashboard = () => {
                                                         {range === '7d' ? `7 ${t('admin.days')}` :
                                                             range === '30d' ? `30 ${t('admin.days')}` :
                                                                 range === 'month' ? t('admin.thisMonth') :
-                                                                    t('admin.thisYear')}
+                                                                    range === 'year' ? t('admin.thisYear') :
+                                                                        t('admin.allTime') || 'הכל'}
                                                     </button>
                                                 ))}
                                                 <select
@@ -360,19 +378,25 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="chart-container bar-chart-container" dir="ltr">
-                                        <BarChart
+                                        <LineChart
+                                            dataset={userChartDataset}
                                             xAxis={[{
-                                                scaleType: 'band',
-                                                data: userRegDates,
+                                                dataKey: 'date',
+                                                scaleType: 'time',
+                                                valueFormatter: (date) => date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { day: 'numeric', month: 'numeric' }),
                                                 tickLabelStyle: { fill: labelColor, fontSize: 10, angle: -45, textAnchor: 'end' },
                                             }]}
                                             yAxis={[{
                                                 tickLabelStyle: { fill: labelColor, fontSize: 11 },
+                                                tickMinStep: 1,
+                                                min: 0,
                                             }]}
                                             series={[{
-                                                data: userRegValues,
+                                                dataKey: 'count',
+                                                showMark: false,
                                                 color: '#3B82F6',
                                             }]}
+                                            grid={{ vertical: true, horizontal: true }}
                                             width={chartWidth}
                                             height={220}
                                             sx={{
@@ -380,7 +404,6 @@ const AdminDashboard = () => {
                                                 '& .MuiChartsAxis-line': { stroke: labelColor },
                                                 '& .MuiChartsGrid-line': { stroke: gridColor },
                                             }}
-                                            grid={{ horizontal: true }}
                                         />
                                     </div>
                                 </div>
