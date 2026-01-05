@@ -644,6 +644,19 @@ const LandingPageNew = () => {
         setLoading(false);
     };
 
+    // Added handleResendResetCode to resend password reset code
+    const handleResendResetCode = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            await forgotPassword(tempEmail);
+            setError(isRTL ? 'קוד חדש נשלח לאימייל שלך' : 'New code sent to your email');
+        } catch (err) {
+            setError(isRTL ? 'שליחת הקוד נכשלה. נסה שוב.' : 'Failed to resend code. Try again.');
+        }
+        setLoading(false);
+    };
+
     const toggleAuth = (type) => {
         // Check if user has pending verification
         const pendingEmail = localStorage.getItem('rentguard_pending_verification');
@@ -797,10 +810,16 @@ const LandingPageNew = () => {
                                 <Input type="password" label={t('auth.newPassword')} value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)} required maxLength={128}
                                     helperText={t('auth.passwordHint')} />
-                                {error && <p className="auth-error">{error}</p>}
+                                {error && <p className={error.includes('נשלח') || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">
                                     {t('auth.resetPasswordButton')}
                                 </Button>
+                                <p className="auth-switch">
+                                    {isRTL ? 'לא קיבלת את הקוד?' : "Didn't receive the code?"}{' '}
+                                    <button type="button" onClick={handleResendResetCode} disabled={loading}>
+                                        {isRTL ? 'שלח קוד חדש' : 'Resend Code'}
+                                    </button>
+                                </p>
                                 <p className="auth-switch">
                                     <button type="button" onClick={() => toggleAuth('login')}>
                                         {t('auth.backToLogin')}
