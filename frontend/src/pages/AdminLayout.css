@@ -22,6 +22,8 @@
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    overflow-x: hidden;
+    /* Prevent sidebar from peeking */
 }
 
 .admin-layout.dark {
@@ -56,9 +58,11 @@
     position: fixed;
     top: 0;
     left: 0;
+    width: 260px;
+    /* Match sidebar width for transform to work */
     height: 100vh;
     z-index: 200;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [dir="rtl"] .sidebar-container {
@@ -159,59 +163,50 @@
    6. MEDIA QUERIES
    ============================================ */
 
-/* --- Large Tablet (1024px) - Collapsed Sidebar --- */
+/* --- Tablet/Mobile (1024px and below) - Mobile Overlay Mode --- */
+/* Simplified: sidebar hidden by default, hamburger menu shows, overlay on toggle */
 @media (max-width: 1024px) {
-    .admin-main {
-        margin-left: 60px;
-    }
 
-    [dir="rtl"] .admin-main {
-        margin-left: 0;
-        margin-right: 60px;
-    }
-
-    /* Expand main content when sidebar is hovered */
-    .sidebar-container:hover~.admin-main,
-    .admin-sidebar:hover~.admin-main {
-        margin-left: 260px;
-    }
-
-    [dir="rtl"] .sidebar-container:hover~.admin-main,
-    [dir="rtl"] .admin-sidebar:hover~.admin-main {
-        margin-left: 0;
-        margin-right: 260px;
-    }
-}
-
-/* --- Tablet Portrait (768px) - Mobile Overlay --- */
-@media (max-width: 768px) {
+    /* Show mobile top bar with hamburger */
     .mobile-top-bar {
         display: flex;
     }
 
+    /* Main content takes full width, no margin for sidebar */
     .admin-main {
         margin-left: 0;
         margin-right: 0;
         padding-top: 56px;
     }
 
+    /* RTL override - must also remove margin */
+    [dir="rtl"] .admin-main {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    /* Enable overlay display */
     .mobile-overlay {
         display: block;
     }
 
-    /* Sidebar hidden by default */
+    /* Sidebar hidden by default - slides off screen + hidden */
     .sidebar-container {
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        visibility: hidden;
+        /* Completely hide when closed */
+        transition: transform 0.3s ease, visibility 0.3s ease;
     }
 
     [dir="rtl"] .sidebar-container {
         transform: translateX(100%);
     }
 
-    /* Sidebar visible when open */
+    /* Sidebar visible when menu is open */
     .sidebar-container.open {
         transform: translateX(0);
+        visibility: visible;
+        /* Show when open */
     }
 
     /* Sidebar shadow when open */

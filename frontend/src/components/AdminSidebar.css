@@ -357,125 +357,53 @@
    9. MEDIA QUERIES
    ============================================ */
 
-/* --- Large Tablet (1024px) - Collapsible Sidebar --- */
+/* --- Tablet/Mobile (1024px and below) - Full Sidebar Overlay --- */
+/* Sidebar is full width, slides in from left/right as overlay */
 @media (max-width: 1024px) {
+
+    /* Remove inner fixed position - let parent container control positioning */
+    /* This allows the sidebar-container transform to work correctly */
     .admin-sidebar {
-        width: var(--sidebar-collapsed-width);
+        position: static;
+        /* Override desktop fixed position */
+        width: var(--sidebar-width);
+        box-shadow: var(--shadow-xl);
+        padding-top: 56px;
+        /* Make room for mobile-top-bar */
     }
 
-    /* Hide text elements */
+    /* All text elements visible in overlay */
     .admin-sidebar .logo-text,
     .admin-sidebar .nav-label,
     .admin-sidebar .back-link span,
     .admin-sidebar .sidebar-footer-btn span,
     .admin-sidebar .user-info {
-        opacity: 0;
-        width: 0;
-        overflow: hidden;
+        opacity: 1;
+        width: auto;
     }
 
-    /* Center icons */
     .admin-sidebar .sidebar-nav-item,
     .admin-sidebar .back-link,
     .admin-sidebar .sidebar-footer-btn {
-        justify-content: center;
-        padding: 12px;
+        justify-content: flex-start;
+        padding: 12px 14px;
     }
 
-    /* Hide controls in collapsed state */
     .admin-sidebar .sidebar-control {
+        display: block;
+    }
+
+    .admin-sidebar .sidebar-user {
+        justify-content: flex-start;
+        padding: 12px 14px;
+    }
+
+    /* Hide sidebar-header - mobile-top-bar shows the logo instead */
+    .admin-sidebar .sidebar-header {
         display: none;
     }
 
-    /* User avatar only */
-    .admin-sidebar .sidebar-user {
-        justify-content: center;
-        padding: 12px;
-    }
-
-    /* Header adjustments */
-    .admin-sidebar .sidebar-header {
-        justify-content: center;
-        padding: 20px 12px;
-    }
-
-    /* Expand on hover (desktop only) */
-    .admin-sidebar:hover {
-        width: var(--sidebar-width);
-    }
-
-    .admin-sidebar:hover .logo-text,
-    .admin-sidebar:hover .nav-label,
-    .admin-sidebar:hover .back-link span,
-    .admin-sidebar:hover .sidebar-footer-btn span,
-    .admin-sidebar:hover .user-info {
-        opacity: 1;
-        width: auto;
-    }
-
-    .admin-sidebar:hover .sidebar-nav-item,
-    .admin-sidebar:hover .back-link,
-    .admin-sidebar:hover .sidebar-footer-btn {
-        justify-content: flex-start;
-        padding: 12px 14px;
-    }
-
-    .admin-sidebar:hover .sidebar-control {
-        display: block;
-    }
-
-    .admin-sidebar:hover .sidebar-user {
-        justify-content: flex-start;
-        padding: 12px 14px;
-    }
-
-    .admin-sidebar:hover .sidebar-header {
-        justify-content: space-between;
-        padding: 20px 16px;
-    }
-}
-
-/* --- Tablet Portrait (768px) - Mobile Overlay --- */
-@media (max-width: 768px) {
-
-    /* Reset width and remove transform - parent .sidebar-container handles sliding */
-    .admin-sidebar {
-        width: var(--sidebar-width);
-        box-shadow: var(--shadow-xl);
-    }
-
-    /* Reset collapsed styles */
-    .admin-sidebar .logo-text,
-    .admin-sidebar .nav-label,
-    .admin-sidebar .back-link span,
-    .admin-sidebar .sidebar-footer-btn span,
-    .admin-sidebar .user-info {
-        opacity: 1;
-        width: auto;
-    }
-
-    .admin-sidebar .sidebar-nav-item,
-    .admin-sidebar .back-link,
-    .admin-sidebar .sidebar-footer-btn {
-        justify-content: flex-start;
-        padding: 12px 14px;
-    }
-
-    .admin-sidebar .sidebar-control {
-        display: block;
-    }
-
-    .admin-sidebar .sidebar-user {
-        justify-content: flex-start;
-        padding: 12px 14px;
-    }
-
-    .admin-sidebar .sidebar-header {
-        justify-content: space-between;
-        padding: 20px 16px;
-    }
-
-    /* Disable hover expand on mobile */
+    /* No hover effects needed in overlay mode */
     .admin-sidebar:hover {
         width: var(--sidebar-width);
     }
