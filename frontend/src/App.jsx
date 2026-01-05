@@ -11,6 +11,7 @@
  * - Footer (shown when authenticated)
  * 
  * NOTE: Footer.jsx is a shared component used here AND in LandingPage.jsx
+ * NOTE: Admin pages use AdminLayout with sidebar (no main nav)
  * ============================================
  */
 import React, { useState, useRef, useEffect } from 'react';
@@ -27,7 +28,11 @@ import ContractsPage from './pages/ContractsPage';
 import AnalysisPage from './pages/AnalysisPage';
 import SettingsPage from './pages/SettingsPage';
 import ContactPage from './pages/ContactPage';
+import AdminLayout from './pages/AdminLayout';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminSettings from './pages/AdminSettings';
 import LandingPage from './pages/LandingPageNew';
 import Footer from './components/Footer';
 import './styles/design-system.css';
@@ -188,6 +193,10 @@ const Navigation = () => {
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Check if current route is an admin page
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (isLoading) {
     return (
@@ -200,9 +209,10 @@ function App() {
 
   return (
     <div className="app-container">
-      {isAuthenticated && <Navigation />}
+      {/* Hide main nav on admin pages - admin has its own sidebar */}
+      {isAuthenticated && !isAdminRoute && <Navigation />}
 
-      <main className="app-main">
+      <main className={`app-main ${isAdminRoute ? 'admin-page' : ''}`}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -211,14 +221,24 @@ function App() {
           <Route path="/analysis/:contractId" element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+
+          {/* Admin routes with sidebar layout */}
+          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
         </Routes>
       </main>
 
-      {isAuthenticated && <Footer />}
+      {/* Hide footer on admin pages */}
+      {isAuthenticated && !isAdminRoute && <Footer />}
     </div>
   );
 }
 
 export default App;
+

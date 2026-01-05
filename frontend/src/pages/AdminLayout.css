@@ -1,0 +1,253 @@
+/*
+ * Admin Layout - Container for Sidebar + Content
+ * Responsive grid layout with mobile overlay support
+ * 
+ * STRUCTURE:
+ * 1. Layout Container
+ * 2. Main Content Area
+ * 3. Sidebar Container
+ * 4. Mobile Top Bar
+ * 5. Mobile Overlay
+ * 6. Media Queries
+ *    - 1024px: Collapsed sidebar
+ *    - 768px: Mobile overlay
+ *    - 600px: Mobile adjustments
+ *    - 480px: Small mobile
+ */
+
+/* ============================================
+   1. LAYOUT CONTAINER
+   ============================================ */
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-layout.dark {
+    background: #0B0E13;
+}
+
+.admin-layout.light {
+    background: var(--bg-page);
+}
+
+/* ============================================
+   2. MAIN CONTENT AREA
+   ============================================ */
+
+.admin-main {
+    flex: 1;
+    margin-left: 260px;
+    min-height: 100vh;
+    transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[dir="rtl"] .admin-main {
+    margin-left: 0;
+    margin-right: 260px;
+}
+
+/* ============================================
+   3. SIDEBAR CONTAINER
+   ============================================ */
+
+.sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 200;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[dir="rtl"] .sidebar-container {
+    left: auto;
+    right: 0;
+}
+
+/* ============================================
+   4. MOBILE TOP BAR
+   ============================================ */
+
+.mobile-top-bar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    z-index: 250;
+    padding: 0 16px;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-layout.dark .mobile-top-bar {
+    background: #0D1117;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mobile-logo svg {
+    color: var(--accent-primary);
+}
+
+.mobile-logo span {
+    font-size: 1.125rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mobile-menu-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.admin-layout.dark .mobile-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================
+   5. MOBILE OVERLAY
+   ============================================ */
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 180;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ============================================
+   6. MEDIA QUERIES
+   ============================================ */
+
+/* --- Large Tablet (1024px) - Collapsed Sidebar --- */
+@media (max-width: 1024px) {
+    .admin-main {
+        margin-left: 60px;
+    }
+
+    [dir="rtl"] .admin-main {
+        margin-left: 0;
+        margin-right: 60px;
+    }
+
+    /* Expand main content when sidebar is hovered */
+    .sidebar-container:hover~.admin-main,
+    .admin-sidebar:hover~.admin-main {
+        margin-left: 260px;
+    }
+
+    [dir="rtl"] .sidebar-container:hover~.admin-main,
+    [dir="rtl"] .admin-sidebar:hover~.admin-main {
+        margin-left: 0;
+        margin-right: 260px;
+    }
+}
+
+/* --- Tablet Portrait (768px) - Mobile Overlay --- */
+@media (max-width: 768px) {
+    .mobile-top-bar {
+        display: flex;
+    }
+
+    .admin-main {
+        margin-left: 0;
+        margin-right: 0;
+        padding-top: 56px;
+    }
+
+    .mobile-overlay {
+        display: block;
+    }
+
+    /* Sidebar hidden by default */
+    .sidebar-container {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    [dir="rtl"] .sidebar-container {
+        transform: translateX(100%);
+    }
+
+    /* Sidebar visible when open */
+    .sidebar-container.open {
+        transform: translateX(0);
+    }
+
+    /* Sidebar shadow when open */
+    .sidebar-container.open .admin-sidebar {
+        box-shadow: var(--shadow-xl);
+    }
+}
+
+/* --- Mobile (600px) --- */
+@media (max-width: 600px) {
+    .mobile-top-bar {
+        height: 52px;
+        padding: 0 12px;
+    }
+
+    .admin-main {
+        padding-top: 52px;
+    }
+
+    .mobile-logo span {
+        font-size: 1rem;
+    }
+}
+
+/* --- Small Mobile (480px) --- */
+@media (max-width: 480px) {
+    .mobile-top-bar {
+        height: 48px;
+    }
+
+    .admin-main {
+        padding-top: 48px;
+    }
+
+    .mobile-menu-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
