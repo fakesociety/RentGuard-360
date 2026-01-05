@@ -7,7 +7,9 @@ import Button from '../components/Button';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useAnimate, useAnimateBar, useDrawingArea } from '@mui/x-charts/hooks';
+import { interpolateObject } from '@mui/x-charts-vendor/d3-interpolate';
+import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
     BarChart3,
@@ -16,8 +18,6 @@ import {
     RefreshCw
 } from 'lucide-react';
 import './AdminDashboard.css';
-
-
 
 const AdminAnalytics = () => {
     const { isAdmin } = useAuth();
@@ -95,8 +95,14 @@ const AdminAnalytics = () => {
         { id: 3, value: riskDistribution.highRisk, label: t('score.highRisk') || 'High Risk', color: '#ef4444' },
     ];
 
-    // Common issues data
-    const commonIssues = stats?.commonIssues || [];
+    // Common issues data with distinct colors
+    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#6366f1'];
+    const rawCommonIssues = stats?.commonIssues || [];
+    const commonIssues = rawCommonIssues.map((issue, index) => ({
+        ...issue,
+        color: colors[index % colors.length]
+    }));
+    const maxCount = Math.max(...(commonIssues.length ? commonIssues.map(i => i.count) : [10]), 10);
 
     // Risk score
     const rawScore = stats?.analysis?.avgRiskScore || 60;
@@ -225,11 +231,16 @@ const AdminAnalytics = () => {
                                     <div className="bar-chart-wrapper" dir="ltr">
                                         <BarChart
                                             layout="horizontal"
+                                            dataset={commonIssues}
                                             yAxis={[{
                                                 scaleType: 'band',
-                                                data: commonIssues.map(i => i.code),
+                                                dataKey: 'code',
+                                                colorMap: {
+                                                    type: 'ordinal',
+                                                    colors: commonIssues.map(i => i.color)
+                                                },
                                                 tickLabelStyle: {
-                                                    fill: labelColor,
+                                                    fill: isDark ? '#ffffff' : labelColor,
                                                     fontSize: 12,
                                                     fontWeight: 600
                                                 },
@@ -238,16 +249,17 @@ const AdminAnalytics = () => {
                                                 tickLabelStyle: { fill: labelColor, fontSize: 11 },
                                             }]}
                                             series={[{
-                                                data: commonIssues.map(i => i.count),
-                                                color: '#3B82F6',
+                                                dataKey: 'count',
+                                                valueFormatter: (value) => `${value}`,
                                             }]}
                                             width={isMobile ? Math.min(chartWidth, 320) : Math.min(chartWidth, 600)}
-                                            height={isMobile ? 180 : 220}
+                                            height={isMobile ? 180 : 250}
                                             margin={{ left: 40, right: 15, top: 10, bottom: 25 }}
-                                            sx={{
-                                                '& .MuiChartsAxis-tickLabel': { fill: labelColor },
-                                                '& .MuiChartsAxis-line': { stroke: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' },
+                                            slots={{
+                                                bar: BarShadedBackground,
+                                                barLabel: BarLabelAtBase
                                             }}
+                                            barLabel={(v) => v.value}
                                         />
                                     </div>
                                     {/* Legend Table for Hebrew text */}
@@ -263,7 +275,11 @@ const AdminAnalytics = () => {
                                             <tbody>
                                                 {commonIssues.map((issue) => (
                                                     <tr key={issue.code}>
-                                                        <td className="code-cell">{issue.code}</td>
+                                                        <td className="code-cell">
+                                                            <span className="code-badge" style={{ backgroundColor: issue.color }}>
+                                                                {issue.code}
+                                                            </span>
+                                                        </td>
                                                         <td className="issue-cell">{issue.topic}</td>
                                                         <td className="count-cell">{issue.count}</td>
                                                     </tr>
@@ -282,3 +298,82 @@ const AdminAnalytics = () => {
 };
 
 export default AdminAnalytics;
+
+// --- Helper Components for Shiny Chart ---
+
+function BarShadedBackground(props) {
+    const { ownerState, skipAnimation, id, dataIndex, xOrigin, yOrigin, ...other } = props;
+    const { isDark } = useTheme();
+
+    const animatedProps = useAnimateBar(props);
+    const { width: drawingWidth } = useDrawingArea();
+
+    return (
+        <React.Fragment>
+            <rect
+                {...other}
+                fill={isDark ? '#f8fafc' : '#1a1a2e'}
+                opacity={isDark ? 0.05 : 0.05}
+                x={other.x}
+                width={drawingWidth}
+                style={{ rx: 4 }}
+            />
+            <rect
+                {...other}
+                filter={ownerState.isHighlighted ? 'brightness(120%)' : undefined}
+                opacity={ownerState.isFaded ? 0.3 : 1}
+                style={{ rx: 4 }}
+                {...animatedProps}
+            />
+        </React.Fragment>
+    );
+}
+
+const Text = styled('text')(({ theme }) => ({
+    ...theme?.typography?.body2,
+    fill: '#ffffff',
+    transition: 'opacity 0.2s ease-in, fill 0.2s ease-in',
+    textAnchor: 'start',
+    dominantBaseline: 'central',
+    pointerEvents: 'none',
+    fontWeight: 600,
+    fontSize: '0.75rem',
+    textShadow: '0px 1px 2px rgba(0,0,0,0.5)'
+}));
+
+function BarLabelAtBase(props) {
+    const {
+        seriesId,
+        dataIndex,
+        color,
+        isFaded,
+        isHighlighted,
+        classes,
+        xOrigin,
+        yOrigin,
+        x,
+        y,
+        width,
+        height,
+        layout,
+        skipAnimation,
+        ...otherProps
+    } = props;
+
+    // Position label slightly inside the bar
+    const animatedProps = useAnimate(
+        { x: xOrigin + 8, y: y + height / 2 },
+        {
+            initialProps: { x: xOrigin, y: y + height / 2 },
+            createInterpolator: interpolateObject,
+            transformProps: (p) => p,
+            applyProps: (element, p) => {
+                element.setAttribute('x', p.x.toString());
+                element.setAttribute('y', p.y.toString());
+            },
+            skip: skipAnimation,
+        },
+    );
+
+    return <Text {...otherProps} {...animatedProps} />;
+}

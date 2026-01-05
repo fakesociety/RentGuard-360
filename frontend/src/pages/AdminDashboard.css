@@ -309,14 +309,6 @@
     background-clip: text;
 }
 
-/* Contracts card - blue value */
-.summary-card.contracts .card-value {
-    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
 /* Trend badge */
 .summary-card .card-trend {
     display: inline-flex;
@@ -2097,6 +2089,22 @@
     padding: 10px 12px;
     color: var(--admin-text-secondary);
     border-bottom: 1px solid var(--admin-border);
+}
+
+.bar-chart-legend td.code-cell {
+    width: 60px;
+}
+
+.code-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 36px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .bar-chart-legend .code-cell {
