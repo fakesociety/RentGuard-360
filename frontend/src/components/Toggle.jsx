@@ -2,6 +2,7 @@ import React from 'react';
 import './Toggle.css';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Sun, Moon } from 'lucide-react';
 
 /**
  * Toggle Component - iOS Style with Dark/Light Mode Support
@@ -10,6 +11,7 @@ const Toggle = ({
     checked = false,
     onChange,
     label,
+    icon,
     disabled = false,
     className = '',
     ...props
@@ -35,7 +37,12 @@ const Toggle = ({
 
     return (
         <div className={`toggle-wrapper ${className}`}>
-            {label && <span className="toggle-label">{label}</span>}
+            {(label || icon) && (
+                <span className="toggle-label">
+                    {icon && <span className="toggle-icon">{icon}</span>}
+                    {label}
+                </span>
+            )}
             <div
                 className={toggleClasses}
                 onClick={handleToggle}
@@ -63,7 +70,8 @@ export const ThemeToggle = ({ showLabel = true }) => {
         <Toggle
             checked={isDark}
             onChange={toggleTheme}
-            label={showLabel ? (isDark ? `🌙 ${t('nav.dark')}` : `☀️ ${t('nav.light')}`) : undefined}
+            icon={isDark ? <Moon size={16} /> : <Sun size={16} />}
+            label={showLabel ? (isDark ? t('nav.dark') : t('nav.light')) : undefined}
         />
     );
 };

@@ -14,6 +14,7 @@ const translations = {
             admin: '⚙️ ניהול',
             dark: 'כהה',
             light: 'בהיר',
+            backToDashboard: 'חזרה לדף הבית',
         },
         // Auth (Login/Register)
         auth: {
@@ -237,6 +238,7 @@ const translations = {
             cancel: 'ביטול',
             confirm: 'אישור',
             ok: 'אישור',
+            comingSoon: 'בקרוב',
         },
         // Admin Dashboard
         admin: {
@@ -265,6 +267,7 @@ const translations = {
             thisMonth: 'החודש',
             thisYear: 'השנה',
             analyzedOverTime: 'חוזים שנותחו לאורך זמן',
+            userRegistrations: 'רישום משתמשים לאורך זמן',
             noData: 'אין נתונים להצגה',
             // Users
             searchPlaceholder: 'חפש לפי אימייל או שם...',
@@ -293,6 +296,35 @@ const translations = {
             confirmDeleteBtn: 'כן, מחק לצמיתות',
             selectYear: 'בחר שנה',
             userDeleted: 'המשתמש נמחק בהצלחה',
+            // Admin Sidebar
+            dashboard: 'לוח בקרה',
+            analytics: 'אנליטיקות',
+            settings: 'הגדרות',
+            administrator: 'מנהל',
+            // Analytics Page
+            analyticsDescription: 'ניתוח חוזים מפורט ותובנות סיכון',
+            radarChart: 'רדאר סיכונים',
+            radarChartDesc: 'ניתוח סיכונים ב-5 צירים בקרוב',
+            sparklines: 'גרפי מגמות',
+            sparklinesDesc: 'גרפי מגמות מיני בקרוב',
+            riskBreakdown: 'פירוט סיכונים',
+            riskBreakdownDesc: 'ניתוח קטגוריות מפורט',
+            riskDistribution: 'התפלגות סיכונים',
+            commonIssues: 'בעיות נפוצות בחוזים',
+            code: 'קוד',
+            issue: 'בעיה',
+            count: 'כמות',
+            // Settings Page
+            settingsDescription: 'הגדרות מערכת והעדפות',
+            notifications: 'התראות',
+            notificationsDesc: 'הגדרת התראות אימייל ופוש',
+            security: 'אבטחה',
+            securityDesc: 'אימות ובקרת גישה',
+            dataRetention: 'שמירת מידע',
+            dataRetentionDesc: 'הגדרות אחסון וגיבוי חוזים',
+            emailTemplates: 'תבניות אימייל',
+            emailTemplatesDesc: 'התאמה אישית של אימיילים',
+            comingSoon: 'בקרוב',
         },
     },
     en: {
@@ -307,6 +339,7 @@ const translations = {
             admin: '⚙️ Admin',
             dark: 'Dark',
             light: 'Light',
+            backToDashboard: 'Back to Dashboard',
         },
         // Auth (Login/Register)
         auth: {
@@ -530,6 +563,7 @@ const translations = {
             cancel: 'Cancel',
             confirm: 'Confirm',
             ok: 'OK',
+            comingSoon: 'Coming Soon',
         },
         // Admin Dashboard
         admin: {
@@ -558,6 +592,7 @@ const translations = {
             thisMonth: 'This Month',
             thisYear: 'This Year',
             analyzedOverTime: 'Analyzed Contracts Over Time',
+            userRegistrations: 'User Registrations Over Time',
             noData: 'No data to display',
             // Users
             searchPlaceholder: 'Search by email or name...',
@@ -586,6 +621,35 @@ const translations = {
             confirmDeleteBtn: 'Yes, Delete Permanently',
             selectYear: 'Select Year',
             userDeleted: 'User deleted successfully',
+            // Admin Sidebar
+            dashboard: 'Dashboard',
+            analytics: 'Analytics',
+            settings: 'Settings',
+            administrator: 'Administrator',
+            // Analytics Page
+            analyticsDescription: 'Detailed contract analysis and risk insights',
+            radarChart: 'Risk Radar',
+            radarChartDesc: '5-axis risk analysis coming soon',
+            sparklines: 'Trend Sparklines',
+            sparklinesDesc: 'Mini trend charts coming soon',
+            riskBreakdown: 'Risk Breakdown',
+            riskBreakdownDesc: 'Detailed category analysis',
+            riskDistribution: 'Risk Distribution',
+            commonIssues: 'Common Issues in Contracts',
+            code: 'Code',
+            issue: 'Issue',
+            count: 'Count',
+            // Settings Page
+            settingsDescription: 'System configuration and preferences',
+            notifications: 'Notifications',
+            notificationsDesc: 'Configure email and push notifications',
+            security: 'Security',
+            securityDesc: 'Authentication and access control',
+            dataRetention: 'Data Retention',
+            dataRetentionDesc: 'Contract storage and backup settings',
+            emailTemplates: 'Email Templates',
+            emailTemplatesDesc: 'Customize notification emails',
+            comingSoon: 'Coming Soon',
         },
     },
 };
