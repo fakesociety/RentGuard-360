@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
 // DAN DID IT - Added resetPassword and confirmResetPassword imports for forgot password feature
+// DAN DID IT - Added deleteUser import for account deletion feature
 import {
     signIn,
     signUp,
@@ -12,6 +13,7 @@ import {
     resendSignUpCode,
     resetPassword,
     confirmResetPassword,
+    deleteUser,
 } from 'aws-amplify/auth';
 
 // Configure Amplify
@@ -175,6 +177,22 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // DAN DID IT - Added deleteAccount function to allow users to delete their own account
+    const deleteAccount = async () => {
+        try {
+            await deleteUser();
+            // After deleting, clear local state
+            setUser(null);
+            setUserAttributes(null);
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+            return { success: true };
+        } catch (error) {
+            console.error('Delete account error:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -190,6 +208,8 @@ export const AuthProvider = ({ children }) => {
             // DAN DID IT - Added forgotPassword and resetUserPassword to context
             forgotPassword,
             resetUserPassword,
+            // DAN DID IT - Added deleteAccount to context
+            deleteAccount,
             checkAuthState,
         }}>
             {children}

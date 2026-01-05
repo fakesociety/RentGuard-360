@@ -251,6 +251,23 @@ const translations = {
             ok: 'אישור',
             comingSoon: 'בקרוב',
         },
+        // DAN DID IT - Added account deletion translations
+        // Account Settings
+        account: {
+            deleteAccount: 'מחק חשבון',
+            deleteAccountDescription: 'מחיקת החשבון שלך לצמיתות כולל כל החוזים שלך',
+            deleteConfirmTitle: 'האם אתה בטוח?',
+            deleteConfirmMessage: 'פעולה זו תמחק את החשבון שלך לצמיתות, כולל:',
+            deleteConfirmItem1: '• כל החוזים שלך',
+            deleteConfirmItem2: '• כל הניתוחים שלך',
+            deleteConfirmItem3: '• נתוני הפרופיל שלך',
+            deleteConfirmWarning: 'פעולה זו לא ניתנת לביטול!',
+            typeDeleteToConfirm: 'הקלד DELETE כדי לאשר:',
+            deleteAccountSuccess: 'החשבון נמחק בהצלחה',
+            deleteAccountError: 'שגיאה במחיקת החשבון',
+            deletingAccount: 'מוחק חשבון...',
+            deletingContracts: 'מוחק חוזים...',
+        },
         // Admin Dashboard
         admin: {
             title: 'לוח בקרה למנהל',
@@ -586,6 +603,23 @@ const translations = {
             confirm: 'Confirm',
             ok: 'OK',
             comingSoon: 'Coming Soon',
+        },
+        // DAN DID IT - Added account deletion translations (English)
+        // Account Settings
+        account: {
+            deleteAccount: 'Delete Account',
+            deleteAccountDescription: 'Permanently delete your account and all your contracts',
+            deleteConfirmTitle: 'Are you sure?',
+            deleteConfirmMessage: 'This action will permanently delete your account, including:',
+            deleteConfirmItem1: '• All your contracts',
+            deleteConfirmItem2: '• All your analyses',
+            deleteConfirmItem3: '• Your profile data',
+            deleteConfirmWarning: 'This action cannot be undone!',
+            typeDeleteToConfirm: 'Type DELETE to confirm:',
+            deleteAccountSuccess: 'Account deleted successfully',
+            deleteAccountError: 'Error deleting account',
+            deletingAccount: 'Deleting account...',
+            deletingContracts: 'Deleting contracts...',
         },
         // Admin Dashboard
         admin: {

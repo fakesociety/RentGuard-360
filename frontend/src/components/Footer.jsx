@@ -56,8 +56,9 @@ const Footer = () => {
                             <div className="credits-row">
                                 {isRTL ? 'נבנה ע"י' : 'Built by'}{' '}
                                 <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
-                                {' & '}
+                                {', '}
                                 <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                                {' & Dan'}
                             </div>
                         </div>
                     </div>

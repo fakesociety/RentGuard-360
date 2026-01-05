@@ -11,6 +11,7 @@ RentGuard 360 is a cloud-native serverless application that empowers renters in 
 ### Team: AI-Lawyers
 - **Ron Blanki** (207720897) - Frontend & Integration
 - **Moti Sahartov** (322355504) - Backend & Infrastructure
+- **Dan Gutman** (208741512) - Development & Features
 
 ### Academic Context
 Cloud Computing Final Project | Submission Deadline: January 10, 2026
@@ -264,6 +265,7 @@ This project is created for academic purposes as part of a Cloud Computing cours
 
 - **Ron Blanki**: [GitHub](https://github.com/RonPiece)
 - **Moti Sahartov**: [GitHub Profile]
+- **Dan Gutman**: [GitHub](https://github.com/Dangutman98)
 
 ---
 

@@ -373,6 +373,30 @@ export const enableUser = async (username) => {
     return data;
 };
 
+// DAN DID IT - Added deleteAllUserContracts function to delete all contracts when user deletes their account
+/**
+ * Delete all contracts for the current user
+ * Used when a user deletes their account
+ * @param {string} userId - The user's ID
+ */
+export const deleteAllUserContracts = async (userId) => {
+    try {
+        // Get all user's contracts first
+        const contracts = await getContracts(userId);
+        
+        // Delete each contract
+        const deletePromises = contracts.map(contract => 
+            deleteContract(contract.contractId, userId)
+        );
+        
+        await Promise.all(deletePromises);
+        return { success: true, count: contracts.length };
+    } catch (error) {
+        console.error('Error deleting user contracts:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 /**
  * Delete a user permanently (admin only)
  * WARNING: This action cannot be undone!
@@ -391,6 +415,7 @@ export default {
     getAnalysis,
     pollForAnalysis,
     deleteContract,
+    deleteAllUserContracts, // DAN DID IT - Added for account deletion
     consultClause,
     sendContactMessage,
     saveEditedContract,

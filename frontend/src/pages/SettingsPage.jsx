@@ -1,19 +1,61 @@
-import React from 'react';
+// DAN DID IT - Added useState for delete account confirmation dialog
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { deleteAllUserContracts } from '../services/api'; // DAN DID IT - Import for deleting contracts
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Toggle from '../components/Toggle';
 import './SettingsPage.css';
 
 const SettingsPage = () => {
-    const { userAttributes, logout } = useAuth();
+    const { userAttributes, logout, deleteAccount, user } = useAuth(); // DAN DID IT - Added deleteAccount and user
     const { isDark, toggleTheme } = useTheme();
     const { t, isRTL } = useLanguage();
 
+    // DAN DID IT - State for delete account confirmation
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+
     const handleLogout = async () => {
         await logout();
+    };
+
+    // DAN DID IT - Handle account deletion with contract cleanup
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== 'DELETE') {
+            setDeleteError(isRTL ? 'יש להקליד DELETE כדי לאשר' : 'Please type DELETE to confirm');
+            return;
+        }
+
+        setIsDeleting(true);
+        setDeleteError('');
+
+        try {
+            // Step 1: Delete all user's contracts
+            const userId = user?.username || user?.userId;
+            if (userId) {
+                await deleteAllUserContracts(userId);
+            }
+
+            // Step 2: Delete the user's Cognito account
+            const result = await deleteAccount();
+            
+            if (result.success) {
+                // User is automatically logged out after deleteAccount
+                // Redirect happens via AuthContext
+            } else {
+                setDeleteError(result.error || t('account.deleteAccountError'));
+                setIsDeleting(false);
+            }
+        } catch (error) {
+            console.error('Delete account error:', error);
+            setDeleteError(t('account.deleteAccountError'));
+            setIsDeleting(false);
+        }
     };
 
     return (
@@ -94,7 +136,7 @@ const SettingsPage = () => {
                         </div>
                         <div className="about-row">
                             <span>{isRTL ? 'נבנה על ידי' : 'Built by'}</span>
-                            <span className="about-value">Ron & Moty</span>
+                            <span className="about-value">Ron, Moty & Dan</span>
                         </div>
                         <div className="about-row">
                             <span>{isRTL ? 'פרויקט' : 'Project'}</span>
@@ -117,8 +159,80 @@ const SettingsPage = () => {
                             {t('nav.logout')}
                         </Button>
                     </div>
+
+                    {/* DAN DID IT - Added Delete Account section */}
+                    <div className="setting-row" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                        <div className="setting-info">
+                            <h3>{t('account.deleteAccount')}</h3>
+                            <p>{t('account.deleteAccountDescription')}</p>
+                        </div>
+                        <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+                            {t('account.deleteAccount')}
+                        </Button>
+                    </div>
                 </Card>
             </section>
+
+            {/* DAN DID IT - Delete Account Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="modal-backdrop" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+                    <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'}>
+                        <button 
+                            className="modal-close" 
+                            onClick={() => setShowDeleteModal(false)}
+                            disabled={isDeleting}
+                        >
+                            ✕
+                        </button>
+                        
+                        <div className="modal-icon danger-icon">⚠️</div>
+                        
+                        <h2>{t('account.deleteConfirmTitle')}</h2>
+                        
+                        <div className="delete-warning">
+                            <p><strong>{t('account.deleteConfirmMessage')}</strong></p>
+                            <p>{t('account.deleteConfirmItem1')}</p>
+                            <p>{t('account.deleteConfirmItem2')}</p>
+                            <p>{t('account.deleteConfirmItem3')}</p>
+                            <p className="warning-text"><strong>{t('account.deleteConfirmWarning')}</strong></p>
+                        </div>
+
+                        <div className="delete-confirm-input">
+                            <label>{t('account.typeDeleteToConfirm')}</label>
+                            <input
+                                type="text"
+                                value={deleteConfirmText}
+                                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                placeholder="DELETE"
+                                disabled={isDeleting}
+                                style={{ textAlign: isRTL ? 'right' : 'left' }}
+                            />
+                        </div>
+
+                        {deleteError && (
+                            <p className="error-message">{deleteError}</p>
+                        )}
+
+                        <div className="modal-actions">
+                            <Button 
+                                variant="secondary" 
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={isDeleting}
+                            >
+                                {t('common.cancel')}
+                            </Button>
+                            <Button 
+                                variant="danger" 
+                                onClick={handleDeleteAccount}
+                                disabled={isDeleting || deleteConfirmText !== 'DELETE'}
+                                loading={isDeleting}
+                            >
+                                {isDeleting ? t('account.deletingAccount') : t('account.deleteAccount')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
