@@ -8,6 +8,7 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import {
     BarChart3,
     AlertTriangle,
@@ -27,6 +28,10 @@ const AdminAnalytics = () => {
     const [error, setError] = useState(null);
     const chartContainerRef = useRef(null);
     const [chartWidth, setChartWidth] = useState(500);
+
+    // Responsive breakpoint for chart sizing
+    const isMobile = useMediaQuery('(max-width:480px)');
+    const isTablet = useMediaQuery('(max-width:768px)');
 
     useEffect(() => {
         fetchStats();
@@ -143,14 +148,15 @@ const AdminAnalytics = () => {
                                             <PieChart
                                                 series={[{
                                                     data: pieData,
-                                                    innerRadius: 50,
-                                                    outerRadius: 90,
+                                                    innerRadius: isMobile ? 35 : 50,
+                                                    outerRadius: isMobile ? 65 : 90,
                                                     paddingAngle: 2,
                                                     cornerRadius: 4,
                                                     highlightScope: { faded: 'global', highlighted: 'item' },
                                                 }]}
-                                                width={220}
-                                                height={200}
+                                                width={isMobile ? 160 : 220}
+                                                height={isMobile ? 150 : 200}
+                                                margin={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                                 slotProps={{
                                                     legend: { hidden: true }
                                                 }}
@@ -179,11 +185,12 @@ const AdminAnalytics = () => {
                                             value={avgRiskScore}
                                             valueMin={0}
                                             valueMax={100}
-                                            width={200}
-                                            height={180}
+                                            width={isMobile ? 160 : 200}
+                                            height={isMobile ? 140 : 180}
+                                            margin={{ top: 5, bottom: 5, left: 5, right: 5 }}
                                             sx={{
                                                 [`& .${gaugeClasses.valueText}`]: {
-                                                    fontSize: 36,
+                                                    fontSize: isMobile ? 28 : 36,
                                                     fontWeight: 'bold',
                                                     fill: textColor,
                                                 },
@@ -234,9 +241,9 @@ const AdminAnalytics = () => {
                                                 data: commonIssues.map(i => i.count),
                                                 color: '#3B82F6',
                                             }]}
-                                            width={Math.min(chartWidth, 600)}
-                                            height={220}
-                                            margin={{ left: 50, right: 20, top: 10, bottom: 30 }}
+                                            width={isMobile ? Math.min(chartWidth, 320) : Math.min(chartWidth, 600)}
+                                            height={isMobile ? 180 : 220}
+                                            margin={{ left: 40, right: 15, top: 10, bottom: 25 }}
                                             sx={{
                                                 '& .MuiChartsAxis-tickLabel': { fill: labelColor },
                                                 '& .MuiChartsAxis-line': { stroke: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)' },

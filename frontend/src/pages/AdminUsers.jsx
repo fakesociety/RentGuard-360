@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getUsers, disableUser, enableUser, deleteUser } from '../services/api';
@@ -306,10 +307,10 @@ const AdminUsers = () => {
                 )}
             </div>
 
-            {/* Modal */}
-            {modal.isOpen && (
-                <div className="admin-modal-overlay" onClick={closeModal}>
-                    <div className={`admin-modal ${modal.type === 'error' ? 'modal-error' : 'modal-warning'}`} onClick={e => e.stopPropagation()}>
+            {/* Modal - rendered via Portal for full screen overlay */}
+            {modal.isOpen && ReactDOM.createPortal(
+                <div className={`admin-modal-overlay ${isDark ? 'dark' : 'light'}`} onClick={closeModal}>
+                    <div className={`admin-modal ${isDark ? 'dark' : 'light'} ${modal.type === 'error' ? 'modal-error' : 'modal-warning'}`} onClick={e => e.stopPropagation()}>
                         <h3>{modal.title}</h3>
                         <p>{modal.message}</p>
                         <div className="modal-actions">
@@ -332,7 +333,8 @@ const AdminUsers = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
