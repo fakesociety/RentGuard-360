@@ -670,6 +670,51 @@
     flex-shrink: 0;
 }
 
+/* Sortable Table Headers */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sortable-header:hover {
+    background-color: var(--bg-hover);
+    color: var(--primary-color);
+}
+
+.th-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-icon {
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+/* Active Sort Icon */
+.sort-icon.asc,
+.sort-icon.desc {
+    opacity: 1;
+    color: var(--primary-color);
+    transform: translateY(0);
+}
+
+/* Inactive Ghost Icon (Hidden by default) */
+.sort-icon.inactive {
+    opacity: 0;
+    transform: translateY(2px);
+    color: var(--text-secondary);
+}
+
+/* Show Ghost Icon on Hover */
+.sortable-header:hover .sort-icon.inactive {
+    opacity: 0.5;
+    transform: translateY(0);
+}
+
 .pie-legend .legend-item .legend-label {
     flex: 1;
 }

@@ -304,6 +304,7 @@ const translations = {
             thisYear: 'השנה',
             analyzedOverTime: 'חוזים שנותחו לאורך זמן',
             userRegistrations: 'רישום משתמשים לאורך זמן',
+            allTime: 'הכל',
             noData: 'אין נתונים להצגה',
             // Users
             searchPlaceholder: 'חפש לפי אימייל או שם...',
@@ -665,6 +666,7 @@ const translations = {
             thisYear: 'This Year',
             analyzedOverTime: 'Analyzed Contracts Over Time',
             userRegistrations: 'User Registrations Over Time',
+            allTime: 'All Time',
             noData: 'No data to display',
             // Users
             searchPlaceholder: 'Search by email or name...',
