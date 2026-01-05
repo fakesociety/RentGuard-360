@@ -366,6 +366,9 @@ const LandingPageNew = () => {
     const [resetCode, setResetCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
 
+    // DAN DID IT - State for verification success modal
+    const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
+
     // Registration prompt state
     const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
 
@@ -569,8 +572,9 @@ const LandingPageNew = () => {
         const result = await confirmRegistration(tempEmail, code);
         if (result.success) {
             localStorage.removeItem('rentguard_pending_verification');
-            setAuthModal('login');
-            setEmail(tempEmail);
+            setLoading(false);
+            // DAN DID IT - Show success modal instead of immediately going to login
+            setShowVerificationSuccess(true);
         } else {
             // Translate errors to Hebrew
             let errorMsg = result.error;
@@ -580,8 +584,15 @@ const LandingPageNew = () => {
                 else errorMsg = 'האימות נכשל. נסה שוב.';
             }
             setError(errorMsg);
+            setLoading(false);
         }
-        setLoading(false);
+    };
+
+    // DAN DID IT - Handle continuing to login after verification success
+    const handleContinueToLogin = () => {
+        setShowVerificationSuccess(false);
+        setAuthModal('login');
+        setEmail(tempEmail);
     };
 
     const handleResendCode = async () => {
@@ -981,6 +992,51 @@ const LandingPageNew = () => {
                 }}
                 isRTL={isRTL}
             />
+
+            {/* DAN DID IT - Verification Success Modal */}
+            {showVerificationSuccess && (
+                <div className="auth-backdrop">
+                    <div className="auth-modal" dir={isRTL ? 'rtl' : 'ltr'} style={{ textAlign: 'center', maxWidth: '420px' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            marginBottom: '1.5rem' 
+                        }}>
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                <circle cx="30" cy="30" r="28" stroke="#10B981" strokeWidth="3" fill="rgba(16, 185, 129, 0.1)"/>
+                                <path d="M20 30L26 36L40 22" stroke="#10B981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 style={{ 
+                            fontSize: 'var(--font-size-2xl)', 
+                            fontWeight: 'var(--font-weight-bold)', 
+                            color: 'var(--text-primary)', 
+                            marginBottom: '1rem' 
+                        }}>
+                            {t('auth.verificationSuccess')}
+                        </h2>
+                        
+                        <p style={{ 
+                            fontSize: 'var(--font-size-md)', 
+                            color: 'var(--text-secondary)', 
+                            lineHeight: '1.6', 
+                            marginBottom: '1.5rem' 
+                        }}>
+                            {t('auth.verificationSuccessMessage')}
+                        </p>
+                        
+                        <Button 
+                            variant="primary" 
+                            fullWidth 
+                            onClick={handleContinueToLogin}
+                        >
+                            {t('auth.continueToLogin')}
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

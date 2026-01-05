@@ -30,6 +30,7 @@ const UploadPage = () => {
     const [customFileName, setCustomFileName] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false); // DAN DID IT - Added state for upload success modal
 
     const validateFile = (file) => {
         const maxSize = 5 * 1024 * 1024; // 5MB - standard for rental contracts
@@ -96,6 +97,7 @@ const UploadPage = () => {
 
             setUploadedKey(result.key);
             setUploadSuccess(true);
+            setShowSuccessModal(true); // DAN DID IT - Show success modal instead of just success message
             setFile(null);
             setTermsAccepted(false);
             setMetadata({
@@ -319,6 +321,54 @@ const UploadPage = () => {
                                 {t('upload.close')}
                             </Button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* DAN DID IT - Upload Success Modal with Email Notification */}
+            {showSuccessModal && (
+                <div className="auth-backdrop">
+                    <div className="auth-modal" dir={isRTL ? 'rtl' : 'ltr'} style={{ textAlign: 'center', maxWidth: '420px' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            marginBottom: '1.5rem' 
+                        }}>
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                <circle cx="30" cy="30" r="28" stroke="#10B981" strokeWidth="3" fill="rgba(16, 185, 129, 0.1)"/>
+                                <path d="M20 30L26 36L40 22" stroke="#10B981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 style={{ 
+                            fontSize: 'var(--font-size-2xl)', 
+                            fontWeight: 'var(--font-weight-bold)', 
+                            color: 'var(--text-primary)', 
+                            marginBottom: '1rem' 
+                        }}>
+                            {t('upload.uploadSuccessTitle')}
+                        </h2>
+                        
+                        <p style={{ 
+                            fontSize: 'var(--font-size-md)', 
+                            color: 'var(--text-secondary)', 
+                            lineHeight: '1.6', 
+                            marginBottom: '1.5rem' 
+                        }}>
+                            {t('upload.uploadSuccessMessage')}
+                        </p>
+                        
+                        <Button 
+                            variant="primary" 
+                            fullWidth 
+                            onClick={() => {
+                                setShowSuccessModal(false);
+                                navigate('/contracts');
+                            }}
+                        >
+                            {t('upload.goToContracts')}
+                        </Button>
                     </div>
                 </div>
             )}
