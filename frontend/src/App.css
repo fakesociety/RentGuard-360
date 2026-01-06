@@ -427,6 +427,23 @@
 /* Small mobile */
 @media (max-width: 480px) {
   .logo-text {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
+    white-space: nowrap;
+  }
+
+  .nav-logo {
+    gap: var(--space-xs);
+  }
+
+  .logo-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Extra small mobile (iPhone SE) */
+@media (max-width: 375px) {
+  .logo-text {
+    font-size: var(--font-size-sm);
   }
 }
