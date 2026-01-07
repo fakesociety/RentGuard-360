@@ -213,6 +213,8 @@ def split_to_clauses(text: str) -> list[str]:
         r'(?=[\u0590-\u05FF])'
     )
     
+    final_clauses = []  # Initialize final_clauses list
+    
     for clause in clauses:
         split_points = [(m.start(), m.group(1)) for m in split_pattern.finditer(clause)]
         
