@@ -23,6 +23,7 @@
  * ============================================
  */
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -210,18 +211,48 @@ const ContractsPage = () => {
 
     useEffect(() => { fetchContracts(); }, [user]);
 
-    // Auto-refresh while there are pending contracts
+    // Auto-refresh while there are pending contracts (not failed/analyzed/timed out)
     useEffect(() => {
-        const hasPending = contracts.some(c =>
-            c.status === 'processing' ||
-            c.status === 'uploaded' ||
-            c.status === 'pending' ||
-            !c.status  // No status yet
-        );
-        if (!hasPending) return;
-        // Poll every 5 seconds for faster updates
-        const interval = setInterval(() => fetchContracts(false), 5000);
-        return () => clearInterval(interval);
+        console.log('[AutoPoll] useEffect triggered - contracts count:', contracts.length);
+
+        const pendingContracts = contracts.filter(c => {
+            // Skip if already has final status
+            if (c.status === 'analyzed' || c.status === 'failed' || c.status === 'error') {
+                return false;
+            }
+            // Skip if timed out
+            if (isContractTimedOut(c)) {
+                return false;
+            }
+            // Check if actually pending/processing
+            return c.status === 'processing' ||
+                c.status === 'uploaded' ||
+                c.status === 'pending' ||
+                !c.status;  // No status yet
+        });
+
+        console.log('[AutoPoll] Contract statuses:', contracts.map(c => ({
+            id: c.contractId?.substring(0, 8),
+            status: c.status,
+            timedOut: isContractTimedOut(c)
+        })));
+        console.log('[AutoPoll] Pending contracts:', pendingContracts.length);
+
+        if (pendingContracts.length === 0) {
+            console.log('[AutoPoll] No pending contracts - NOT starting interval');
+            return;
+        }
+
+        console.log('[AutoPoll] Starting 30 second interval...');
+        const interval = setInterval(() => {
+            console.log('[AutoPoll] Interval fired - fetching contracts at', new Date().toISOString());
+            fetchContracts(false);
+        }, 30000);
+
+        return () => {
+            console.log('[AutoPoll] Cleanup - clearing interval');
+            clearInterval(interval);
+        };
     }, [contracts, user]);
 
     const fetchContracts = async (showLoader = true) => {
@@ -378,8 +409,8 @@ const ContractsPage = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
-            {deleteConfirm && (
+            {/* Delete Confirmation Modal - rendered via Portal for full screen overlay */}
+            {deleteConfirm && ReactDOM.createPortal(
                 <div className="modal-backdrop" onClick={() => setDeleteConfirm(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <h3>{t('contracts.deleteTitle')}</h3>
@@ -391,11 +422,12 @@ const ContractsPage = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* Edit Modal */}
-            {editModal && (
+            {/* Edit Modal - rendered via Portal for full screen overlay */}
+            {editModal && ReactDOM.createPortal(
                 <div className="modal-backdrop" onClick={() => setEditModal(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <h3>{t('contracts.editTitle')}</h3>
@@ -433,7 +465,8 @@ const ContractsPage = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Page Header */}

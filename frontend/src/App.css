@@ -178,11 +178,12 @@
   left: auto;
   width: 280px;
   max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
   background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
-  overflow: hidden;
   animation: slideDown 0.2s ease-out;
   z-index: 1000;
 }
@@ -279,9 +280,20 @@
 .mobile-menu {
   display: none;
   flex-direction: column;
-  align-items: center;
-  padding: var(--space-md);
-  border-top: 1px solid var(--glass-border);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 320px;
+  background: var(--bg-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-sm);
+  margin-top: var(--space-sm);
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
 }
 
 .mobile-menu-link {
@@ -289,31 +301,27 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
   background: none;
   border: none;
   width: 100%;
-  max-width: 300px;
   cursor: pointer;
+  transition: background var(--transition-fast);
 }
 
 .mobile-menu-link:hover,
 .mobile-menu-link.active {
-  background: var(--bg-page);
+  background: var(--bg-tertiary);
 }
 
-.mobile-menu-link.logout {
-  color: var(--accent-danger);
-}
-
-.mobile-menu-divider {
-  height: 1px;
-  background: var(--glass-border);
-  margin: var(--space-sm) 0;
+.mobile-menu-link.active {
+  color: var(--accent-primary);
+  background: rgba(16, 185, 129, 0.1);
 }
 
 /* ============================================
@@ -424,26 +432,138 @@
   }
 }
 
-/* Small mobile */
+/* Small mobile - Match Landing Page navbar layout */
 @media (max-width: 480px) {
-  .logo-text {
-    font-size: var(--font-size-md);
-    white-space: nowrap;
+  .nav-container {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .nav-inner {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    padding: var(--space-sm);
   }
 
   .nav-logo {
     gap: var(--space-xs);
   }
 
+  .logo-text {
+    font-size: 1.125rem;
+    white-space: nowrap;
+  }
+
   .logo-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Grid layout for nav controls: 2 columns like Landing Page */
+  .nav-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    width: 100%;
+    max-width: 320px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: visible;
+    /* Allow dropdowns to display outside */
+  }
+
+  /* Vertical Separator Line */
+  .nav-right::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    bottom: 15%;
+    left: 50%;
+    width: 1px;
+    background: var(--border-subtle);
+    transform: translateX(-50%);
+  }
+
+  /* Column 1: Theme Toggle */
+  .nav-right .toggle-wrapper {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: stretch;
+    margin: 0.5rem 1rem;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  /* Column 1: Language Toggle */
+  .nav-right .language-toggle {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+    margin: 0.5rem 1rem;
+    justify-content: center;
+    width: auto;
+  }
+
+  /* Column 2: Profile Button (row 1) */
+  .profile-container {
+    display: flex !important;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    justify-self: stretch;
+    margin: 0.5rem 1rem;
+  }
+
+  .profile-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .profile-button .profile-chevron {
+    font-size: 8px;
+  }
+
+  /* Column 2: Hamburger Menu Button (row 2) */
+  .mobile-menu-button {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    justify-self: stretch;
+    margin: 0.5rem 1rem;
+    font-size: 1.2rem;
+    padding: 0.4rem 0.8rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+  }
+
+  /* Mobile menu dropdown positioning */
+  .mobile-menu {
+    display: flex;
+    position: fixed;
+    top: auto;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    width: auto;
+    max-width: none;
   }
 }
 
 /* Extra small mobile (iPhone SE) */
 @media (max-width: 375px) {
   .logo-text {
-    font-size: var(--font-size-sm);
+    font-size: 1rem;
+  }
+
+  .nav-right {
+    max-width: 280px;
   }
 }

@@ -84,8 +84,10 @@ const DashboardPage = () => {
 
     const getGreeting = () => {
         const hour = new Date().getHours();
+        // Night: 21:00-4:59, Morning: 5:00-11:59, Afternoon: 12:00-16:59, Evening: 17:00-20:59
+        if (hour >= 21 || hour < 5) return t('dashboard.greeting.night');
         if (hour < 12) return t('dashboard.greeting.morning');
-        if (hour < 18) return t('dashboard.greeting.afternoon');
+        if (hour < 17) return t('dashboard.greeting.afternoon');
         return t('dashboard.greeting.evening');
     };
 
