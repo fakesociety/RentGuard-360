@@ -407,10 +407,15 @@
   .nav-inner {
     padding: var(--space-md) var(--space-lg);
   }
+
+  .nav-link {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 13px;
+  }
 }
 
-/* Small tablet / Large phone breakpoint */
-@media (max-width: 768px) {
+/* Medium screens - switch to mobile nav earlier (900px) */
+@media (max-width: 900px) {
   .nav-links-desktop {
     display: none;
   }
@@ -427,6 +432,13 @@
     display: none;
   }
 
+  .nav-right {
+    gap: var(--space-sm);
+  }
+}
+
+/* Small tablet / Large phone breakpoint */
+@media (max-width: 768px) {
   .nav-inner {
     padding: var(--space-md);
   }

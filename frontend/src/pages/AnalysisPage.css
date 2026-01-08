@@ -424,7 +424,8 @@
     }
 }
 
-/* Tablet transition */
+
+/* Tablet transition - start stacking */
 @media (max-width: 900px) {
     .analysis-layout {
         grid-template-columns: 1fr;
@@ -433,23 +434,33 @@
     .analysis-sidebar {
         position: static;
         order: -1;
+        width: 100%;
     }
 
     .sidebar-card {
-        display: grid;
-        grid-template-columns: auto 1fr;
+        display: flex;
+        flex-direction: column;
         gap: var(--space-md);
+    }
+
+    .sidebar-summary-hero {
+        padding: 16px;
+    }
+
+    .sidebar-actions {
+        flex-wrap: wrap;
     }
 }
 
 /* Tablet (iPad Mini/Air) */
 @media (max-width: 768px) {
-    .analysis-header h1 {
-        font-size: var(--font-size-2xl);
+    .analysis-page {
+        padding: var(--space-sm);
+        padding-bottom: 80px;
     }
 
-    .sidebar-card {
-        grid-template-columns: 1fr;
+    .analysis-header h1 {
+        font-size: var(--font-size-2xl);
     }
 
     .sidebar-actions {
@@ -463,6 +474,46 @@
     .tab-btn {
         flex: 1 1 auto;
         min-width: 45%;
+    }
+
+    .contract-hero-card {
+        padding: 16px;
+    }
+
+    .meta-row {
+        flex-wrap: wrap;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    .analysis-page {
+        padding: var(--space-xs);
+        padding-bottom: 60px;
+    }
+
+    .analysis-header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .tab-btn {
+        min-width: 100%;
+        font-size: 13px;
+    }
+
+    .contract-hero-card {
+        padding: 12px;
+    }
+
+    .contract-card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .sidebar-action-btn {
+        padding: 12px;
+        font-size: 13px;
     }
 }
 
