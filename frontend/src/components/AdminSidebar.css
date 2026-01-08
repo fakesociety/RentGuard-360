@@ -37,6 +37,8 @@
     top: 0;
     left: 0;
     height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height - accounts for Safari browser chrome */
     width: var(--sidebar-width);
     display: flex;
     flex-direction: column;
@@ -254,6 +256,8 @@
     gap: 8px;
     padding: 16px 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+    /* Ensure footer never gets compressed */
 }
 
 .admin-sidebar.light .sidebar-footer {

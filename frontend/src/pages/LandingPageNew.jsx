@@ -917,12 +917,18 @@ const LandingPageNew = () => {
                     className="benefits-carousel"
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    onTouchEnd={() => setIsPaused(false)}
                     initial={{ opacity: 0, y: 30 }}
                     animate={carouselInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.5 }}
                 >
                     {isPaused && <span className="carousel-paused">⏸</span>}
-                    <button className="carousel-arrow" onClick={prevSlide} aria-label="Previous">
+                    <button
+                        className="carousel-arrow"
+                        onClick={prevSlide}
+                        aria-label="Previous"
+                    >
                         ‹
                     </button>
                     <div className="carousel-content" key={currentSlide}>
@@ -930,7 +936,11 @@ const LandingPageNew = () => {
                         <h4>{isRTL ? benefits[currentSlide].titleHe : benefits[currentSlide].titleEn}</h4>
                         <p>{isRTL ? benefits[currentSlide].descHe : benefits[currentSlide].descEn}</p>
                     </div>
-                    <button className="carousel-arrow" onClick={nextSlide} aria-label="Next">
+                    <button
+                        className="carousel-arrow"
+                        onClick={nextSlide}
+                        aria-label="Next"
+                    >
                         ›
                     </button>
                 </motion.div>

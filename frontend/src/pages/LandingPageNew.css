@@ -142,12 +142,13 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 200;
+    z-index: 1100;
+    /* Higher than navbar z-index: 1000 */
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    overflow-y: auto; /* DAN DID IT - Allow scrolling on small screens */
+    overflow-y: auto;
 }
 
 .auth-modal {
@@ -157,11 +158,15 @@
     padding: 2rem;
     width: 100%;
     max-width: 400px;
-    max-height: 90vh; /* DAN DID IT - Prevent modal from being taller than viewport */
-    overflow-y: auto; /* DAN DID IT - Allow scrolling inside modal if needed */
+    max-height: 90vh;
+    max-height: 90dvh;
+    /* Dynamic viewport height - accounts for Safari browser chrome */
+    overflow-y: auto;
+    /* DAN DID IT - Allow scrolling inside modal if needed */
     box-shadow: var(--shadow-xl);
     position: relative;
-    margin: auto; /* DAN DID IT - Center vertically when scrolling */
+    margin: auto;
+    /* DAN DID IT - Center vertically when scrolling */
 }
 
 /* Auth Modal Close Button */
@@ -1474,21 +1479,26 @@
     .auth-modal {
         padding: 1.5rem;
         margin: 0 0.5rem;
-        max-height: 90vh; /* DAN DID IT - Ensure modal fits on tablet screens */
+        max-height: 90vh;
+        /* DAN DID IT - Ensure modal fits on tablet screens */
     }
 }
 
 /* Mobile (iPhone Pro) */
 @media (max-width: 600px) {
+
     /* DAN DID IT - Improved responsive behavior for auth modal */
     .auth-backdrop {
         padding: 0.5rem;
     }
-    
+
     .auth-modal {
-        max-width: 95vw; /* DAN DID IT - Use more screen width on mobile */
-        max-height: 95vh; /* DAN DID IT - Use more viewport height */
+        max-width: 95vw;
+        /* DAN DID IT - Use more screen width on mobile */
+        max-height: 95vh;
+        /* DAN DID IT - Use more viewport height */
     }
+
     .lr-nav-inner {
         flex-wrap: wrap;
         gap: 0.75rem;
@@ -1706,7 +1716,8 @@
     .auth-modal {
         padding: 1.25rem;
         max-width: calc(100vw - 2rem);
-        max-height: 95vh; /* DAN DID IT - Ensure scrolling on very small screens */
+        max-height: 95vh;
+        /* DAN DID IT - Ensure scrolling on very small screens */
     }
 
     .auth-form h3 {

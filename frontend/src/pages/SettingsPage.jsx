@@ -24,6 +24,7 @@
  * ============================================
  */
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -197,8 +198,8 @@ const SettingsPage = () => {
                 </Card>
             </section>
 
-            {/* DAN DID IT - Delete Account Confirmation Modal */}
-            {showDeleteModal && (
+            {/* Delete Account Confirmation Modal - rendered via Portal for full screen overlay */}
+            {showDeleteModal && ReactDOM.createPortal(
                 <div className="modal-backdrop" onClick={() => !isDeleting && setShowDeleteModal(false)}>
                     <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'}>
                         <button
@@ -255,7 +256,8 @@ const SettingsPage = () => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

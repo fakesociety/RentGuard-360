@@ -124,7 +124,10 @@ const Navigation = () => {
           <div className="profile-container" ref={profileRef}>
             <button
               className="profile-button"
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => {
+                setShowMobileMenu(false); // Close mobile menu when opening profile
+                setShowProfileMenu(!showProfileMenu);
+              }}
             >
               <div className="profile-avatar">{getUserInitials()}</div>
               <span className="profile-chevron">{showProfileMenu ? '▲' : '▼'}</span>
@@ -156,7 +159,10 @@ const Navigation = () => {
           {/* Mobile Menu Button */}
           <button
             className="mobile-menu-button"
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            onClick={() => {
+              setShowProfileMenu(false); // Close profile when opening mobile menu
+              setShowMobileMenu(!showMobileMenu);
+            }}
           >
             {showMobileMenu ? '✕' : '☰'}
           </button>
@@ -173,17 +179,9 @@ const Navigation = () => {
               className={`mobile-menu-link ${isActive(link.path) ? 'active' : ''}`}
               onClick={() => setShowMobileMenu(false)}
             >
-              <span>{link.icon}</span>
               <span>{link.label}</span>
             </Link>
           ))}
-          <div className="mobile-menu-divider"></div>
-          <Link to="/settings" className="mobile-menu-link" onClick={() => setShowMobileMenu(false)}>
-            <span>{t('nav.settings')}</span>
-          </Link>
-          <button className="mobile-menu-link logout" onClick={handleLogout}>
-            <span>{t('nav.logout')}</span>
-          </button>
         </div>
       )}
     </nav>

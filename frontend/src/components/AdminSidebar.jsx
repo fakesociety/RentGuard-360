@@ -34,7 +34,7 @@ import {
 import './AdminSidebar.css';
 
 const AdminSidebar = ({ onNavigate }) => {
-    const { userAttributes, signOut } = useAuth();
+    const { userAttributes, logout } = useAuth();
     const { t, isRTL } = useLanguage();
     const { isDark } = useTheme();
     const navigate = useNavigate();
@@ -120,7 +120,7 @@ const AdminSidebar = ({ onNavigate }) => {
                 {/* Logout */}
                 <button
                     className="sidebar-footer-btn logout-btn"
-                    onClick={signOut}
+                    onClick={logout}
                     title={t('nav.logout') || 'Logout'}
                 >
                     <LogOut size={18} />
