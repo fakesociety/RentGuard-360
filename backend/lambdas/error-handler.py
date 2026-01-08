@@ -137,7 +137,12 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'body': json.dumps("Error handled and logged")
+            'body': json.dumps({
+                'handled': True,
+                'contractId': contract_id,
+                'status': 'FAILED',
+                'error_message': error_message
+            })
         }
 
     except Exception as e:

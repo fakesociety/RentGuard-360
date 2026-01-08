@@ -987,16 +987,59 @@
    14. MEDIA QUERIES
    ============================================ */
 
-@media (max-width: 768px) {
+/* Large tablet / small desktop (1024px) */
+@media (max-width: 1024px) {
     .contracts-page {
-        padding: 24px 16px;
+        padding: 28px 24px;
+    }
+
+    .contracts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
     }
 }
 
-@media (max-width: 600px) {
+/* Medium screens (900px) - start adjusting layout */
+@media (max-width: 900px) {
+    .contracts-page {
+        padding: 24px 20px;
+    }
+
+    .contracts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .page-header {
+        gap: 16px;
+    }
+
+    .filter-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}
+
+/* Tablet (768px) - single column layout */
+@media (max-width: 768px) {
+    .contracts-page {
+        padding: 20px 16px;
+    }
+
+    .contracts-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .contract-card {
+        max-width: 500px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
     .page-header {
         flex-direction: column;
         align-items: center;
+        text-align: center;
     }
 
     .header-content {
@@ -1017,47 +1060,29 @@
     .filter-bar {
         flex-wrap: wrap;
         padding: 14px 16px;
+        justify-content: center;
     }
 
     .filter-label {
         width: 100%;
-        margin-bottom: 4px;
-    }
-
-    .filter-btn {
-        padding: 10px 16px;
-        font-size: 14px;
+        text-align: center;
+        margin-bottom: 8px;
     }
 }
 
-/* Small Mobile (iPhone SE) */
+/* Small mobile (480px) */
 @media (max-width: 480px) {
     .contracts-page {
         padding: 16px 12px;
     }
 
-    .page-header {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .header-content {
-        width: 100%;
-        text-align: center;
+    .contract-card {
+        max-width: 100%;
+        padding: 16px;
     }
 
     .header-content h1 {
         font-size: 22px;
-        text-align: center;
-    }
-
-    .header-content p {
-        text-align: center;
-    }
-
-    .header-actions {
-        width: 100%;
-        justify-content: center;
     }
 
     .filter-bar {
@@ -1068,11 +1093,18 @@
     .filter-btn {
         width: 100%;
         justify-content: center;
+        padding: 10px 16px;
     }
 
     .card-header {
         flex-direction: column;
         gap: 16px;
+        align-items: center;
+    }
+
+    .card-title-section {
+        text-align: center;
+        width: 100%;
     }
 
     .score-gauge {
@@ -1082,10 +1114,31 @@
     .card-footer {
         flex-direction: column;
         gap: 12px;
+        align-items: center;
+    }
+
+    .view-btn {
+        width: 100%;
+        text-align: center;
     }
 
     .action-buttons {
         width: 100%;
         justify-content: center;
+    }
+}
+
+/* Extra small mobile (375px - iPhone SE) */
+@media (max-width: 375px) {
+    .contracts-page {
+        padding: 12px 8px;
+    }
+
+    .contract-card {
+        padding: 14px;
+    }
+
+    .header-content h1 {
+        font-size: 20px;
     }
 }
