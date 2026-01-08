@@ -550,31 +550,64 @@ const AnalysisPage = () => {
 
                     {/* Full Contract View Tab */}
                     {activeTab === 'contract' && (
-                        <ContractView
-                            contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
-                            backendClauses={analysis?.clauses_list || analysis?.clauses || []}
-                            issues={issues}
-                            contractId={analysis?.contractId || contractId}
-                            onClauseChange={(clauseId, text, action) => {
-                                setEditedClauses(prev => ({
-                                    ...prev,
-                                    [clauseId]: { text, action }
-                                }));
-                            }}
-                            onExportEdited={async (editedClausesMap) => {
-                                // Export edited contract to Word with Hebrew
-                                const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
-                                const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
-                                await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
-                            }}
-                            onSaveToCloud={async (clauses, fullEditedText) => {
-                                // Save to AWS (S3 + DynamoDB)
-                                // Use real user ID if available, otherwise fallback (should be auth'd though)
-                                const userId = userAttributes?.sub || 'unknown-user';
-                                const contractIdClean = analysis?.contractId || contractId;
-                                await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
-                            }}
-                        />
+                        result?.is_contract === false ? (
+                            <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '3rem 2rem',
+                                    textAlign: 'center'
+                                }}>
+                                    <span style={{ fontSize: '48px', marginBottom: '1rem' }}>⚠️</span>
+                                    <h3 style={{
+                                        fontSize: '1.5rem',
+                                        fontWeight: 'bold',
+                                        color: 'var(--warning-color)',
+                                        marginBottom: '0.75rem'
+                                    }}>
+                                        {isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}
+                                    </h3>
+                                    <p style={{
+                                        fontSize: '1rem',
+                                        color: 'var(--text-secondary)',
+                                        maxWidth: '450px',
+                                        lineHeight: '1.6'
+                                    }}>
+                                        {isRTL
+                                            ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. לא ניתן להציג את תוכן החוזה.'
+                                            : 'The uploaded document does not appear to be a valid rental contract. Cannot display contract content.'}
+                                    </p>
+                                </div>
+                            </Card>
+                        ) : (
+                            <ContractView
+                                contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
+                                backendClauses={analysis?.clauses_list || analysis?.clauses || []}
+                                issues={issues}
+                                contractId={analysis?.contractId || contractId}
+                                onClauseChange={(clauseId, text, action) => {
+                                    setEditedClauses(prev => ({
+                                        ...prev,
+                                        [clauseId]: { text, action }
+                                    }));
+                                }}
+                                onExportEdited={async (editedClausesMap) => {
+                                    // Export edited contract to Word with Hebrew
+                                    const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
+                                    const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
+                                    await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
+                                }}
+                                onSaveToCloud={async (clauses, fullEditedText) => {
+                                    // Save to AWS (S3 + DynamoDB)
+                                    // Use real user ID if available, otherwise fallback (should be auth'd though)
+                                    const userId = userAttributes?.sub || 'unknown-user';
+                                    const contractIdClean = analysis?.contractId || contractId;
+                                    await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
+                                }}
+                            />
+                        )
                     )}
                 </main>
             </div>

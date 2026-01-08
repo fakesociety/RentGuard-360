@@ -117,7 +117,7 @@ const UploadPage = () => {
 
             setUploadedKey(result.key);
             setUploadSuccess(true);
-            setShowSuccessModal(true); // DAN DID IT - Show success modal instead of just success message
+            // Toast notification disabled - main success card is enough
             setFile(null);
             setTermsAccepted(false);
             setMetadata({
@@ -345,51 +345,45 @@ const UploadPage = () => {
                 </div>
             )}
 
-            {/* DAN DID IT - Upload Success Modal with Email Notification */}
+            {/* Toast Notification - Email Confirmation */}
             {showSuccessModal && (
-                <div className="auth-backdrop">
-                    <div className="auth-modal" dir={isRTL ? 'rtl' : 'ltr'} style={{ textAlign: 'center', maxWidth: '420px' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                                <circle cx="30" cy="30" r="28" stroke="#10B981" strokeWidth="3" fill="rgba(16, 185, 129, 0.1)" />
-                                <path d="M20 30L26 36L40 22" stroke="#10B981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-
-                        <h2 style={{
-                            fontSize: 'var(--font-size-2xl)',
-                            fontWeight: 'var(--font-weight-bold)',
-                            color: 'var(--text-primary)',
-                            marginBottom: '1rem'
-                        }}>
-                            {t('upload.uploadSuccessTitle')}
-                        </h2>
-
-                        <p style={{
-                            fontSize: 'var(--font-size-md)',
+                <div className="toast-notification" style={{
+                    position: 'fixed',
+                    top: '100px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 1000,
+                    background: 'var(--card-bg)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px 24px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    animation: 'slideDown 0.3s ease-out'
+                }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#10B981" strokeWidth="2" fill="rgba(16, 185, 129, 0.1)" />
+                        <path d="M8 12L10.5 14.5L16 9" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>
+                        {isRTL ? '📧 תוצאות הניתוח ישלחו לאימייל שלך' : '📧 Analysis results will be sent to your email'}
+                    </span>
+                    <button
+                        onClick={() => setShowSuccessModal(false)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
                             color: 'var(--text-secondary)',
-                            lineHeight: '1.6',
-                            marginBottom: '1.5rem'
-                        }}>
-                            {t('upload.uploadSuccessMessage')}
-                        </p>
-
-                        <Button
-                            variant="primary"
-                            fullWidth
-                            onClick={() => {
-                                setShowSuccessModal(false);
-                                navigate('/contracts');
-                            }}
-                        >
-                            {t('upload.goToContracts')}
-                        </Button>
-                    </div>
+                            cursor: 'pointer',
+                            padding: '4px',
+                            marginLeft: isRTL ? '0' : '8px',
+                            marginRight: isRTL ? '8px' : '0'
+                        }}
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
         </div>
