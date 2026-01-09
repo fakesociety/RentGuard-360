@@ -29,13 +29,14 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = 'rentguard-contracts-moty-101225'
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')

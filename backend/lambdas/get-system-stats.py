@@ -27,6 +27,7 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 import traceback
 from datetime import datetime, timedelta
@@ -38,7 +39,9 @@ from collections import defaultdict
 # =============================================================================
 
 # Cognito User Pool ID
-USER_POOL_ID = 'us-east-1_rwsncOnh1'
+USER_POOL_ID = os.environ.get('USER_POOL_ID')
+if not USER_POOL_ID:
+    raise RuntimeError('USER_POOL_ID environment variable is not set')
 
 dynamodb = boto3.resource('dynamodb')
 cognito = boto3.client('cognito-idp')

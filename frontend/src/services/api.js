@@ -166,9 +166,33 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
 
     console.log(`Got presigned URL for key: ${key}, userId: ${userId}`);
 
+    const cleanupContractRecord = async () => {
+        if (!contractId || !userId) return;
+        try {
+            const cleanupParams = new URLSearchParams({ contractId, userId });
+            await apiCall(`/contracts?${cleanupParams.toString()}`, { method: 'DELETE' });
+            console.warn('Cleaned up contract record after failed upload:', { contractId, userId });
+        } catch (e) {
+            console.warn('Failed to cleanup contract record after failed upload:', e);
+        }
+    };
+
     // Step 2: Upload directly to S3 with XMLHttpRequest for REAL progress
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        let settled = false;
+
+        const safeReject = (err) => {
+            if (settled) return;
+            settled = true;
+            reject(err);
+        };
+
+        const safeResolve = (val) => {
+            if (settled) return;
+            settled = true;
+            resolve(val);
+        };
 
         // Track upload progress (real percentage!)
         xhr.upload.onprogress = (event) => {
@@ -183,7 +207,7 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 if (onProgress) onProgress(100);
                 console.log('File uploaded successfully to S3');
-                resolve({
+                safeResolve({
                     key,
                     userId,
                     contractId,
@@ -192,12 +216,19 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
                     metadata,
                 });
             } else {
-                reject(new Error(`S3 Upload failed: ${xhr.status}`));
+                cleanupContractRecord()
+                    .finally(() => safeReject(new Error(`S3 Upload failed: ${xhr.status}`)));
             }
         };
 
         xhr.onerror = () => {
-            reject(new Error('Network error during upload'));
+            cleanupContractRecord()
+                .finally(() => safeReject(new Error('Network error during upload')));
+        };
+
+        xhr.onabort = () => {
+            cleanupContractRecord()
+                .finally(() => safeReject(new Error('Upload was aborted')));
         };
 
         xhr.open('PUT', uploadUrl, true);
@@ -217,11 +248,73 @@ export const getContracts = async (userId) => {
         // Add timestamp to prevent caching
         const cacheBuster = Date.now();
         const data = await apiCall(`/contracts?userId=${encodeURIComponent(userId)}&_t=${cacheBuster}`);
+
+        const normalizeStatus = (status) => {
+            const s = String(status ?? '').trim().toLowerCase();
+            if (!s) return '';
+            if (s === 'analyzed' || s === 'completed' || s === 'complete') return 'analyzed';
+            if (s === 'failed' || s === 'error') return 'failed';
+            if (s.includes('fail') || s.includes('error')) return 'failed';
+            if (s.includes('analy') || s.includes('complete')) return 'analyzed';
+            if (s.includes('process') || s.includes('pend') || s.includes('upload')) return 'processing';
+            return s;
+        };
+
+        const normalizeContract = (contract) => {
+            if (!contract || typeof contract !== 'object') return contract;
+
+            const uploadDate =
+                contract.uploadDate ||
+                contract.uploadedAt ||
+                contract.uploaded_at ||
+                contract.createdAt ||
+                contract.created_at ||
+                contract.timestamp;
+
+            const analyzedDate =
+                contract.analyzedDate ||
+                contract.analyzedAt ||
+                contract.analyzed_at ||
+                contract.analysisDate;
+
+            const contractId =
+                contract.contractId ||
+                contract.contract_id ||
+                contract.id ||
+                contract.key;
+
+            const fileName =
+                contract.fileName ||
+                contract.originalFileName ||
+                contract.original_file_name ||
+                contract.filename;
+
+            const status = normalizeStatus(
+                contract.status ??
+                contract.analysisStatus ??
+                contract.analysis_status
+            );
+
+            const riskScore =
+                contract.riskScore ??
+                contract.risk_score ??
+                contract.score ??
+                contract.risk;
+
+            return {
+                ...contract,
+                contractId,
+                fileName,
+                status,
+                uploadDate,
+                analyzedDate,
+                riskScore,
+            };
+        };
+
         // Handle different response formats
-        if (Array.isArray(data)) return data;
-        if (data.items) return data.items;
-        if (data.contracts) return data.contracts;
-        return [];
+        const items = Array.isArray(data) ? data : (data?.items || data?.contracts || []);
+        return Array.isArray(items) ? items.map(normalizeContract) : [];
     } catch (error) {
         console.error('getContracts error:', error);
         // Return empty array on error so UI shows "No contracts"

@@ -24,6 +24,7 @@ Notes:
 # =============================================================================
 
 import json
+import os
 import boto3
 
 # =============================================================================
@@ -31,13 +32,17 @@ import boto3
 # =============================================================================
 
 # SES verified sender email
-SENDER_EMAIL = "powe3k@gmail.com"
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
+if not SENDER_EMAIL:
+    raise RuntimeError('SENDER_EMAIL environment variable is not set')
 
 # Cognito User Pool ID
-USER_POOL_ID = "us-east-1_rwsncOnh1"
+USER_POOL_ID = os.environ.get('USER_POOL_ID')
+if not USER_POOL_ID:
+    raise RuntimeError('USER_POOL_ID environment variable is not set')
 
-ses = boto3.client('ses', region_name='us-east-1')
-cognito = boto3.client('cognito-idp', region_name='us-east-1')
+ses = boto3.client('ses')
+cognito = boto3.client('cognito-idp')
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -97,6 +102,16 @@ def build_notification_email(risk_score):
     </div>
     """
 
+
+def build_notification_text(risk_score):
+    """Build plain-text fallback (helps deliverability and non-HTML clients)."""
+    return (
+        "הניתוח הסתיים בהצלחה!\n"
+        f"ציון הסיכון המשוקלל: {risk_score}/100\n\n"
+        "היכנס לאתר כדי לראות את הפירוט המלא.\n"
+        "הודעה זו נשלחה אוטומטית.\n"
+    )
+
 # =============================================================================
 # MAIN HANDLER
 # =============================================================================
@@ -141,7 +156,10 @@ def lambda_handler(event, context):
             Destination={'ToAddresses': [recipient_email]},
             Message={
                 'Subject': {'Data': subject, 'Charset': 'UTF-8'},
-                'Body': {'Html': {'Data': body_html, 'Charset': 'UTF-8'}}
+                'Body': {
+                    'Html': {'Data': body_html, 'Charset': 'UTF-8'},
+                    'Text': {'Data': build_notification_text(risk_score), 'Charset': 'UTF-8'},
+                }
             }
         )
         

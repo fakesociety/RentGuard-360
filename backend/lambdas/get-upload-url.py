@@ -29,19 +29,25 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 import uuid
 from urllib.parse import quote
 from datetime import datetime
 
+from botocore.config import Config
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = 'rentguard-contracts-moty-101225'
+# NOTE: Prefer environment-provided bucket (set by CloudFormation).
+# Keep a fallback for local/dev runs.
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
 PRESIGNED_URL_EXPIRY = 300  # 5 minutes
 
-s3 = boto3.client('s3')
+# Force SigV4 for browser-compatible presigned URLs.
+s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
 dynamodb = boto3.resource('dynamodb')
 contracts_table = dynamodb.Table('RentGuard-Contracts')
 consent_table = dynamodb.Table('RentGuard-UserConsent')
@@ -131,15 +137,16 @@ def lambda_handler(event, context):
                 # Continue anyway - consent recording failure shouldn't block upload
                 print(f"Warning: Could not record consent: {e}")
 
-        # 7. Create initial contract record with status='uploaded' for auto-polling
-        # Will be updated to 'analyzed' after analysis completes (by save-results.py)
+        # 7. Create initial contract record for auto-polling.
+        # IMPORTANT: This record is created BEFORE the actual S3 PUT happens.
+        # The frontend will delete it if the browser upload fails.
         try:
             contract_item = {
                 'userId': user_id,
                 'contractId': contract_id,
                 'fileName': original_file_name,
                 'uploadDate': datetime.utcnow().isoformat(),
-                'status': 'uploaded',
+                'status': 'uploading',
                 's3Key': file_key,
                 'termsAccepted': terms_accepted,
                 'termsAcceptedAt': datetime.utcnow().isoformat() if terms_accepted else None

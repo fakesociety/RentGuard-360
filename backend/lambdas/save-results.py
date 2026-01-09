@@ -24,6 +24,7 @@ S3:
 # =============================================================================
 
 import json
+import os
 import boto3
 from datetime import datetime
 from decimal import Decimal
@@ -33,7 +34,7 @@ from urllib.parse import unquote
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = 'rentguard-contracts-moty-101225'
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
 
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')

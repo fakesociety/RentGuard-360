@@ -22,6 +22,7 @@ External Services:
 # =============================================================================
 
 import json
+import os
 import boto3
 import uuid
 import time
@@ -32,15 +33,20 @@ from botocore.exceptions import ClientError
 # CONFIGURATION
 # =============================================================================
 
-TABLE_NAME = 'SupportTickets'
-SENDER_EMAIL = "rentguard360@gmail.com"
-SUPPORT_TEAM_EMAIL = "rentguard360@gmail.com"
+TABLE_NAME = os.environ.get('SUPPORT_TICKETS_TABLE', 'SupportTickets')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
+SUPPORT_TEAM_EMAIL = os.environ.get('SUPPORT_TEAM_EMAIL') or SENDER_EMAIL
+
+if not SENDER_EMAIL:
+    raise RuntimeError('SENDER_EMAIL environment variable is not set')
+if not SUPPORT_TEAM_EMAIL:
+    raise RuntimeError('SUPPORT_TEAM_EMAIL environment variable is not set')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-ses_client = boto3.client('ses', region_name='us-east-1')
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+ses_client = boto3.client('ses')
+dynamodb = boto3.resource('dynamodb')
 
 # Standard CORS headers
 CORS_HEADERS = {

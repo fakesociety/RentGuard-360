@@ -24,6 +24,7 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 import traceback
 
@@ -31,8 +32,13 @@ import traceback
 # CONFIGURATION
 # =============================================================================
 
-USER_POOL_ID = 'us-east-1_rwsncOnh1'
-SENDER_EMAIL = 'noreply@rentguard360.com'
+USER_POOL_ID = os.environ.get('USER_POOL_ID')
+if not USER_POOL_ID:
+    raise RuntimeError('USER_POOL_ID environment variable is not set')
+
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
+if not SENDER_EMAIL:
+    raise RuntimeError('SENDER_EMAIL environment variable is not set')
 
 cognito = boto3.client('cognito-idp')
 ses = boto3.client('ses')

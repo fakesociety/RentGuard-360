@@ -24,13 +24,15 @@ Notes:
 # =============================================================================
 
 import json
+import os
 import boto3
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-ses = boto3.client('ses', region_name='us-east-1')
+_ses_region = os.environ.get('SES_REGION')
+ses = boto3.client('ses', region_name=_ses_region) if _ses_region else boto3.client('ses')
 
 # =============================================================================
 # MAIN HANDLER

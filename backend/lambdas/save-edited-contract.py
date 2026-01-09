@@ -23,6 +23,7 @@ S3:
 # =============================================================================
 
 import json
+import os
 import boto3
 from datetime import datetime
 
@@ -30,7 +31,7 @@ from datetime import datetime
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = 'rentguard-contracts-moty-101225'
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
 TABLE_NAME = 'RentGuard-Contracts'
 
 s3 = boto3.client('s3')
