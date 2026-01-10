@@ -4,7 +4,7 @@
     "version" : "2026-01-01T20:55:04Z",
     "title" : "RentGuardAPI"
   },
-  "host" : "qd8fvg2zm2.execute-api.us-east-1.amazonaws.com",
+  "host" : "<api-id>.execute-api.<region>.amazonaws.com",
   "basePath" : "/prod",
   "schemes" : [ "https" ],
   "paths" : {
@@ -23,7 +23,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:get-system-stats/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:get-system-stats/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -93,7 +93,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:list-users/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:list-users/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -168,7 +168,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:delete-user/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:delete-user/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -241,7 +241,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:disable-user/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:disable-user/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -311,7 +311,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:enable-user/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:enable-user/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -381,7 +381,7 @@
           "RentGuardCognito" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:get-analysis-result/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:get-analysis-result/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -448,7 +448,7 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:ConsultClause/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:ConsultClause/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -515,7 +515,7 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:CreateSupportTicket/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:CreateSupportTicket/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -585,7 +585,7 @@
           "RentGuardCognito" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:get-user-contracts/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:get-user-contracts/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -615,7 +615,7 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:delete-contract/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:delete-contract/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -687,7 +687,7 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:rename-contract/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:rename-contract/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -765,7 +765,7 @@
           "CognitoAuth" : [ ]
         } ],
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:save-edited-contract/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:save-edited-contract/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -844,7 +844,7 @@
         } ],
         "x-amazon-apigateway-request-validator" : "Validate query string parameters and headers",
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:459347924875:function:get-upload-url/invocations",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<account-id>:function:get-upload-url/invocations",
           "httpMethod" : "POST",
           "responses" : {
             "default" : {
@@ -907,7 +907,7 @@
       "in" : "header",
       "x-amazon-apigateway-authtype" : "cognito_user_pools",
       "x-amazon-apigateway-authorizer" : {
-        "providerARNs" : [ "arn:aws:cognito-idp:us-east-1:459347924875:userpool/us-east-1_rwsncOnh1" ],
+        "providerARNs" : [ "arn:aws:cognito-idp:us-east-1:<account-id>:userpool/<user-pool-id>" ],
         "type" : "cognito_user_pools"
       }
     },
@@ -917,7 +917,7 @@
       "in" : "header",
       "x-amazon-apigateway-authtype" : "cognito_user_pools",
       "x-amazon-apigateway-authorizer" : {
-        "providerARNs" : [ "arn:aws:cognito-idp:us-east-1:459347924875:userpool/us-east-1_rwsncOnh1" ],
+        "providerARNs" : [ "arn:aws:cognito-idp:us-east-1:<account-id>:userpool/<user-pool-id>" ],
         "type" : "cognito_user_pools"
       }
     }

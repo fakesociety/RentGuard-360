@@ -14,7 +14,7 @@ DynamoDB Tables:
   - RentGuard-UserConsent: Records user consent for contract upload
 
 S3:
-  - Bucket: rentguard-contracts-moty-101225
+    - Bucket: (from CONTRACTS_BUCKET environment variable)
   - Operations: Generate presigned PUT URL
 
 Security:

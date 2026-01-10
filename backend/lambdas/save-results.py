@@ -13,7 +13,7 @@ DynamoDB Tables:
   - RentGuard-Contracts: Updates status from 'uploaded' to 'analyzed'
 
 S3:
-  - Bucket: rentguard-contracts-moty-101225
+    - Bucket: (from CONTRACTS_BUCKET environment variable, or Step Functions event.bucket)
   - Operations: Read metadata (original filename, address, landlord)
 
 =============================================================================

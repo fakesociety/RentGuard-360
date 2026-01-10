@@ -13,7 +13,7 @@ DynamoDB Tables:
   - RentGuard-Analysis: Delete by contractId
 
 S3:
-  - Bucket: rentguard-contracts-moty-101225
+    - Bucket: (from CONTRACTS_BUCKET environment variable)
   - Operations: Delete contract PDF
 
 Security:

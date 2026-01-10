@@ -5,7 +5,7 @@ event pattern
   "detail-type": ["Object Created"],
   "detail": {
     "bucket": {
-      "name": ["rentguard-contracts-moty-101225"]
+      "name": ["<contracts-bucket-name>"]
     },
     "object": {
       "key": [{
@@ -28,8 +28,8 @@ Input template
 
 DynamoDB Tables: RentGuard-Contracts, RentGuard-Analysis
 
-Cognito User Pool ID: ...
+Cognito User Pool ID: <user-pool-id>
 
-identity pool id:us-east-1:6e95f8a5-a583-45f6-8bf6-5c818261af21 
+identity pool id: <identity-pool-id>
 
 שכבות (Layers): ציין ש-pdf-processor משתמש ב-PyPDF2 Layer.

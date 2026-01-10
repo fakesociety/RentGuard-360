@@ -12,7 +12,7 @@ DynamoDB Tables:
   - RentGuard-Contracts: Update with edit metadata (lastEditedAt, editedVersion)
 
 S3:
-  - Bucket: rentguard-contracts-moty-101225
+    - Bucket: (from CONTRACTS_BUCKET environment variable)
   - Operations: Write edited contract as .txt file
 
 =============================================================================

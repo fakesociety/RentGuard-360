@@ -4,7 +4,7 @@
   "States": {
     "ExtractPDFText": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:RentGuard_AzureOCR:$LATEST",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:RentGuard_AzureOCR:$LATEST",
       "Next": "SanitizeText",
       "Catch": [
         {
@@ -17,7 +17,7 @@
     },
     "SanitizeText": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:privacy-shield:$LATEST",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:privacy-shield:$LATEST",
       "Next": "AnalyzeContract",
       "Catch": [
         {
@@ -30,7 +30,7 @@
     },
     "AnalyzeContract": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:ai-analyzer:$LATEST",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:ai-analyzer:$LATEST",
       "Next": "SaveResults",
       "Catch": [
         {
@@ -43,7 +43,7 @@
     },
     "SaveResults": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:save-results",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:save-results",
       "Next": "NotifyUser",
       "Catch": [
         {
@@ -56,7 +56,7 @@
     },
     "NotifyUser": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:NotifyUser",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:NotifyUser",
       "End": true,
       "Catch": [
         {
@@ -69,7 +69,7 @@
     },
     "HandleError": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:459347924875:function:error-handler",
+      "Resource": "arn:aws:lambda:<region>:<account-id>:function:error-handler",
       "End": true
     }
   }

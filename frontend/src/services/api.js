@@ -40,12 +40,13 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 // CONFIGURATION
 // ============================================
 
-// API Gateway base URL - fallback to production if env var not set
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || 'https://qd8fvg2zm2.execute-api.us-east-1.amazonaws.com/prod';
+// API Gateway base URL
+// IMPORTANT: Do not fall back to a hardcoded URL. It can accidentally point to an old AWS account/stack
+// and cause 500s like "User pool ... does not exist".
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
 
-// Validate API URL on load
-if (!import.meta.env.VITE_API_ENDPOINT) {
-    console.warn('⚠️ VITE_API_ENDPOINT not set, using fallback:', API_BASE_URL);
+if (!API_BASE_URL) {
+    throw new Error('Missing VITE_API_ENDPOINT. Set it from the CloudFormation stack Output ApiUrl.');
 }
 
 // ============================================
