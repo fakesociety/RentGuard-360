@@ -31,8 +31,8 @@ from datetime import datetime
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
-TABLE_NAME = 'RentGuard-Contracts'
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET')
+TABLE_NAME = os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts')
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -65,17 +65,39 @@ def lambda_handler(event, context):
         dict: API Gateway response with S3 key of saved file
     """
     print(f"FULL EVENT: {json.dumps(event, default=str)}")
+
+    if not BUCKET_NAME:
+        return {
+            'statusCode': 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'error': 'CONTRACTS_BUCKET environment variable is not set'})
+        }
     
     # Handle OPTIONS preflight
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
     
     try:
-        # 1. Parse request data (Lambda Integration, not Proxy)
-        contract_id = event.get('contractId', '')
-        user_id = event.get('userId', '')
-        edited_clauses = event.get('editedClauses', {})
-        full_edited_text = event.get('fullEditedText', '')
+        # 1. Parse request data (supports API Gateway proxy and non-proxy)
+        payload = event
+        if isinstance(event, dict) and event.get('body'):
+            try:
+                payload = json.loads(event.get('body') or '{}')
+            except Exception as e:
+                return {
+                    'statusCode': 400,
+                    'headers': CORS_HEADERS,
+                    'body': json.dumps({'error': f'Invalid JSON body: {str(e)}'})
+                }
+
+        contract_id = (payload.get('contractId') or '').strip()
+
+        # Prefer Cognito claim over client-provided userId
+        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}) if isinstance(event, dict) else {}
+        user_id = (claims.get('sub') or payload.get('userId') or '').strip()
+
+        edited_clauses = payload.get('editedClauses', {})
+        full_edited_text = payload.get('fullEditedText', '')
         
         print(f"DATA: contractId={contract_id}, userId={user_id}")
         

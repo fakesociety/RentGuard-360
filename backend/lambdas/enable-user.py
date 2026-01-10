@@ -31,10 +31,6 @@ import traceback
 # CONFIGURATION
 # =============================================================================
 
-USER_POOL_ID = os.environ.get('USER_POOL_ID')
-if not USER_POOL_ID:
-    raise RuntimeError('USER_POOL_ID environment variable is not set')
-
 cognito = boto3.client('cognito-idp')
 
 # =============================================================================
@@ -66,6 +62,22 @@ def lambda_handler(event, context):
         dict: API Gateway response with success/failure message
     """
     try:
+        # Handle CORS preflight
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': cors_headers(),
+                'body': ''
+            }
+
+        user_pool_id = os.environ.get('USER_POOL_ID')
+        if not user_pool_id:
+            return {
+                'statusCode': 500,
+                'headers': cors_headers(),
+                'body': json.dumps({'error': 'USER_POOL_ID environment variable is not set'})
+            }
+
         # 1. Verify admin group membership
         claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
         groups = claims.get('cognito:groups', '')
@@ -91,7 +103,7 @@ def lambda_handler(event, context):
         # 3. Enable the user in Cognito
         try:
             cognito.admin_enable_user(
-                UserPoolId=USER_POOL_ID,
+                UserPoolId=user_pool_id,
                 Username=username
             )
         except cognito.exceptions.UserNotFoundException:

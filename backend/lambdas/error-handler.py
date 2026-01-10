@@ -24,6 +24,7 @@ Notes:
 # =============================================================================
 
 import json
+import os
 import boto3
 import datetime
 import re
@@ -33,8 +34,8 @@ import re
 # =============================================================================
 
 dynamodb = boto3.resource('dynamodb')
-analysis_table = dynamodb.Table('RentGuard-Analysis')
-contracts_table = dynamodb.Table('RentGuard-Contracts')
+analysis_table = dynamodb.Table(os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis'))
+contracts_table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
 
 # =============================================================================
 # HELPER FUNCTIONS

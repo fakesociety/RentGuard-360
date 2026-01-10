@@ -18,7 +18,7 @@ Security:
 WARNING: This action is PERMANENT and cannot be undone!
 
 Environment Variables:
-  - USER_POOL_ID: Cognito User Pool ID (optional, has default)
+    - USER_POOL_ID: Cognito User Pool ID (required)
 
 =============================================================================
 """
@@ -35,9 +35,6 @@ import traceback
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-
-USER_POOL_ID = os.environ.get('USER_POOL_ID', 'us-east-1_rwsncOnh1')
-
 cognito = boto3.client('cognito-idp')
 
 # Standard CORS headers for API Gateway responses
@@ -45,6 +42,7 @@ CORS_HEADERS = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'DELETE,OPTIONS',
 }
 
 # =============================================================================
@@ -62,6 +60,21 @@ def lambda_handler(event, context):
     Returns:
         dict: API Gateway response with success/failure message
     """
+    # Handle CORS preflight
+    if event.get('httpMethod') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': ''
+        }
+
+    user_pool_id = os.environ.get('USER_POOL_ID')
+    if not user_pool_id:
+        return {
+            'statusCode': 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'error': 'USER_POOL_ID environment variable is not set'})
+        }
     # 1. Verify admin group membership
     claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
     groups = claims.get('cognito:groups', '')
@@ -111,10 +124,10 @@ def lambda_handler(event, context):
         
         # 4. Delete user from Cognito
         print(f"Attempting to delete user: {username}")
-        print(f"Using USER_POOL_ID: {USER_POOL_ID}")
+        print(f"Using USER_POOL_ID: {user_pool_id}")
         
         cognito.admin_delete_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=user_pool_id,
             Username=username
         )
         

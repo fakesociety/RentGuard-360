@@ -31,16 +31,6 @@ import boto3
 # CONFIGURATION
 # =============================================================================
 
-# SES verified sender email
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
-if not SENDER_EMAIL:
-    raise RuntimeError('SENDER_EMAIL environment variable is not set')
-
-# Cognito User Pool ID
-USER_POOL_ID = os.environ.get('USER_POOL_ID')
-if not USER_POOL_ID:
-    raise RuntimeError('USER_POOL_ID environment variable is not set')
-
 ses = boto3.client('ses')
 cognito = boto3.client('cognito-idp')
 
@@ -48,7 +38,7 @@ cognito = boto3.client('cognito-idp')
 # HELPER FUNCTIONS
 # =============================================================================
 
-def get_user_email(user_id):
+def get_user_email(user_pool_id, user_id):
     """
     Fetch user's email from Cognito by User ID.
     
@@ -59,16 +49,33 @@ def get_user_email(user_id):
         str: User's email or None if not found
     """
     try:
-        response = cognito.admin_get_user(
-            UserPoolId=USER_POOL_ID,
-            Username=user_id
-        )
-        for attr in response['UserAttributes']:
-            if attr['Name'] == 'email':
-                return attr['Value']
+        # First try: treat user_id as Cognito Username (works when Username == sub)
+        response = cognito.admin_get_user(UserPoolId=user_pool_id, Username=user_id)
+        for attr in response.get('UserAttributes', []):
+            if attr.get('Name') == 'email':
+                return attr.get('Value')
     except Exception as e:
-        print(f"Warning: Could not find email for user {user_id}: {e}")
+        print(f"Warning: admin_get_user failed for '{user_id}' (may not be Username): {e}")
+
+    # Fallback: lookup by sub attribute (works when Username is email/phone/etc.)
+    try:
+        resp = cognito.list_users(
+            UserPoolId=user_pool_id,
+            Filter=f'sub = "{user_id}"',
+            Limit=1,
+        )
+        users = resp.get('Users') or []
+        if not users:
+            return None
+        attrs = users[0].get('Attributes', [])
+        for attr in attrs:
+            if attr.get('Name') == 'email':
+                return attr.get('Value')
+    except Exception as e:
+        print(f"Warning: list_users fallback failed for sub '{user_id}': {e}")
         return None
+
+    return None
 
 
 def build_notification_email(risk_score):
@@ -128,7 +135,29 @@ def lambda_handler(event, context):
         dict: Status of email send operation
     """
     try:
+        # Handle CORS preflight (defensive; Step Functions won't send OPTIONS)
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+                },
+                'body': ''
+            }
+
         print("Starting NotifyUser...", json.dumps(event))
+
+        sender_email = os.environ.get('SENDER_EMAIL')
+        if not sender_email:
+            print("Skipping email: SENDER_EMAIL environment variable is not set.")
+            return {'status': 'skipped', 'reason': 'missing_sender_email'}
+
+        user_pool_id = os.environ.get('USER_POOL_ID')
+        if not user_pool_id:
+            print("Skipping email: USER_POOL_ID environment variable is not set.")
+            return {'status': 'skipped', 'reason': 'missing_user_pool_id'}
         
         # 1. Get data from previous step (SaveResults)
         user_id = event.get('userId')
@@ -141,7 +170,7 @@ def lambda_handler(event, context):
             return {'status': 'skipped', 'reason': 'guest_user'}
 
         # 3. Get recipient email from Cognito
-        recipient_email = get_user_email(user_id)
+        recipient_email = get_user_email(user_pool_id, user_id)
         
         if not recipient_email:
             print("Skipping email: Could not find email address in Cognito.")
@@ -152,7 +181,7 @@ def lambda_handler(event, context):
         body_html = build_notification_email(risk_score)
 
         ses.send_email(
-            Source=SENDER_EMAIL,
+            Source=sender_email,
             Destination={'ToAddresses': [recipient_email]},
             Message={
                 'Subject': {'Data': subject, 'Charset': 'UTF-8'},

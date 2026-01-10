@@ -23,6 +23,7 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
@@ -31,8 +32,8 @@ from boto3.dynamodb.conditions import Key
 # CONFIGURATION
 # =============================================================================
 
-TABLE_NAME = 'RentGuard-Contracts'
-ANALYSIS_TABLE_NAME = 'RentGuard-Analysis'
+TABLE_NAME = os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts')
+ANALYSIS_TABLE_NAME = os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis')
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)

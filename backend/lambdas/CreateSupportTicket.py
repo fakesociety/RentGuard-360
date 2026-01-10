@@ -34,13 +34,6 @@ from botocore.exceptions import ClientError
 # =============================================================================
 
 TABLE_NAME = os.environ.get('SUPPORT_TICKETS_TABLE', 'SupportTickets')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
-SUPPORT_TEAM_EMAIL = os.environ.get('SUPPORT_TEAM_EMAIL') or SENDER_EMAIL
-
-if not SENDER_EMAIL:
-    raise RuntimeError('SENDER_EMAIL environment variable is not set')
-if not SUPPORT_TEAM_EMAIL:
-    raise RuntimeError('SUPPORT_TEAM_EMAIL environment variable is not set')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -155,6 +148,9 @@ def lambda_handler(event, context):
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
     try:
+        sender_email = os.environ.get('SENDER_EMAIL')
+        support_team_email = os.environ.get('SUPPORT_TEAM_EMAIL') or sender_email
+
         # 1. Parse request body
         body = json.loads(event.get('body', '{}'))
         user_email = body.get('user_email')
@@ -188,30 +184,36 @@ def lambda_handler(event, context):
         }
         table.put_item(Item=item)
 
-        # 4. Send email to support team
-        admin_email_body = build_admin_email(ticket_id, user_email, category, message_content)
-        ses_client.send_email(
-            Source=SENDER_EMAIL,
-            Destination={'ToAddresses': [SUPPORT_TEAM_EMAIL]},
-            Message={
-                'Subject': {'Data': f"🛡️ פנייה חדשה: {category} (מס' {ticket_id[:8]})", 'Charset': 'UTF-8'},
-                'Body': {'Html': {'Data': admin_email_body, 'Charset': 'UTF-8'}}
-            },
-            ReplyToAddresses=[user_email]
-        )
-
-        # 5. Send confirmation to user
-        try:
-            user_email_body = build_user_confirmation_email(ticket_id, category, message_content)
+        # 4. Send email to support team (best-effort; don't fail ticket creation)
+        if sender_email and support_team_email:
+            admin_email_body = build_admin_email(ticket_id, user_email, category, message_content)
             ses_client.send_email(
-                Source=SENDER_EMAIL,
-                Destination={'ToAddresses': [user_email]},
+                Source=sender_email,
+                Destination={'ToAddresses': [support_team_email]},
                 Message={
-                    'Subject': {'Data': f"✅ קיבלנו את הפנייה שלך (מס' {ticket_id[:8]})", 'Charset': 'UTF-8'},
-                    'Body': {'Html': {'Data': user_email_body, 'Charset': 'UTF-8'}}
-                }
+                    'Subject': {'Data': f"🛡️ פנייה חדשה: {category} (מס' {ticket_id[:8]})", 'Charset': 'UTF-8'},
+                    'Body': {'Html': {'Data': admin_email_body, 'Charset': 'UTF-8'}}
+                },
+                ReplyToAddresses=[user_email]
             )
-            logger.info(f"Confirmation email sent to {user_email}")
+        else:
+            logger.warning('Skipping support-team email: SENDER_EMAIL / SUPPORT_TEAM_EMAIL environment variables are not set')
+
+        # 5. Send confirmation to user (best-effort; don't fail ticket creation)
+        try:
+            if sender_email:
+                user_email_body = build_user_confirmation_email(ticket_id, category, message_content)
+                ses_client.send_email(
+                    Source=sender_email,
+                    Destination={'ToAddresses': [user_email]},
+                    Message={
+                        'Subject': {'Data': f"✅ קיבלנו את הפנייה שלך (מס' {ticket_id[:8]})", 'Charset': 'UTF-8'},
+                        'Body': {'Html': {'Data': user_email_body, 'Charset': 'UTF-8'}}
+                    }
+                )
+                logger.info(f"Confirmation email sent to {user_email}")
+            else:
+                logger.warning('Skipping user confirmation email: SENDER_EMAIL environment variable is not set')
         except ClientError as e:
             # Don't fail if user email fails (sandbox mode)
             logger.warning(f"Could not send confirmation to user: {e}")

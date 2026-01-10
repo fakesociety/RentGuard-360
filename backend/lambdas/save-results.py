@@ -34,12 +34,12 @@ from urllib.parse import unquote
 # CONFIGURATION
 # =============================================================================
 
-BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET')
 
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
-analysis_table = dynamodb.Table('RentGuard-Analysis')
-contracts_table = dynamodb.Table('RentGuard-Contracts')
+analysis_table = dynamodb.Table(os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis'))
+contracts_table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -150,7 +150,7 @@ def lambda_handler(event, context):
         passed_contract_id = event.get('contractId') or event.get('contract_id')
         analysis_result = event.get('analysis_result')
         s3_key = event.get('key')
-        s3_bucket = event.get('bucket', BUCKET_NAME)
+        s3_bucket = event.get('bucket') or BUCKET_NAME
         clauses_list = event.get('clauses', [])
         full_text = event.get('sanitizedText', '')
         
@@ -177,9 +177,11 @@ def lambda_handler(event, context):
         
         # 4. Fetch S3 metadata
         s3_metadata = {}
-        if s3_key:
+        if s3_key and s3_bucket:
             s3_metadata = get_s3_metadata(s3_bucket, s3_key)
             print(f"S3 Metadata: {s3_metadata}")
+        elif s3_key and not s3_bucket:
+            print('Warning: No S3 bucket provided (event.bucket or CONTRACTS_BUCKET); skipping S3 metadata fetch.')
         
         if not analysis_result:
             print(f"Warning: No analysis result found for {contract_id}")

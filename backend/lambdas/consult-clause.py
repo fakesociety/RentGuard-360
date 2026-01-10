@@ -27,6 +27,7 @@ DynamoDB Tables:
 # =============================================================================
 
 import json
+import os
 import boto3
 import traceback
 
@@ -37,12 +38,15 @@ import traceback
 # Model Selection:
 # - Testing: Haiku 4.5 (cheaper, for verification tests)
 # - Production: Opus 4 (for demo to lecturer)
-MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # Change to opus-4 for production
+DEFAULT_MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # Change to opus-4 for production
 # MODEL_ID = "us.anthropic.claude-opus-4-20250514-v1:0"  # Uncomment for production demo
 
-bedrock = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
+MODEL_ID = os.environ.get('BEDROCK_MODEL_ID') or DEFAULT_MODEL_ID
+
+BEDROCK_REGION = os.environ.get('BEDROCK_REGION') or 'us-east-1'
+bedrock = boto3.client(service_name='bedrock-runtime', region_name=BEDROCK_REGION)
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('RentGuard-Contracts')
+table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
 
 # Standard CORS headers for API Gateway responses
 CORS_HEADERS = {
@@ -71,6 +75,14 @@ def lambda_handler(event, context):
         dict: API Gateway response with AI explanation
     """
     try:
+        # Handle CORS preflight
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': CORS_HEADERS,
+                'body': ''
+            }
+
         # 1. Parse request body
         body = json.loads(event.get('body', '{}'))
         contract_id = body.get('contractId')
@@ -101,7 +113,8 @@ Focus only on the practical meaning."""
             }]
         }
 
-        # 4. Call Bedrock (Claude Haiku 4.5)
+        # 4. Call Bedrock
+        print(f"Calling Bedrock modelId={MODEL_ID} region={BEDROCK_REGION}")
         response = bedrock.converse(
             modelId=MODEL_ID,
             system=[{"text": system_prompt}],

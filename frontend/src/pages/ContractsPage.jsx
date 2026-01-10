@@ -13,7 +13,7 @@
  * - Export to Word/PDF
  * - Sort by date or score
  * - Pagination (20 per page)
- * - Timeout detection (7 min)
+ * - Timeout detection (default 3 min)
  * 
  * DEPENDENCIES:
  * - api.js: getContracts, deleteContract, getAnalysis, updateContract
@@ -34,10 +34,16 @@ import RiskGauge from '../components/RiskGauge';
 import { Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check, ChevronDown, ArrowUpDown, Calendar, AlertTriangle } from 'lucide-react';
 import './ContractsPage.css';
 
-// Timeout constant - 7 minutes in milliseconds
-const ANALYSIS_TIMEOUT_MS = 7 * 60 * 1000;
+// Timeout constant (ms) for when a pending analysis is treated as "timed out".
+// Configurable via VITE_ANALYSIS_TIMEOUT_MS; defaults to 3 minutes.
+const DEFAULT_ANALYSIS_TIMEOUT_MS = 3 * 60 * 1000;
+const ANALYSIS_TIMEOUT_MS = (() => {
+    const raw = import.meta.env.VITE_ANALYSIS_TIMEOUT_MS;
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ANALYSIS_TIMEOUT_MS;
+})();
 
-// Check if a contract has timed out (pending for more than 7 minutes)
+// Check if a contract has timed out (pending for longer than ANALYSIS_TIMEOUT_MS)
 const isContractTimedOut = (contract) => {
     const status = (contract.status || '').toLowerCase();
     if (status === 'analyzed' || status === 'failed' || status === 'error') {
@@ -74,7 +80,7 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
         return t('contracts.highRisk');
     };
 
-    // Check for timeout - treat as failed if pending > 7 minutes
+    // Check for timeout - treat as failed if pending too long
     const isTimedOut = isContractTimedOut(contract);
 
     const isAnalyzed = status === 'analyzed';

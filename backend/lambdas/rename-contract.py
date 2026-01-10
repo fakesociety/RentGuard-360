@@ -23,6 +23,7 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 from decimal import Decimal
 
@@ -31,8 +32,8 @@ from decimal import Decimal
 # =============================================================================
 
 dynamodb = boto3.resource('dynamodb')
-contracts_table = dynamodb.Table('RentGuard-Contracts')
-analysis_table = dynamodb.Table('RentGuard-Analysis')
+contracts_table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
+analysis_table = dynamodb.Table(os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis'))
 
 # Standard CORS headers for API Gateway responses
 CORS_HEADERS = {

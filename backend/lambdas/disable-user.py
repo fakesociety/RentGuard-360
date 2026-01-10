@@ -32,14 +32,6 @@ import traceback
 # CONFIGURATION
 # =============================================================================
 
-USER_POOL_ID = os.environ.get('USER_POOL_ID')
-if not USER_POOL_ID:
-    raise RuntimeError('USER_POOL_ID environment variable is not set')
-
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
-if not SENDER_EMAIL:
-    raise RuntimeError('SENDER_EMAIL environment variable is not set')
-
 cognito = boto3.client('cognito-idp')
 ses = boto3.client('ses')
 
@@ -56,7 +48,7 @@ def cors_headers():
     }
 
 
-def send_disable_notification(email, reason):
+def send_disable_notification(sender_email, email, reason):
     """
     Sends notification email to user about account suspension.
     
@@ -68,8 +60,10 @@ def send_disable_notification(email, reason):
         bool: True if email sent successfully, False otherwise
     """
     try:
+        if not sender_email:
+            return False
         ses.send_email(
-            Source=SENDER_EMAIL,
+            Source=sender_email,
             Destination={'ToAddresses': [email]},
             Message={
                 'Subject': {
@@ -118,6 +112,24 @@ def lambda_handler(event, context):
         dict: API Gateway response with success/failure message
     """
     try:
+        # Handle CORS preflight
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': cors_headers(),
+                'body': ''
+            }
+
+        user_pool_id = os.environ.get('USER_POOL_ID')
+        if not user_pool_id:
+            return {
+                'statusCode': 500,
+                'headers': cors_headers(),
+                'body': json.dumps({'error': 'USER_POOL_ID environment variable is not set'})
+            }
+
+        sender_email = os.environ.get('SENDER_EMAIL')
+
         # 1. Verify admin group membership
         claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
         groups = claims.get('cognito:groups', '')
@@ -145,7 +157,7 @@ def lambda_handler(event, context):
         user_email = None
         try:
             user_response = cognito.admin_get_user(
-                UserPoolId=USER_POOL_ID,
+                UserPoolId=user_pool_id,
                 Username=username
             )
             for attr in user_response.get('UserAttributes', []):
@@ -161,14 +173,16 @@ def lambda_handler(event, context):
         
         # 4. Disable the user in Cognito
         cognito.admin_disable_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=user_pool_id,
             Username=username
         )
         
         # 5. Send notification email
         email_sent = False
-        if user_email:
-            email_sent = send_disable_notification(user_email, reason)
+        if user_email and sender_email:
+            email_sent = send_disable_notification(sender_email, user_email, reason)
+        elif user_email and not sender_email:
+            print('Skipping email notification: SENDER_EMAIL environment variable is not set')
         
         # 6. Return success response
         return {

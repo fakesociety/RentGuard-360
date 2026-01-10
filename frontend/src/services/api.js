@@ -233,8 +233,8 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
 
         xhr.open('PUT', uploadUrl, true);
         xhr.setRequestHeader('Content-Type', 'application/pdf');
-        // Note: Metadata is passed via query params to get-upload-url, 
-        // which stores it in S3 object metadata via presigned URL
+        // Note: Metadata is passed via query params to the API and stored server-side
+        // (e.g., DynamoDB). We don't rely on S3 x-amz-meta headers in the browser PUT.
         xhr.send(file);
     });
 };

@@ -31,10 +31,6 @@ import traceback
 # CONFIGURATION
 # =============================================================================
 
-USER_POOL_ID = os.environ.get('USER_POOL_ID')
-if not USER_POOL_ID:
-    raise RuntimeError('USER_POOL_ID environment variable is not set')
-
 cognito = boto3.client('cognito-idp')
 
 # =============================================================================
@@ -86,6 +82,14 @@ def lambda_handler(event, context):
         dict: API Gateway response with list of users
     """
     try:
+        user_pool_id = os.environ.get('USER_POOL_ID')
+        if not user_pool_id:
+            return {
+                'statusCode': 500,
+                'headers': cors_headers(),
+                'body': json.dumps({'error': 'USER_POOL_ID environment variable is not set'})
+            }
+
         # 1. Verify admin group membership
         claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
         groups = claims.get('cognito:groups', '')
@@ -106,7 +110,7 @@ def lambda_handler(event, context):
         users = []
         paginator = cognito.get_paginator('list_users')
         
-        for page in paginator.paginate(UserPoolId=USER_POOL_ID, Limit=min(limit, 60)):
+        for page in paginator.paginate(UserPoolId=user_pool_id, Limit=min(limit, 60)):
             for user in page['Users']:
                 user_data = {
                     'username': user['Username'],

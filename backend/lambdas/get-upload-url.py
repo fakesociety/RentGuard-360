@@ -32,7 +32,6 @@ import json
 import os
 import boto3
 import uuid
-from urllib.parse import quote
 from datetime import datetime
 
 from botocore.config import Config
@@ -41,16 +40,15 @@ from botocore.config import Config
 # CONFIGURATION
 # =============================================================================
 
-# NOTE: Prefer environment-provided bucket (set by CloudFormation).
-# Keep a fallback for local/dev runs.
-BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET') or 'rentguard-contracts-moty-101225'
+# NOTE: Must be provided by CloudFormation.
+BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET')
 PRESIGNED_URL_EXPIRY = 300  # 5 minutes
 
 # Force SigV4 for browser-compatible presigned URLs.
 s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
 dynamodb = boto3.resource('dynamodb')
-contracts_table = dynamodb.Table('RentGuard-Contracts')
-consent_table = dynamodb.Table('RentGuard-UserConsent')
+contracts_table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
+consent_table = dynamodb.Table(os.environ.get('USER_CONSENT_TABLE', 'RentGuard-UserConsent'))
 
 # Standard CORS headers for API Gateway responses
 CORS_HEADERS = {
@@ -75,6 +73,12 @@ def lambda_handler(event, context):
         dict: API Gateway response with presigned URL and contract metadata
     """
     try:
+        if not BUCKET_NAME:
+            return {
+                'statusCode': 500,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'CONTRACTS_BUCKET environment variable is not set'})
+            }
         # 1. Get parameters from query string
         query_params = event.get('queryStringParameters') or {}
         original_name = query_params.get('fileName', 'unknown.pdf')
@@ -98,18 +102,14 @@ def lambda_handler(event, context):
         contract_id = str(uuid.uuid4())
         file_key = f"uploads/{user_id}/contract-{contract_id}.pdf"
 
-        # 4. Build S3 params with metadata
-        # S3 metadata only allows ASCII, so we URL-encode Hebrew/Unicode values
+        # 4. Build S3 params for presigned URL
+        # IMPORTANT: Do NOT include Metadata in the presigned params.
+        # The browser upload does not reliably send x-amz-meta-* headers,
+        # and if we sign them the PUT will fail with 403 (signature mismatch).
         s3_params = {
             'Bucket': BUCKET_NAME,
             'Key': file_key,
             'ContentType': 'application/pdf',
-            'Metadata': {
-                'original-filename': quote(original_file_name[:255], safe=''),
-                'property-address': quote(property_address[:255], safe='') if property_address else '',
-                'landlord-name': quote(landlord_name[:255], safe='') if landlord_name else '',
-                'user-id': user_id[:255]
-            }
         }
 
         # 5. Generate presigned URL

@@ -24,6 +24,7 @@ Security:
 # =============================================================================
 
 import json
+import os
 import boto3
 from decimal import Decimal
 
@@ -31,7 +32,7 @@ from decimal import Decimal
 # CONFIGURATION
 # =============================================================================
 
-TABLE_NAME = 'RentGuard-Analysis'
+TABLE_NAME = os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis')
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)

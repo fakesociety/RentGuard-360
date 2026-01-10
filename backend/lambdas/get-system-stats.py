@@ -38,16 +38,11 @@ from collections import defaultdict
 # CONFIGURATION
 # =============================================================================
 
-# Cognito User Pool ID
-USER_POOL_ID = os.environ.get('USER_POOL_ID')
-if not USER_POOL_ID:
-    raise RuntimeError('USER_POOL_ID environment variable is not set')
-
 dynamodb = boto3.resource('dynamodb')
 cognito = boto3.client('cognito-idp')
 
-contracts_table = dynamodb.Table('RentGuard-Contracts')
-analysis_table = dynamodb.Table('RentGuard-Analysis')
+contracts_table = dynamodb.Table(os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts'))
+analysis_table = dynamodb.Table(os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis'))
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -115,6 +110,14 @@ def lambda_handler(event, context):
         dict: API Gateway response with stats JSON
     """
     try:
+        user_pool_id = os.environ.get('USER_POOL_ID')
+        if not user_pool_id:
+            return {
+                'statusCode': 500,
+                'headers': cors_headers(),
+                'body': json.dumps({'error': 'USER_POOL_ID environment variable is not set'})
+            }
+
         # 1. Verify admin group membership
         print(f"Full event keys: {list(event.keys())}")
         
@@ -239,7 +242,7 @@ def lambda_handler(event, context):
         
         try:
             paginator = cognito.get_paginator('list_users')
-            for page in paginator.paginate(UserPoolId=USER_POOL_ID):
+            for page in paginator.paginate(UserPoolId=user_pool_id):
                 users_page = page['Users']
                 user_count += len(users_page)
                 
