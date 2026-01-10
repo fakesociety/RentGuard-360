@@ -111,7 +111,10 @@ const apiCall = async (endpoint, options = {}) => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`API Error ${response.status}:`, errorText);
+            // Only log as error if not a silent 404 (used during polling)
+            if (!(response.status === 404 && options.silent404)) {
+                console.error(`API Error ${response.status}:`, errorText);
+            }
             throw new Error(`API Error: ${response.status}`);
         }
 
@@ -324,9 +327,11 @@ export const getContracts = async (userId) => {
 
 /**
  * Get analysis results for a specific contract
+ * @param {string} contractId - Contract ID
+ * @param {boolean} silent404 - If true, suppress 404 errors in console (used during polling)
  */
-export const getAnalysis = async (contractId) => {
-    const data = await apiCall(`/analysis?contractId=${encodeURIComponent(contractId)}`);
+export const getAnalysis = async (contractId, silent404 = false) => {
+    const data = await apiCall(`/analysis?contractId=${encodeURIComponent(contractId)}`, { silent404 });
     return data;
 };
 
@@ -338,7 +343,8 @@ export const pollForAnalysis = async (contractId, maxAttempts = 20, intervalMs =
         console.log(`Polling for analysis (attempt ${attempt}/${maxAttempts})...`);
 
         try {
-            const result = await getAnalysis(contractId);
+            // Use silent404=true to suppress expected 404 errors during polling
+            const result = await getAnalysis(contractId, true);
 
             if (result && result.status === 'COMPLETED') {
                 console.log('Analysis complete!');

@@ -140,12 +140,26 @@ const SettingsPage = () => {
             <section className="settings-section animate-slideUp" style={{ animationDelay: '200ms' }}>
                 <h2 className="section-title">🔔 {isRTL ? 'התראות' : 'Notifications'}</h2>
                 <Card variant="elevated" padding="lg">
-                    <div className="setting-row">
-                        <div className="setting-info">
+                    <div className="notification-info-box">
+                        <div className="notification-icon">✉️</div>
+                        <div className="notification-content">
                             <h3>{isRTL ? 'התראות אימייל' : 'Email Notifications'}</h3>
-                            <p>{isRTL ? 'קבלו התראה כאשר הניתוח מסתיים' : 'Receive notification when analysis is complete'}</p>
+                            <p className="notification-description">
+                                {isRTL
+                                    ? 'כדי לקבל עדכונים על ניתוח החוזים שלך, אשר את האימייל מ-Amazon SES שנשלח אליך בהרשמה.'
+                                    : 'To receive updates about your contract analysis, verify the email from Amazon SES sent during registration.'
+                                }
+                            </p>
+                            <div className="notification-tip">
+                                <span className="tip-icon">💡</span>
+                                <span className="tip-text">
+                                    {isRTL
+                                        ? 'בדוק גם בתיקיית הספאם אם לא קיבלת את המייל'
+                                        : 'Check your spam folder if you haven\'t received the email'
+                                    }
+                                </span>
+                            </div>
                         </div>
-                        <Toggle checked={true} onChange={() => { }} />
                     </div>
                 </Card>
             </section>
