@@ -29,7 +29,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { getSystemStats } from '../services/api';
 import Button from '../components/Button';
 import { LineChart } from '@mui/x-charts/LineChart';
-import { BarChart } from '@mui/x-charts/BarChart';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {
     FileText,
@@ -176,10 +175,9 @@ const AdminDashboard = () => {
         return date >= userRangeStart && date <= userRangeEnd;
     });
 
-    // Transform for LineChart with time scale
     const userChartDataset = filteredUserRegs.map(d => ({
         date: parseLocalDate(d.date),
-        count: d.count
+        count: Number(d.count) || 0
     }));
 
 
@@ -378,7 +376,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="chart-container bar-chart-container" dir="ltr">
+                                    <div className="chart-container line-chart-container" dir="ltr">
                                         {userChartDataset.length > 0 ? (
                                             <LineChart
                                                 key={`users-${userDateRange}-${userChartDataset.length}-${chartWidth}`}
@@ -396,6 +394,7 @@ const AdminDashboard = () => {
                                                 }]}
                                                 series={[{
                                                     dataKey: 'count',
+                                                    area: true,
                                                     showMark: false,
                                                     color: '#3B82F6',
                                                 }]}
@@ -403,6 +402,7 @@ const AdminDashboard = () => {
                                                 width={chartWidth}
                                                 height={220}
                                                 sx={{
+                                                    '& .MuiAreaElement-root': { fillOpacity: 0.25 },
                                                     '& .MuiChartsAxis-tickLabel': { fill: labelColor },
                                                     '& .MuiChartsAxis-line': { stroke: labelColor },
                                                     '& .MuiChartsGrid-line': { stroke: gridColor },

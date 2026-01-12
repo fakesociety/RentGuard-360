@@ -40,6 +40,19 @@
     transition: all 0.2s ease;
 }
 
+.methodology-toggle:focus-visible {
+    outline: 2px solid var(--primary-color, #3b82f6);
+    outline-offset: 2px;
+}
+
+.methodology-chevron {
+    transition: transform 0.2s ease;
+}
+
+.methodology-toggle[aria-expanded="true"] .methodology-chevron {
+    transform: rotate(180deg);
+}
+
 .methodology-toggle:hover {
     background: var(--hover-bg, rgba(255, 255, 255, 0.05));
     color: var(--text-primary, #ffffff);

@@ -241,7 +241,8 @@ export const exportToWord = async (analysis, fileName = 'Contract_Analysis_Repor
  */
 export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report') => {
     const result = analysis?.analysis_result || analysis;
-    const riskScore = result?.overall_risk_score || 0;
+    const riskScoreRaw = result?.overall_risk_score;
+    const riskScore = Math.max(0, Math.min(100, Math.round(Number(riskScoreRaw) || 0)));
     const issues = result?.issues || [];
     const breakdown = result?.score_breakdown || {};
 
@@ -303,11 +304,12 @@ export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report
     // Calculate score width
     const scoreWidth = (riskScore / 100) * gaugeWidth;
 
-    // Determine color
+    // Determine color (match app legend: higher score = safer = greener)
     let r, g, b;
-    if (riskScore >= 75) { r = 220; g = 53; b = 69; } // Red
-    else if (riskScore >= 40) { r = 255; g = 193; b = 7; } // Yellow
-    else { r = 40; g = 167; b = 69; } // Green
+    if (riskScore >= 86) { r = 34; g = 197; b = 94; }          // Green
+    else if (riskScore >= 71) { r = 16; g = 185; b = 129; }    // Light green
+    else if (riskScore >= 51) { r = 245; g = 158; b = 11; }    // Orange
+    else { r = 239; g = 68; b = 68; }                          // Red
 
     doc.setFillColor(r, g, b);
     doc.roundedRect(margin, y, Math.max(scoreWidth, 5), gaugeHeight, 5, 5, 'F');
@@ -359,11 +361,13 @@ export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report
             doc.setFillColor(230, 230, 230);
             doc.rect(barX, barY, barW, barH, 'F');
 
-            // Fill
+            // Fill (higher score = greener)
             let cr, cg, cb;
-            if (score <= 10) { cr = 220; cg = 53; cb = 69; } // Bad (low score in category might be bad depending on context, assuming high score = good protection)
-            else if (score < 16) { cr = 255; cg = 193; cb = 7; }
-            else { cr = 40; cg = 167; cb = 69; }
+            const pctScore = Math.max(0, Math.min(100, Math.round((score / fullScore) * 100)));
+            if (pctScore >= 86) { cr = 34; cg = 197; cb = 94; }
+            else if (pctScore >= 71) { cr = 16; cg = 185; cb = 129; }
+            else if (pctScore >= 51) { cr = 245; cg = 158; cb = 11; }
+            else { cr = 239; cg = 68; cb = 68; }
 
             doc.setFillColor(cr, cg, cb);
             doc.rect(barX, barY, barW * pct, barH, 'F');
