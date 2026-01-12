@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentGuard 360 - הנחות יסוד לחישוב עלויות</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #fff;
+            color: #333;
+            line-height: 1.6;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #1a73e8;
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 16px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        .source-box {
+            border-right: 4px solid #1a73e8;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            margin-bottom: 30px;
+        }
+
+        .source-box strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th {
+            background: #f1f3f4;
+            padding: 12px;
+            text-align: right;
+            border: 1px solid #ddd;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            text-align: right;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background: #e8f0fe !important;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .summary-box {
+            background: #e8f0fe;
+            border: 2px solid #1a73e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .summary-box h2 {
+            margin-top: 0;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>RentGuard 360 - הנחות יסוד לחישוב עלויות</h1>
+
+    <div class="source-box">
+        <strong>מקורות נתונים:</strong>
+        • AWS Pricing Calculator - נתונים מיובאים (ינואר 2026)<br>
+        • Azure Pricing Calculator - עלויות OCR<br>
+        <strong>סוג פרויקט:</strong> MVP - פלטפורמה לניתוח חוזי שכירות בישראל
+    </div>
+
+    <!-- Background Section -->
+    <h2>רקע והנחות יסוד</h2>
+    <p>
+        הפרויקט מיועד לשוכרי דירות בישראל המעוניינים לנתח חוזי שכירות לפני חתימה.
+        הנחות היסוד מבוססות על הערכות לפרויקט בשלב MVP (מוצר מינימלי),
+        עם התחשבות בגידול הדרגתי בשנה הראשונה.
+    </p>
+    <p>
+        <strong>הנחות עיקריות:</strong> פרויקט אקדמי בשלב פיתוח,
+        קהל יעד ישראלי, שימוש בשעות עבודה רגילות (לא 24/7).
+    </p>
+
+    <!-- Section 1: Basic Assumptions -->
+    <h2>1. הנחות בסיס - משתמשים ופעילות</h2>
+
+    <table>
+        <tr>
+            <th>פרמטר</th>
+            <th>ערך להערכה</th>
+            <th>הסבר</th>
+        </tr>
+        <tr>
+            <td>משתמשים פעילים (MAU)</td>
+            <td>1,000</td>
+            <td>הערכה לשנה ראשונה של MVP</td>
+        </tr>
+        <tr>
+            <td>חוזים לניתוח/חודש</td>
+            <td>5,000</td>
+            <td>~5 חוזים למשתמש בממוצע</td>
+        </tr>
+        <tr>
+            <td>קריאות Lambda/חודש</td>
+            <td>100,000</td>
+            <td>20 פונקציות × הפעלות</td>
+        </tr>
+        <tr>
+            <td>קריאות API Gateway/חודש</td>
+            <td>20,000</td>
+            <td>~4 קריאות לכל ניתוח</td>
+        </tr>
+        <tr>
+            <td>State Transitions/חודש</td>
+            <td>40,000</td>
+            <td>5,000 workflows × 8 שלבים</td>
+        </tr>
+        <tr>
+            <td>מיילים נשלחים/חודש</td>
+            <td>6,000</td>
+            <td>התראות + תמיכה</td>
+        </tr>
+    </table>
+
+    <!-- Section 2: AWS Services Detail -->
+    <h2>2. פירוט שירותי AWS</h2>
+
+    <h3>2.1 Amazon API Gateway</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>סוג API</td>
+            <td>REST API</td>
+        </tr>
+        <tr>
+            <td>Requests/חודש</td>
+            <td>20,000</td>
+        </tr>
+        <tr>
+            <td>Average request size</td>
+            <td>34 KB</td>
+        </tr>
+        <tr>
+            <td>Cache</td>
+            <td>None</td>
+        </tr>
+    </table>
+
+    <h3>2.2 AWS Lambda</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>מספר פונקציות</td>
+            <td>20</td>
+        </tr>
+        <tr>
+            <td>Architecture</td>
+            <td>x86</td>
+        </tr>
+        <tr>
+            <td>בקשות/חודש</td>
+            <td>100,000</td>
+        </tr>
+        <tr>
+            <td>משך ממוצע</td>
+            <td>3,000 ms</td>
+        </tr>
+        <tr>
+            <td>זיכרון</td>
+            <td>256 MB</td>
+        </tr>
+        <tr>
+            <td>Ephemeral storage</td>
+            <td>512 MB</td>
+        </tr>
+        <tr>
+            <td>Invoke Mode</td>
+            <td>Buffered</td>
+        </tr>
+    </table>
+
+    <h3>2.3 Amazon Bedrock (Claude Haiku 4.5)</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Inference route</td>
+            <td>Global</td>
+        </tr>
+        <tr>
+            <td>Inference type</td>
+            <td>On Demand - Standard</td>
+        </tr>
+        <tr>
+            <td>בקשות/דקה</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>שעות פעילות/יום</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>טוקנים נכנסים/בקשה</td>
+            <td>12,000</td>
+        </tr>
+        <tr>
+            <td>טוקנים יוצאים/בקשה</td>
+            <td>2,000</td>
+        </tr>
+    </table>
+
+    <h3>2.4 Amazon S3</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Storage Class</td>
+            <td>S3 Standard</td>
+        </tr>
+        <tr>
+            <td>נפח אחסון</td>
+            <td>10 GB</td>
+        </tr>
+        <tr>
+            <td>PUT, COPY, POST, LIST Requests</td>
+            <td>5,000/חודש</td>
+        </tr>
+        <tr>
+            <td>GET, SELECT Requests</td>
+            <td>20,000/חודש</td>
+        </tr>
+        <tr>
+            <td>Data Transfer Inbound</td>
+            <td>1 GB</td>
+        </tr>
+        <tr>
+            <td>Data Transfer Outbound</td>
+            <td>10 GB</td>
+        </tr>
+    </table>
+
+    <h3>2.5 Amazon DynamoDB</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Capacity Mode</td>
+            <td>On-Demand</td>
+        </tr>
+        <tr>
+            <td>Table Class</td>
+            <td>Standard</td>
+        </tr>
+        <tr>
+            <td>נפח אחסון</td>
+            <td>5 GB</td>
+        </tr>
+        <tr>
+            <td>גודל פריט ממוצע</td>
+            <td>10 KB</td>
+        </tr>
+        <tr>
+            <td>כתיבות/שנייה</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>קריאות/שנייה</td>
+            <td>5</td>
+        </tr>
+    </table>
+
+    <h3>2.6 Amazon Cognito</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Tier</td>
+            <td>Lite</td>
+        </tr>
+        <tr>
+            <td>משתמשים פעילים (MAU)</td>
+            <td>1,000</td>
+        </tr>
+        <tr>
+            <td>קבוצות משתמשים</td>
+            <td>2 (Admins, Users)</td>
+        </tr>
+        <tr>
+            <td>Advanced Security</td>
+            <td>Disabled</td>
+        </tr>
+        <tr>
+            <td>SAML/OIDC Federation</td>
+            <td>0</td>
+        </tr>
+    </table>
+
+    <h3>2.7 Amazon SES</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>מיילים נשלחים (מ-EC2/Lambda)</td>
+            <td>6,000/חודש</td>
+        </tr>
+        <tr>
+            <td>קבצים מצורפים</td>
+            <td>0 GB</td>
+        </tr>
+        <tr>
+            <td>Dedicated IPs</td>
+            <td>0</td>
+        </tr>
+    </table>
+
+    <h3>2.8 AWS Step Functions</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Workflow Type</td>
+            <td>Standard</td>
+        </tr>
+        <tr>
+            <td>Workflow Requests</td>
+            <td>5,000/חודש</td>
+        </tr>
+        <tr>
+            <td>State Transitions/Workflow</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>סה"כ Transitions</td>
+            <td>40,000/חודש</td>
+        </tr>
+    </table>
+
+    <h3>2.9 Amazon CloudFront</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Edge Location</td>
+            <td>Middle East</td>
+        </tr>
+        <tr>
+            <td>Data Transfer Out to Internet</td>
+            <td>50 GB/חודש</td>
+        </tr>
+        <tr>
+            <td>Data Transfer Out to Origin</td>
+            <td>5 GB/חודש</td>
+        </tr>
+        <tr>
+            <td>HTTPS Requests</td>
+            <td>500,000/חודש</td>
+        </tr>
+    </table>
+
+    <h3>2.10 AWS WAF</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+        </tr>
+        <tr>
+            <td>Web ACLs</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>Rules per ACL</td>
+            <td>5</td>
+        </tr>
+        <tr>
+            <td>Managed Rule Groups</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>Requests</td>
+            <td>1,000,000/חודש</td>
+        </tr>
+    </table>
+
+    <!-- Section 3: External Services -->
+    <h2>3. שירותים חיצוניים</h2>
+
+    <h3>3.1 Azure Document Intelligence (OCR)</h3>
+    <table>
+        <tr>
+            <th>רכיב</th>
+            <th>כמות</th>
+            <th>עלות</th>
+        </tr>
+        <tr>
+            <td>שירות</td>
+            <td>Azure AI Document Intelligence</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>דפים לעיבוד/חודש</td>
+            <td>~25,000</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>Free Tier</td>
+            <td>500 דפים/חודש</td>
+            <td>$0.00</td>
+        </tr>
+        <tr>
+            <td>S0 Tier (מעבר ל-Free)</td>
+            <td>24,500 דפים</td>
+            <td>$24.50</td>
+        </tr>
+        <tr class="total-row">
+            <td colspan="2"><strong>סה"כ Azure</strong></td>
+            <td><strong>$24.50</strong></td>
+        </tr>
+    </table>
+    <p class="note">
+        <strong>הערה:</strong> Azure נבחר בגלל איכות OCR גבוהה לעברית.
+        עלות: $0.001 לכל דף מעבר ל-Free Tier.
+    </p>
+
+    <!-- Section 4: Total Cost Summary -->
+    <div class="summary-box">
+        <h2>4. סיכום עלויות חודשיות</h2>
+        <table>
+            <tr>
+                <th>ספק</th>
+                <th>עלות חודשית</th>
+            </tr>
+            <tr>
+                <td>AWS (מ-Calculator)</td>
+                <td>$278.47</td>
+            </tr>
+            <tr>
+                <td>Azure (OCR)</td>
+                <td>$24.50</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>סה"כ עלות חודשית</strong></td>
+                <td><strong>$302.97</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>סה"כ עלות שנתית (12 חודשים)</strong></td>
+                <td><strong>$3,635.64</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Section 5: Notes -->
+    <h2>5. הערות</h2>
+    <ul>
+        <li>החישוב כולל הנחות AWS Free Tier (12 חודשים ראשונים)</li>
+        <li>הערכים מבוססים על תחזית MVP וניתנים להתאמה</li>
+        <li>אזור AWS: US East (N. Virginia) - נבחר בגלל זמינות Bedrock</li>
+        <li>קהל יעד: שוכרי דירות בישראל (CDN: Middle East)</li>
+        <li>העלות העיקרית: Amazon Bedrock (~85% מהעלות)</li>
+    </ul>
+
+    <footer>
+        <p><strong>צוות:</strong> AI-Lawyers | Ron Blanki, Moty Sakhartov, Dan Gutman</p>
+        <p><strong>תאריך:</strong> ינואר 2026</p>
+    </footer>
+
+</body>
+
+</html>

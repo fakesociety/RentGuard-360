@@ -1071,6 +1071,11 @@
     background: #10b981;
 }
 
+/* Pending verification - Orange dot */
+.status-badge.pending .status-dot {
+    background: #f59e0b;
+}
+
 /* Disabled - Red dot */
 .status-badge.disabled .status-dot {
     background: #f43f5e;

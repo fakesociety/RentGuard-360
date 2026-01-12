@@ -525,7 +525,7 @@ const LandingPageNew = () => {
         setError('');
 
         // Validate empty/whitespace
-        const trimmedEmail = email.trim();
+        const trimmedEmail = email.trim().toLowerCase();
         const trimmedPassword = password.trim();
 
         if (!trimmedEmail || !trimmedPassword) {
@@ -535,7 +535,15 @@ const LandingPageNew = () => {
 
         setLoading(true);
         const result = await login(trimmedEmail, password);
-        if (!result.success) setError(translateError(result.error || 'Login failed'));
+        if (!result.success) {
+            setError(translateError(result.error || 'Login failed'));
+        } else {
+            try {
+                localStorage.removeItem('rentguard_pending_verification');
+            } catch {
+                // ignore
+            }
+        }
         setLoading(false);
     };
 
@@ -543,9 +551,14 @@ const LandingPageNew = () => {
         e.preventDefault();
         setError('');
 
+        if (isAuthenticated) {
+            setError(isRTL ? 'כדי להירשם, התנתק קודם מהחשבון הנוכחי' : 'To register, please log out from the current account first');
+            return;
+        }
+
         // Trim all inputs
         const trimmedName = name.trim();
-        const trimmedEmail = email.trim();
+        const trimmedEmail = email.trim().toLowerCase();
 
         // Validate empty/whitespace fields
         if (!trimmedName || !trimmedEmail || !password) {
@@ -641,12 +654,24 @@ const LandingPageNew = () => {
         setLoading(false);
     };
 
+    const clearPendingVerification = () => {
+        try {
+            localStorage.removeItem('rentguard_pending_verification');
+        } catch {
+            // ignore
+        }
+        setError('');
+        setCode('');
+        setTempEmail('');
+        setAuthModal('register');
+    };
+
     // DAN DID IT - Added handleForgotPassword to send reset code to user's email
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setError('');
 
-        const trimmedEmail = email.trim();
+        const trimmedEmail = email.trim().toLowerCase();
         if (!trimmedEmail) {
             setError(isRTL ? 'יש להזין כתובת אימייל' : 'Please enter email address');
             return;
@@ -706,7 +731,7 @@ const LandingPageNew = () => {
         // Check if user has pending verification
         const pendingEmail = localStorage.getItem('rentguard_pending_verification');
         if (type === 'register' && pendingEmail) {
-            setTempEmail(pendingEmail);
+            setTempEmail(String(pendingEmail || '').trim().toLowerCase());
             setError('');
             setAuthModal('confirm');
             return;
@@ -823,6 +848,12 @@ const LandingPageNew = () => {
                                     {isRTL ? 'לא קיבלת את הקוד?' : "Didn't receive the code?"}{' '}
                                     <button type="button" onClick={handleResendCode} disabled={loading}>
                                         {isRTL ? 'שלח קוד חדש' : 'Resend Code'}
+                                    </button>
+                                </p>
+                                <p className="auth-switch">
+                                    {isRTL ? 'טעית באימייל?' : 'Wrong email?'}{' '}
+                                    <button type="button" onClick={clearPendingVerification} disabled={loading}>
+                                        {isRTL ? 'הירשם מחדש' : 'Register again'}
                                     </button>
                                 </p>
                             </form>

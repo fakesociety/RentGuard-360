@@ -85,6 +85,18 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super().default(obj)
 
+
+def get_cognito_attribute(user, attr_name):
+    for attr in user.get('Attributes', []):
+        if attr.get('Name') == attr_name:
+            return attr.get('Value')
+    return None
+
+
+def is_email_verified(user):
+    val = get_cognito_attribute(user, 'email_verified')
+    return str(val).lower() == 'true'
+
 # =============================================================================
 # MAIN HANDLER
 # =============================================================================
@@ -244,9 +256,13 @@ def lambda_handler(event, context):
             paginator = cognito.get_paginator('list_users')
             for page in paginator.paginate(UserPoolId=user_pool_id):
                 users_page = page['Users']
-                user_count += len(users_page)
-                
                 for u in users_page:
+                    # Count only verified users (email_verified=true).
+                    # This includes admin-created users that may be FORCE_CHANGE_PASSWORD.
+                    if not is_email_verified(u):
+                        continue
+
+                    user_count += 1
                     create_date = u.get('UserCreateDate')
                     if create_date:
                         d_str = create_date.date().isoformat()

@@ -20,7 +20,7 @@
  */
 import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Info, ChevronDown } from 'lucide-react';
 import './ScoreMethodology.css';
 
 const ScoreMethodology = () => {
@@ -81,7 +81,7 @@ const ScoreMethodology = () => {
                     <Info size={16} />
                     <span>{isRTL ? 'איך מחושב הציון?' : 'How is the score calculated?'}</span>
                 </div>
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <ChevronDown size={16} className="methodology-chevron" />
             </button>
 
             {isExpanded && (

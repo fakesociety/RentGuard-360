@@ -71,6 +71,8 @@ export const AuthProvider = ({ children }) => {
         checkAuthState();
     }, []);
 
+    const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+
     const checkAuthState = async () => {
         try {
             setIsLoading(true);
@@ -106,8 +108,10 @@ export const AuthProvider = ({ children }) => {
         try {
             await signOut().catch(() => { });
 
+            const normalizedEmail = normalizeEmail(email);
+
             const { isSignedIn, nextStep } = await signIn({
-                username: email,
+                username: normalizedEmail,
                 password,
                 options: { authFlowType: 'USER_PASSWORD_AUTH' }
             });
@@ -125,11 +129,15 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (email, password, name) => {
         try {
+            // Avoid mixing an existing session with signup flow
+            await signOut().catch(() => { });
+
+            const normalizedEmail = normalizeEmail(email);
             const { isSignUpComplete, userId, nextStep } = await signUp({
-                username: email,
+                username: normalizedEmail,
                 password,
                 options: {
-                    userAttributes: { email, name },
+                    userAttributes: { email: normalizedEmail, name },
                 },
             });
             return { success: true, isSignUpComplete, userId, nextStep };
@@ -141,7 +149,8 @@ export const AuthProvider = ({ children }) => {
 
     const confirmRegistration = async (email, code) => {
         try {
-            await confirmSignUp({ username: email, confirmationCode: code });
+            const normalizedEmail = normalizeEmail(email);
+            await confirmSignUp({ username: normalizedEmail, confirmationCode: code });
             return { success: true };
         } catch (error) {
             console.error('Confirm error:', error);
@@ -164,7 +173,8 @@ export const AuthProvider = ({ children }) => {
 
     const resendCode = async (email) => {
         try {
-            await resendSignUpCode({ username: email });
+            const normalizedEmail = normalizeEmail(email);
+            await resendSignUpCode({ username: normalizedEmail });
             return { success: true };
         } catch (error) {
             console.error('Resend code error:', error);
@@ -174,7 +184,8 @@ export const AuthProvider = ({ children }) => {
 
     const forgotPassword = async (email) => {
         try {
-            const output = await resetPassword({ username: email });
+            const normalizedEmail = normalizeEmail(email);
+            const output = await resetPassword({ username: normalizedEmail });
             console.log('Password reset initiated:', output);
             return { success: true, output };
         } catch (error) {
@@ -185,8 +196,9 @@ export const AuthProvider = ({ children }) => {
 
     const resetUserPassword = async (email, code, newPassword) => {
         try {
+            const normalizedEmail = normalizeEmail(email);
             await confirmResetPassword({
-                username: email,
+                username: normalizedEmail,
                 confirmationCode: code,
                 newPassword: newPassword,
             });

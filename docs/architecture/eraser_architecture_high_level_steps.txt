@@ -1,0 +1,112 @@
+title RentGuard 360 - High Level Architecture (with Step Functions Steps)
+direction right
+
+// Goal: HIGH LEVEL (few arrows), but keep Step Functions steps explicit.
+
+// ============ ACTORS ============
+User  [icon: user, label: "User / Tenant"]
+Admin [icon: user-shield, label: "Admin (Cognito Group)"]
+
+// ============ FRONTEND & SECURITY ============
+Frontend [color: red, icon: shield] {
+  WAF     [icon: aws-waf, label: "AWS WAF"]
+  CF      [icon: aws-cloudfront, label: "CloudFront (CDN)"]
+  S3Web   [icon: aws-s3, label: "S3 Frontend (React SPA)"]
+  Cognito [icon: aws-cognito, label: "Amazon Cognito\n(Auth + Groups)"]
+}
+
+// ============ API & ORCHESTRATION ============
+Backend [color: blue, icon: api] {
+  APIG   [icon: aws-api-gateway, label: "API Gateway\n(Cognito Authorizer)"]
+  EventB [icon: aws-eventbridge, label: "EventBridge Rule\n(S3 ObjectCreated: uploads/*)"]
+  StepF  [icon: aws-step-functions, label: "Step Functions\nContractAnalysisWorkflow"]
+}
+
+// ============ HIGH-LEVEL API LAMBDAS ============
+APIs [color: yellow, icon: zap] {
+  UploadAPI [icon: aws-lambda, label: "Upload API\n(GetUploadURL -> presigned PUT)"]
+  UserAPIs  [icon: aws-lambda, label: "User APIs\n(GetUserContracts, GetAnalysisResult,\nRename, Delete, SaveEdited, Support)"]
+  AdminAPIs [icon: aws-lambda, label: "Admin APIs\n(ListUsers, Enable/Disable/DeleteUser, Stats)"]
+}
+
+// ============ STEP FUNCTIONS TASKS (EXPLICIT) ============
+WorkflowTasks [color: orange, icon: cpu] {
+  LambdaOCR      [icon: aws-lambda, label: "1) AzureOCR\n(TextExtraction)"]
+  LambdaSanitize [icon: aws-lambda, label: "2) PrivacyShield\n(PII Removal)"]
+  LambdaAI       [icon: aws-lambda, label: "3) AI-Analyzer\n(Bedrock Claude)"]
+  LambdaSave     [icon: aws-lambda, label: "4) SaveResults"]
+  LambdaNotify   [icon: aws-lambda, label: "5) NotifyUser"]
+  LambdaError    [icon: aws-lambda, label: "On Error: ErrorHandler"]
+}
+
+// ============ STORAGE ============
+Storage [color: green, icon: database] {
+  S3Doc [icon: aws-s3, label: "S3 Contracts\n(Encrypted PDFs)"]
+  DDB   [icon: aws-dynamodb, label: "DynamoDB\n(Contracts + Analysis)"]
+  SES   [icon: aws-ses, label: "Amazon SES\n(Email)"]
+}
+
+// ============ EXTERNAL SERVICES ============
+External [color: purple, icon: brain] {
+  Azure   [icon: azure, label: "Azure Document Intelligence\n(OCR)"]
+  Bedrock [icon: aws-bedrock, label: "Amazon Bedrock\n(Claude Haiku 4.5)"]
+}
+
+// ============ COGNITO TRIGGER (FINAL STACK) ============
+CognitoTriggers [color: purple, icon: zap] {
+  AutoVerifySES [icon: aws-lambda, label: "AutoVerifySES\n(PostConfirmation)"]
+}
+
+// ========================================
+// CONNECTIONS (few arrows, clear story)
+// ========================================
+
+// Frontend delivery
+User > WAF: 1. Open app
+WAF > CF
+CF  > S3Web
+
+// Authentication
+User  > Cognito: 2. Sign in / Sign up
+Admin > Cognito: 2. Admin sign in
+
+// Cognito trigger
+Cognito > AutoVerifySES: PostConfirmation
+AutoVerifySES > SES: Verify email identity
+
+// API usage (JWT)
+User  > APIG: 3. User requests
+Admin > APIG: 3. Admin requests
+APIG > APIs
+
+// High-level API routing
+APIs > UploadAPI
+APIs > UserAPIs
+APIs > AdminAPIs
+
+// Upload (presigned URL pattern)
+UploadAPI > User: 4a. Return presigned PUT URL
+User > S3Doc: 4b. Upload PDF to S3
+
+// Async trigger -> workflow
+S3Doc  > EventB: 5a. ObjectCreated
+EventB > StepF: 5b. StartExecution
+
+// Step Functions tasks (explicit steps like the original)
+StepF > LambdaOCR: Step 1
+LambdaOCR > Azure
+StepF > LambdaSanitize: Step 2
+StepF > LambdaAI: Step 3
+LambdaAI > Bedrock
+StepF > LambdaSave: Step 4
+LambdaSave > DDB
+StepF > LambdaNotify: Step 5
+LambdaNotify > SES
+StepF > LambdaError: On error
+
+// Data access (kept high-level)
+UserAPIs  > DDB
+UserAPIs  > Bedrock
+UserAPIs  > SES
+AdminAPIs > Cognito
+AdminAPIs > DDB

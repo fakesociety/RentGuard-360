@@ -238,6 +238,30 @@ const AdminUsers = () => {
 
     const closeModal = () => setModal({ ...modal, isOpen: false });
 
+    const getUserStatusPresentation = (user) => {
+        const rawStatus = String(user?.status || '').toUpperCase();
+
+        if (!user?.enabled) {
+            return {
+                badgeClass: 'disabled',
+                label: t('admin.suspended') || 'Suspended',
+            };
+        }
+
+        // Cognito may return UNCONFIRMED before email verification.
+        if (rawStatus && rawStatus !== 'CONFIRMED') {
+            return {
+                badgeClass: 'pending',
+                label: t('admin.pendingVerification') || (isRTL ? 'ממתין לאימות' : 'Pending verification'),
+            };
+        }
+
+        return {
+            badgeClass: 'active',
+            label: t('admin.active') || 'Active',
+        };
+    };
+
     return (
         <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="admin-header">
@@ -341,14 +365,16 @@ const AdminUsers = () => {
                                             <td colSpan="5" className="no-data">{t('admin.noUsers')}</td>
                                         </tr>
                                     ) : (
-                                        users.map(user => (
+                                        users.map(user => {
+                                            const statusPresentation = getUserStatusPresentation(user);
+                                            return (
                                             <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
                                                 <td>{user.email || '—'}</td>
                                                 <td>{user.name || '—'}</td>
                                                 <td>
-                                                    <span className={`status-badge ${user.enabled ? 'active' : 'disabled'}`}>
+                                                    <span className={`status-badge ${statusPresentation.badgeClass}`}>
                                                         <span className="status-dot"></span>
-                                                        {user.enabled ? t('admin.active') : t('admin.suspended')}
+                                                        {statusPresentation.label}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -389,7 +415,7 @@ const AdminUsers = () => {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))
+                                        )})
                                     )}
                                 </tbody>
                             </table>

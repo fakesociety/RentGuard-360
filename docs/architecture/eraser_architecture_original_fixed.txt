@@ -1,0 +1,126 @@
+title RentGuard 360 - AWS Serverless Architecture (Original + Fixed)
+direction right
+
+// ============ ACTORS ============
+User [icon: user, label: "User / Tenant"]
+Admin [icon: user-shield, label: "Admin"]
+
+// ============ FRONTEND & SECURITY ============
+Frontend [color: red, icon: shield] {
+  Cognito [icon: aws-cognito, label: "Amazon Cognito\n(Auth + Groups)"]
+  WAF [icon: aws-waf, label: "AWS WAF\n(Web Firewall)"]
+  CF [icon: aws-cloudfront, label: "CloudFront\n(CDN)"]
+  S3Web [icon: aws-s3, label: "S3 Frontend\n(React App)"]
+}
+
+// ============ API LAYER ============
+API [color: blue, icon: api] {
+  APIG [icon: aws-api-gateway, label: "API Gateway\n(Cognito Authorizer)"]
+  EventB [icon: aws-eventbridge, label: "EventBridge Rule\n(S3 -> StepF)"]
+  StepF [icon: aws-step-functions, label: "Step Functions\n(Orchestrator) "]
+}
+
+// ============ PROCESSING PIPELINE ============
+Processing [color: orange, icon: cpu] {
+  LambdaOCR [icon: aws-lambda, label: "TextExtraction\n(Azure Doc Intel)"]
+  LambdaSanitize [icon: aws-lambda, label: "PrivacyShield\n(PII Removal)"]
+  LambdaAI [icon: aws-lambda, label: "AI-Analyzer\n(Bedrock Claude)"]
+  LambdaSave [icon: aws-lambda, label: "SaveResults"]
+  LambdaNotify [icon: aws-lambda, label: "NotifyUser"]
+  LambdaError [icon: aws-lambda, label: "ErrorHandler"]
+}
+
+// ============ API HANDLERS ============
+Handlers [color: yellow, icon: zap] {
+  LambdaUpload [icon: aws-lambda, label: "GetUploadURL\n(Presigned URL)"]
+  LambdaContracts [icon: aws-lambda, label: "GetUserContracts"]
+  LambdaAnalysis [icon: aws-lambda, label: "GetAnalysisResult"]
+  LambdaConsult [icon: aws-lambda, label: "ConsultClause"]
+  LambdaRename [icon: aws-lambda, label: "RenameContract"]
+  LambdaDelete [icon: aws-lambda, label: "DeleteContract"]
+  LambdaSaveEdit [icon: aws-lambda, label: "SaveEditedContract"]
+  LambdaSupport [icon: aws-lambda, label: "CreateSupportTicket"]
+}
+
+// ============ ADMIN ============
+AdminGroup [color: purple, icon: users] {
+  LambdaListUsers [icon: aws-lambda, label: "ListUsers"]
+  LambdaDisableUser [icon: aws-lambda, label: "DisableUser"]
+  LambdaEnableUser [icon: aws-lambda, label: "EnableUser"]
+  LambdaDeleteUser [icon: aws-lambda, label: "DeleteUser"]
+  LambdaStats [icon: aws-lambda, label: "GetSystemStats"]
+}
+
+// ============ COGNITO TRIGGERS ============
+CognitoTriggers [color: purple, icon: zap] {
+  LambdaAutoVerifySES [icon: aws-lambda, label: "AutoVerifySES\n(PostConfirmation)"]
+}
+
+// ============ AI SERVICES ============
+AI [color: purple, icon: brain] {
+  Azure [icon: azure, label: "Azure Doc Intel\n(OCR)"]
+  Bedrock [icon: aws-bedrock, label: "Amazon Bedrock\n(Claude Haiku 4.5)"]
+}
+
+// ============ STORAGE ============
+Storage [color: green, icon: database] {
+  S3Doc [icon: aws-s3, label: "S3 Contracts\n(Encrypted PDFs)"]
+  DDB [icon: aws-dynamodb, label: "DynamoDB\n(Contracts + Analysis)"]
+  SES [icon: aws-ses, label: "Amazon SES\n(Email)"]
+}
+
+// ========================================
+// CONNECTIONS (Fixed for final architecture)
+// ========================================
+
+// Frontend delivery
+User > WAF: 1. Open web app
+WAF > CF
+CF > S3Web
+
+// Authentication
+User > Cognito: 2. Sign up / Sign in
+Admin > Cognito: 2. Admin sign in
+
+// Cognito trigger (final stack)
+Cognito > LambdaAutoVerifySES: PostConfirmation
+LambdaAutoVerifySES > SES: Verify user email identity
+
+// API access (JWT)
+User > APIG: 3. User APIs (JWT)
+Admin > APIG: 3. Admin APIs (JWT + Admin group)
+
+// Upload & Analysis Pipeline (PRESIGNED UPLOAD + EVENTBRIDGE + STEPF)
+APIG > LambdaUpload: 4a. Get presigned PUT URL
+LambdaUpload > User: 4b. Return uploadUrl + contractId
+User > S3Doc: 4c. PUT PDF to S3 (presigned)
+S3Doc > EventB: 5a. ObjectCreated (uploads/)
+EventB > StepF: 5b. StartExecution
+
+// Step Functions workflow (visual chain for clarity)
+StepF > LambdaOCR: Step 1
+LambdaOCR > Azure: Extract text
+LambdaOCR > LambdaSanitize: Step 2
+LambdaSanitize > LambdaAI: Step 3
+LambdaAI > Bedrock: Analyze
+LambdaAI > LambdaSave: Step 4
+LambdaSave > DDB: Save results
+LambdaSave > LambdaNotify: Step 5
+LambdaNotify > SES: Send email
+StepF > LambdaError: On error
+
+// User endpoints (complete)
+APIG > LambdaContracts > DDB
+APIG > LambdaAnalysis  > DDB
+APIG > LambdaConsult   > Bedrock
+APIG > LambdaRename    > DDB
+APIG > LambdaDelete    > DDB
+APIG > LambdaSaveEdit  > DDB
+APIG > LambdaSupport   > SES
+
+// Admin endpoints (complete)
+APIG > LambdaListUsers   > Cognito
+APIG > LambdaDisableUser > Cognito
+APIG > LambdaEnableUser  > Cognito
+APIG > LambdaDeleteUser  > Cognito
+APIG > LambdaStats       > DDB

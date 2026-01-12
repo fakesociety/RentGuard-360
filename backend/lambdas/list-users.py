@@ -54,6 +54,12 @@ def get_attribute(user, attr_name):
     return None
 
 
+def is_email_verified(user):
+    """Return True if Cognito user has email_verified=true."""
+    val = get_attribute(user, 'email_verified')
+    return str(val).lower() == 'true'
+
+
 def cors_headers():
     """Returns standard CORS headers for API Gateway responses."""
     return {
@@ -112,6 +118,11 @@ def lambda_handler(event, context):
         
         for page in paginator.paginate(UserPoolId=user_pool_id, Limit=min(limit, 60)):
             for user in page['Users']:
+                # Show only verified users in admin UI.
+                # Note: admin-created users can be FORCE_CHANGE_PASSWORD but still have email_verified=true.
+                if not is_email_verified(user):
+                    continue
+
                 user_data = {
                     'username': user['Username'],
                     'email': get_attribute(user, 'email'),

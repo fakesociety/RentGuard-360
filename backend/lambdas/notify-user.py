@@ -88,8 +88,30 @@ def build_notification_email(risk_score):
     Returns:
         str: HTML email body
     """
-    # Color based on risk score: red if risky, green if safe
-    color = "#d9534f" if risk_score > 50 else "#5cb85c"
+    def _to_score(value):
+        try:
+            score = float(value)
+        except Exception:
+            score = 0.0
+        if score < 0:
+            score = 0.0
+        if score > 100:
+            score = 100.0
+        return score
+
+    def _score_color(score):
+        # Match frontend/admin legend:
+        # 0-50 (high risk) red, 51-70 orange, 71-85 light green, 86-100 green
+        if score >= 86:
+            return "#22c55e"  # green
+        if score >= 71:
+            return "#10b981"  # light green
+        if score >= 51:
+            return "#f59e0b"  # orange
+        return "#ef4444"      # red
+
+    score = _to_score(risk_score)
+    color = _score_color(score)
     
     return f"""
     <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
@@ -99,7 +121,7 @@ def build_notification_email(risk_score):
             
             <div style="text-align: center; margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
                 <h3>ציון הסיכון המשוקלל:</h3>
-                <h1 style="color: {color}; margin: 0; font-size: 40px;">{risk_score}/100</h1>
+                <h1 style="color: {color}; margin: 0; font-size: 40px;">{int(round(score))}/100</h1>
             </div>
 
             <p>הכנס לאתר כדי לראות את הפירוט המלא, ההסברים והטיפים למשא ומתן.</p>
