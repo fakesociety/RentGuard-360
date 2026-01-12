@@ -145,7 +145,9 @@ const AdminDashboard = () => {
     // Safe local date parser to avoid UTC offsets hiding today's data
     const parseLocalDate = (dateStr) => {
         if (!dateStr) return new Date();
-        const parts = dateStr.split('-');
+        // Accept both YYYY-MM-DD and full ISO timestamps (YYYY-MM-DDTHH:mm:ss...)
+        const dateOnly = String(dateStr).slice(0, 10);
+        const parts = dateOnly.split('-');
         return new Date(parts[0], parts[1] - 1, parts[2]);
     };
 
