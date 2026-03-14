@@ -170,13 +170,20 @@ API_URL=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 
 USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
 USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId'].OutputValue" --output text)
 CONTRACTS_BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='ContractsBucketName'].OutputValue" --output text)
+CHECK_USER_API_KEY_ID=$(aws cloudformation list-stack-resources --stack-name "$STACK_NAME" --query "StackResourceSummaries[?LogicalResourceId=='CheckUserApiKey'].PhysicalResourceId" --output text)
+CHECK_USER_API_KEY=$(aws apigateway get-api-key --api-key "$CHECK_USER_API_KEY_ID" --include-value --query "value" --output text)
 
 echo "VITE_API_ENDPOINT=$API_URL" > .env
+echo "VITE_CHECK_USER_API_KEY=$CHECK_USER_API_KEY" >> .env
 echo "VITE_USER_POOL_ID=$USER_POOL_ID" >> .env
 echo "VITE_USER_POOL_CLIENT_ID=$USER_POOL_CLIENT_ID" >> .env
 echo "VITE_AWS_REGION=us-east-1" >> .env
 echo "VITE_S3_BUCKET=$CONTRACTS_BUCKET" >> .env
 ```
+
+Security note:
+- `VITE_CHECK_USER_API_KEY` is intended for API Gateway usage-plan throttling and abuse control for the public `/auth/check-user` endpoint.
+- Rotate this key if exposed and redeploy/rebuild frontend.
 
 ### 2) Build and upload
 
@@ -254,7 +261,27 @@ aws apigateway get-method --rest-api-id "$API_ID" --region "$REGION" --resource-
 	--query "{httpMethod:httpMethod,auth:authorizationType}" --output table
 ```
 
-### 3) CloudFront is deployed
+### 3) Verify API Gateway `GET /auth/check-user` (+ API key required)
+
+```bash
+STACK_NAME=RentGuard360
+REGION=us-east-1
+
+API_ID=$(aws cloudformation list-stack-resources --stack-name "$STACK_NAME" --region "$REGION" \
+	--query "StackResourceSummaries[?ResourceType=='AWS::ApiGateway::RestApi'] | [0].PhysicalResourceId" --output text)
+
+CHECK_USER_ID=$(aws apigateway get-resources --rest-api-id "$API_ID" --region "$REGION" \
+	--query "items[?path=='/auth/check-user'] | [0].id" --output text)
+
+aws apigateway get-method --rest-api-id "$API_ID" --region "$REGION" --resource-id "$CHECK_USER_ID" --http-method GET \
+	--query "{httpMethod:httpMethod,auth:authorizationType,apiKeyRequired:apiKeyRequired}" --output table
+```
+
+Expected:
+- `auth` should be `NONE`
+- `apiKeyRequired` should be `true`
+
+### 4) CloudFront is deployed
 
 ```bash
 STACK_NAME=RentGuard360
