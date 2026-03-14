@@ -19,7 +19,7 @@ Processing Steps:
   5. Recalculate scores using Python (override AI calculations)
 
 Notes:
-  - Specialized for Israeli rental contracts (Hebrew/English)
+  - Specialized for Israeli rental contracts (Hebrew)
   - Contains comprehensive knowledge base of Israeli rental law
   - Uses severity guide to ensure consistent risk ratings
   - Scores are calculated by Python, not trusted from AI

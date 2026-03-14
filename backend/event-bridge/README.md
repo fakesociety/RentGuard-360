@@ -1,5 +1,9 @@
-event pattern
+# EventBridge Configuration
 
+This rule triggers the Step Functions workflow when a PDF is uploaded to S3.
+
+## Event Pattern
+```json
 {
   "source": ["aws.s3"],
   "detail-type": ["Object Created"],
@@ -14,22 +18,35 @@ event pattern
     }
   }
 }
+```
 
-Input path
+## Input Transformer
+
+**Input Path:**
+```json
 {
   "bucket": "$.detail.bucket.name",
   "key": "$.detail.object.key"
 }
-Input template 
+```
+
+**Input Template:**
+```json
 {
   "bucket": <bucket>,
   "key": <key>
 }
+```
 
-DynamoDB Tables: RentGuard-Contracts, RentGuard-Analysis
+## Triggered Workflow
 
-Cognito User Pool ID: <user-pool-id>
+1. **RentGuard_AzureOCR** - Extract text from PDF using Azure Document Intelligence
+2. **privacy-shield** - Remove PII (phone numbers, IDs, etc.)
+3. **ai-analyzer** - Analyze contract using Claude AI (Bedrock)
+4. **save-results** - Save analysis to DynamoDB
+5. **NotifyUser** - Send email notification via SES
 
-identity pool id: <identity-pool-id>
+## Related Resources
 
-שכבות (Layers): ציין ש-pdf-processor משתמש ב-PyPDF2 Layer.
+- DynamoDB Tables: `<ProjectName>-Contracts`, `<ProjectName>-Analysis`
+- Cognito User Pool: `<ProjectName>-UserPool`

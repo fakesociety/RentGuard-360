@@ -72,3 +72,10 @@ logs/
 /frontend/node_modules
 frontend/dist/
 docs/api_documentation.html
+# C# / .NET build artifacts
+backend/StripePaymentAPI/bin/
+backend/StripePaymentAPI/obj/
+backend/StripePaymentAPI/publish/
+
+# C# secrets (never commit API keys!)
+backend/StripePaymentAPI/appsettings.json

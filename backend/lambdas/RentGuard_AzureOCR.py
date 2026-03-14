@@ -4,7 +4,7 @@ LAMBDA: RentGuard_AzureOCR
 PDF text extraction using Azure Document Intelligence
 =============================================================================
 
-Trigger: Step Functions or EventBridge S3 event
+Trigger: EventBridge S3 event
 Input: S3 bucket and key of PDF
 Output: Extracted text and page count
 

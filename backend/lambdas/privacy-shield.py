@@ -4,16 +4,15 @@ LAMBDA: privacy-shield
 Sanitizes extracted contract text for privacy and prepares for analysis
 =============================================================================
 
-Trigger: Step Functions (after gemini-text-extractor)
+Trigger: Step Functions (after RentGuard_AzureOCR)
 Input: Extracted text from PDF, contractId, bucket, key
-Output: Sanitized text, clauses list, contract confidence score
+Output: Sanitized text, clauses list
 
 Processing Steps:
   1. Detect and fix reversed text (mirror text from some scanners)
   2. Mask PII (ID numbers, credit cards, phones, emails, bank accounts)
   3. Remove OCR noise (scanner watermarks, special characters)
   4. Split text into clauses for display
-  5. Calculate contract confidence score
 
 =============================================================================
 """
@@ -23,7 +22,6 @@ Processing Steps:
 # =============================================================================
 
 import re
-import json
 import logging
 
 # =============================================================================
@@ -56,16 +54,7 @@ OCR_NOISE_PATTERNS = [
 KEYWORDS_NORMAL = ['חוזה', 'הסכם', 'שכירות', 'משכיר', 'שוכר', 'דירה']
 KEYWORDS_REVERSED = ['הזוח', 'םכסה', 'תוריכש', 'ריכשמ', 'רכוש', 'הריד']
 
-# Keywords for contract confidence scoring
-CONTRACT_KEYWORDS = [
-    ('חוזה שכירות', 20), ('הסכם שכירות', 20),
-    ('המשכיר', 10), ('משגיר', 10), ('בעל הדירה', 10),
-    ('השוכר', 10), ('השובר', 10),
-    ('דמי שכירות', 15), ('תשלום חודשי', 10),
-    ('תקופת השכירות', 10), ('תקופת האופציה', 5),
-    ('פינוי', 5), ('ערבות', 5), ('צ\'ק ביטחון', 5),
-    ('בלתי מוגנת', 10)
-]
+
 
 # Section headers commonly found in rental contracts
 SECTION_HEADERS = [
@@ -242,24 +231,6 @@ def split_to_clauses(text: str) -> list[str]:
     return cleaned
 
 
-def calculate_contract_confidence(text: str) -> int:
-    """
-    Calculates confidence score that the text is a rental contract.
-    
-    Args:
-        text: Contract text
-    
-    Returns:
-        int: Confidence score (0-100)
-    """
-    score = 0
-    text_lower = text.lower()
-    
-    for keyword, weight in CONTRACT_KEYWORDS:
-        if keyword in text or keyword in text_lower:
-            score += weight
-            
-    return min(100, score)
 
 # =============================================================================
 # MAIN HANDLER
@@ -274,7 +245,7 @@ def lambda_handler(event, context):
         context: AWS Lambda context object
     
     Returns:
-        dict: Sanitized text, clauses list, confidence score
+        dict: Sanitized text, clauses list, piiFound
     """
     try:
         text = event.get('extractedText', '')
@@ -287,7 +258,6 @@ def lambda_handler(event, context):
         if not text:
             return {
                 'error': 'No text extracted',
-                'contractConfidence': 0,
                 'sanitizedText': ''
             }
         
@@ -303,15 +273,10 @@ def lambda_handler(event, context):
         # 4. Split into clauses
         clauses_list = split_to_clauses(text)
         
-        # 5. Calculate contract confidence
-        contract_confidence = calculate_contract_confidence(text)
-        logger.info(f"Contract Confidence Score: {contract_confidence}")
-        
         return {
             'contractId': contract_id,
             'sanitizedText': text,
             'clauses': clauses_list,
-            'contractConfidence': contract_confidence,
             'piiFound': pii_found,
             'bucket': bucket,
             'key': key
