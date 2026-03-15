@@ -58,6 +58,11 @@
     transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
+.stripe-kpi-card > div:last-child {
+    flex: 1;
+    min-width: 0;
+}
+
 .stripe-kpi-card:hover {
     border-color: var(--admin-card-border-hover);
     transform: translateY(-1px);
@@ -86,6 +91,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 700;
+    line-height: 1.25;
 }
 
 .kpi-value {
@@ -93,6 +99,11 @@
     font-size: clamp(1.05rem, 1.6vw, 1.35rem);
     font-weight: 700;
     color: var(--admin-text);
+}
+
+[dir='rtl'] .kpi-label {
+    text-transform: none;
+    letter-spacing: 0.01em;
 }
 
 .stripe-content-grid {
@@ -238,6 +249,35 @@
 
 .custom-fill {
     transition: width 0.25s ease;
+}
+
+.payment-mix-summary-list {
+    display: grid;
+    gap: 10px;
+}
+
+.payment-mix-summary-row {
+    border: 1px solid var(--admin-card-border);
+    border-radius: 10px;
+    padding: 10px;
+    display: grid;
+    gap: 6px;
+}
+
+.payment-mix-summary-head,
+.payment-mix-summary-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: var(--admin-text-secondary);
+}
+
+.payment-mix-summary-head span:last-child,
+.payment-mix-summary-foot span:last-child {
+    font-weight: 700;
+    color: var(--admin-text);
 }
 
 .stripe-extra-signals {
@@ -425,6 +465,38 @@
 .status-pill.pending {
     color: #92400e;
     background: rgba(245, 158, 11, 0.2);
+}
+
+.currency-summary {
+    border: 1px solid var(--admin-card-border);
+    border-radius: 12px;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+}
+
+.currency-summary h4 {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--admin-text-secondary);
+}
+
+.currency-summary-list {
+    display: grid;
+    gap: 6px;
+}
+
+.currency-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.86rem;
+    color: var(--admin-text-secondary);
+}
+
+.currency-summary-row strong {
+    color: var(--admin-text);
 }
 
 .empty-text {
