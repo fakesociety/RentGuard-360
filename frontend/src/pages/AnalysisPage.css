@@ -396,13 +396,14 @@
    without being trapped in a nested scroll container. If you want the
    old independent scrolling behavior, restore the original rules. */
 .issues-section {
-    /* Disable the fixed-height inner scroll so page scrolling handles
-       both the contract view and the issues list seamlessly. */
-    max-height: none;
-    overflow-y: visible;
+    max-height: calc(100vh - 180px); 
+    overflow-y: auto;
     padding-right: var(--space-xs);
-    /* Explicitly allow scroll chaining (default) */
-    overscroll-behavior: auto;
+    scrollbar-width: none; 
+}
+
+.issues-section::-webkit-scrollbar {
+    display: none; 
 }
 
 /* Keep hidden scrollbar rule harmless when using visible overflow */
