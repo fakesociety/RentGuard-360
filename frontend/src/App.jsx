@@ -159,7 +159,6 @@ const Navigation = () => {
               {(isAdmin || isUnlimited) ? (
                 <span className="scan-badge-unlimited">
                   <span className="scan-badge-infinity">∞</span>
-                  <span className="scan-badge-label">UNLIMITED</span>
                 </span>
               ) : (
                 <span>{scansRemaining}</span>

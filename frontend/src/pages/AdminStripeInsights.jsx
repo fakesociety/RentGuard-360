@@ -10,7 +10,6 @@ import {
     TrendingUp,
     CheckCircle2,
     XCircle,
-    BarChart3,
     ShieldAlert,
     Landmark,
     BadgeDollarSign,
@@ -36,6 +35,18 @@ const shortUserId = (value) => {
     const text = String(value || '');
     if (text.length <= 12) return text;
     return `${text.slice(0, 6)}...${text.slice(-4)}`;
+};
+
+const localizeBundleName = (name, isRTL) => {
+    const raw = String(name || '').trim();
+    if (!isRTL) return raw;
+
+    const key = raw.toLowerCase();
+    if (key === 'basic') return 'בסיס';
+    if (key === 'free') return 'חינם';
+    if (key === 'single') return 'חד פעמית';
+    if (key === 'pro') return 'פרו';
+    return raw;
 };
 
 const CACHE_KEY = 'rg_admin_stripe_stats';
@@ -67,15 +78,6 @@ const normalizeAdminStatsError = (err) => {
     if (msg.includes('504')) return 'Stripe service זמנית לא זמין (504).';
     if (msg.includes('timeout')) return 'טעינת Stripe התעכבה. נסה שוב בעוד רגע.';
     return err?.message || 'שגיאה בטעינת נתוני Stripe';
-};
-
-const METHOD_COLORS = {
-    card: '#38bdf8',
-    paypal: '#10b981',
-    apple_pay: '#8b5cf6',
-    bank_transfer: '#14b8a6',
-    ideal: '#6366f1',
-    unknown: '#64748b',
 };
 
 const AdminStripeInsights = () => {
@@ -134,7 +136,6 @@ const AdminStripeInsights = () => {
     }, [stripe]);
 
     const totalMethodCount = Math.max(paymentMethods.reduce((sum, method) => sum + Number(method.count || 0), 0), 1);
-    const maxMethodCount = Math.max(...paymentMethods.map((method) => Number(method.count || 0)), 1);
     const disputeRate = useMemo(() => {
         const charges = Number(stripe.chargesLast30Days || 0);
         if (!charges) return 0;
@@ -162,66 +163,22 @@ const AdminStripeInsights = () => {
             .sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
     }, [currencies, sql.recentTransactions]);
 
-    const statusMix = useMemo(() => {
-        const items = [
-            { label: 'Succeeded', value: Number(sql.successfulTransactions || 0), className: 'ok' },
-            { label: 'Failed', value: Number(sql.failedTransactions || 0), className: 'bad' },
-            {
-                label: 'Other',
-                value: Math.max(0, Number(sql.totalTransactions || 0) - Number(sql.successfulTransactions || 0) - Number(sql.failedTransactions || 0)),
-                className: 'neutral'
-            },
-        ];
-
-        const total = Math.max(items.reduce((sum, item) => sum + item.value, 0), 1);
-        return {
-            total,
-            items: items.map((item) => ({
-                ...item,
-                percent: Math.round((item.value / total) * 100),
-            })),
-        };
-    }, [sql.failedTransactions, sql.successfulTransactions, sql.totalTransactions]);
     const paymentMixRows = useMemo(() => {
-        if (paymentMethods.length > 0) {
-            return paymentMethods
-                .slice()
-                .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
-                .map((method) => {
-                    const key = String(method.method || 'unknown').toLowerCase();
-                    const value = Number(method.count || 0);
-                    const width = Math.max(6, Math.round((value / maxMethodCount) * 100));
-                    const percent = Math.round((value / totalMethodCount) * 100);
-                    const color = METHOD_COLORS[key] || METHOD_COLORS.unknown;
-
-                    return {
-                        label: key.replace(/_/g, ' '),
-                        percent,
-                        width,
-                        fill: `linear-gradient(90deg, ${color}, #22d3ee)`,
-                    };
-                });
-        }
-
-        const fallbackTotal = Math.max(statusMix.items.reduce((sum, item) => sum + item.value, 0), 1);
-        return statusMix.items
-            .filter((item) => item.value > 0)
-            .map((item) => {
-                const width = Math.max(8, Math.round((item.value / fallbackTotal) * 100));
-                const fill = item.className === 'ok'
-                    ? 'linear-gradient(90deg, #4ade80, #22c55e)'
-                    : item.className === 'bad'
-                        ? 'linear-gradient(90deg, #fb7185, #ef4444)'
-                        : 'linear-gradient(90deg, #94a3b8, #64748b)';
+        return paymentMethods
+            .slice()
+            .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
+            .map((method) => {
+                const key = String(method.method || 'unknown').toLowerCase();
+                const value = Number(method.count || 0);
+                const percent = Math.round((value / totalMethodCount) * 100);
 
                 return {
-                    label: `${item.label} (fallback)`,
-                    percent: item.percent,
-                    width,
-                    fill,
+                    label: key.replace(/_/g, ' '),
+                    percent,
+                    count: value,
                 };
             });
-    }, [paymentMethods, maxMethodCount, totalMethodCount, statusMix]);
+    }, [paymentMethods, totalMethodCount]);
 
     if (!isAdmin) {
         return (
@@ -241,9 +198,9 @@ const AdminStripeInsights = () => {
                 <div>
                     <h1>
                         <CreditCard size={28} style={{ marginInlineEnd: '12px' }} />
-                        Stripe & Billing Insights
+                        {t('admin.stripeInsightsTitle')}
                     </h1>
-                    <p>Comprehensive analysis of payments, revenue trends, and billing performance</p>
+                    <p>{t('admin.stripeInsightsSubtitle')}</p>
                 </div>
             </header>
 
@@ -306,7 +263,7 @@ const AdminStripeInsights = () => {
                         <article className="stripe-kpi-card">
                             <div className="kpi-icon"><ShieldAlert size={20} /></div>
                             <div>
-                                <p className="kpi-label">Disputes (30d)</p>
+                                <p className="kpi-label">{t('admin.disputes30Days')}</p>
                                 <p className="kpi-value">{Number(stripe.disputeCountLast30Days || 0)}</p>
                             </div>
                         </article>
@@ -322,7 +279,7 @@ const AdminStripeInsights = () => {
                                     return (
                                         <div className="bundle-row" key={item.name}>
                                             <div className="bundle-row-head">
-                                                <span>{item.name}</span>
+                                                <span>{localizeBundleName(item.name, isRTL)}</span>
                                                 <span>{item.count}</span>
                                             </div>
                                             <div className="bundle-track">
@@ -352,14 +309,14 @@ const AdminStripeInsights = () => {
                                         <span>{t('admin.chargesEnabled')}</span>
                                         <strong className={stripe.chargesEnabled ? 'ok' : 'bad'}>
                                             {stripe.chargesEnabled ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
-                                            {stripe.chargesEnabled ? 'ON' : 'OFF'}
+                                            {stripe.chargesEnabled ? t('admin.enabled') : t('admin.disabled')}
                                         </strong>
                                     </div>
                                     <div className="feature-row">
                                         <span>{t('admin.payoutsEnabled')}</span>
                                         <strong className={stripe.payoutsEnabled ? 'ok' : 'bad'}>
                                             {stripe.payoutsEnabled ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
-                                            {stripe.payoutsEnabled ? 'ON' : 'OFF'}
+                                            {stripe.payoutsEnabled ? t('admin.enabled') : t('admin.disabled')}
                                         </strong>
                                     </div>
                                     <div className="feature-row">
@@ -371,7 +328,7 @@ const AdminStripeInsights = () => {
                                         <strong>{stripe.refundedChargesLast30Days || 0}</strong>
                                     </div>
                                     <div className="feature-row">
-                                        <span>Refund Amount (30d)</span>
+                                        <span>{t('admin.refundAmount30Days')}</span>
                                         <strong>{formatMoney(stripe.refundedAmountLast30Days, displayCurrency, locale)}</strong>
                                     </div>
                                     <div className="feature-row">
@@ -383,7 +340,7 @@ const AdminStripeInsights = () => {
                                         <strong>{formatMoney(stripe.pendingBalance, displayCurrency, locale)}</strong>
                                     </div>
                                     <div className="feature-row">
-                                        <span>Intent to Charge Conversion</span>
+                                        <span>{t('admin.intentToChargeConversion')}</span>
                                         <strong>{conversionRate}%</strong>
                                     </div>
                                 </div>
@@ -395,85 +352,45 @@ const AdminStripeInsights = () => {
 
                         <section className="stripe-single-panel stretch-panels">
                             <article className="stripe-panel">
-                                <h3><BarChart3 size={17} /> Payment Method Mix</h3>
+                                <h3><Activity size={17} /> {t('admin.paymentMethodMix')}</h3>
                                 {paymentMixRows.length > 0 ? (
-                                    <div className="payment-mix-list">
+                                    <div className="payment-mix-summary-list">
                                         {paymentMixRows.map((row) => (
-                                            <div className="payment-mix-row" key={`mix-${row.label}`}>
-                                                <div className="payment-mix-head">
-                                                    <span>{row.label}</span>
-                                                    <span>{row.percent}%</span>
+                                            <div className="payment-mix-summary-row" key={`mix-${row.label}`}>
+                                                <div className="payment-mix-summary-head">
+                                                    <span>{row.label || t('common.na')}</span>
+                                                    <span>{row.count}</span>
                                                 </div>
-                                                <div className="bundle-track">
-                                                    <div className="bundle-fill custom-fill" style={{ width: `${row.width}%`, background: row.fill }}></div>
+                                                <div className="payment-mix-summary-foot">
+                                                    <span>{t('admin.transactions')}</span>
+                                                    <span>{row.percent}%</span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="empty-text">No payment signals found yet.</p>
+                                    <p className="empty-text">{t('admin.noPaymentSignals')}</p>
                                 )}
 
                                 <div className="stripe-extra-signals">
                                     <div className="signal-row">
-                                        <span><Activity size={14} /> Failed Charges (30d)</span>
+                                        <span><Activity size={14} /> {t('admin.failedCharges30Days')}</span>
                                         <strong>{Number(stripe.failedChargesLast30Days || 0)}</strong>
                                     </div>
                                     <div className="signal-row">
-                                        <span><ShieldAlert size={14} /> Dispute Rate</span>
+                                        <span><ShieldAlert size={14} /> {t('admin.disputeRate')}</span>
                                         <strong>{disputeRate}%</strong>
                                     </div>
                                     <div className="signal-row">
-                                        <span><Percent size={14} /> Refund Rate</span>
+                                        <span><Percent size={14} /> {t('admin.refundRate')}</span>
                                         <strong>{refundRate}%</strong>
                                     </div>
                                     <div className="signal-row">
-                                        <span><Landmark size={14} /> Charges / Intents</span>
+                                        <span><Landmark size={14} /> {t('admin.chargesToIntents')}</span>
                                         <strong>{stripe.chargesLast30Days || 0}/{stripe.paymentIntentsLast30Days || 0}</strong>
                                     </div>
                                 </div>
                             </article>
-                        </section>
-
-                        <section className="stripe-panel">
-                            <h3>Top Currencies</h3>
-                            {derivedCurrencies.length > 0 ? (
-                                <div className="currency-list">
-                                    {derivedCurrencies.slice(0, 6).map((cur) => {
-                                        const maxCurrency = Math.max(...derivedCurrencies.map((item) => Number(item.amount || 0)), 1);
-                                        const currencyAmount = Number(cur.amount || 0);
-                                        const width = Math.max(10, Math.round((currencyAmount / maxCurrency) * 100));
-                                        return (
-                                            <div className="currency-row" key={cur.currency}>
-                                                <div className="currency-head">
-                                                    <span>{String(cur.currency || '').toUpperCase()}</span>
-                                                    <strong>{formatMoney(cur.amount, cur.currency, locale)}</strong>
-                                                </div>
-                                                <div className="bundle-track">
-                                                    <div className="bundle-fill alt" style={{ width: `${width}%` }}></div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <p className="empty-text">No currency amounts found yet.</p>
-                            )}
-
-                            <div className="status-mix">
-                                <h4>Transaction Status Split</h4>
-                                {statusMix.items.map((item) => (
-                                    <div className="status-mix-row" key={`status-mix-${item.label}`}>
-                                        <div className="status-mix-head">
-                                            <span>{item.label}</span>
-                                            <span>{item.percent}%</span>
-                                        </div>
-                                        <div className="bundle-track">
-                                            <div className={`status-mix-fill ${item.className}`} style={{ width: `${Math.max(3, item.percent)}%` }}></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
                         </section>
 
                         <section className="stripe-panel table-panel">
@@ -481,11 +398,26 @@ const AdminStripeInsights = () => {
                                 <h3>{t('admin.recentTransactions')}</h3>
                                 <span>{t('admin.generatedAt')}: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString(locale) : 'N/A'}</span>
                             </div>
+                            <div className="currency-summary">
+                                <h4>{t('admin.topCurrencies')}</h4>
+                                {derivedCurrencies.length > 0 ? (
+                                    <div className="currency-summary-list">
+                                        {derivedCurrencies.slice(0, 6).map((cur) => (
+                                            <div className="currency-summary-row" key={`currency-${cur.currency}`}>
+                                                <span>{String(cur.currency || '').toUpperCase()}</span>
+                                                <strong>{formatMoney(cur.amount, cur.currency, locale)}</strong>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="empty-text">{t('admin.noCurrencyAmounts')}</p>
+                                )}
+                            </div>
                             <div className="table-wrap">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>User</th>
+                                            <th>{t('common.user')}</th>
                                             <th>{t('admin.bundle')}</th>
                                             <th>{t('admin.amount')}</th>
                                             <th>{t('admin.currency')}</th>
