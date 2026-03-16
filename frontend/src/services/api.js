@@ -43,7 +43,7 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 // API Gateway base URL
 // IMPORTANT: Do not fall back to a hardcoded URL. It can accidentally point to an old AWS account/stack
 // and cause 500s like "User pool ... does not exist".
-const API_BASE_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_ENDPOINT;
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
 const CHECK_USER_API_KEY = import.meta.env.VITE_CHECK_USER_API_KEY;
 
 if (!API_BASE_URL) {

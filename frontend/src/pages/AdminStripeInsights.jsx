@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -88,9 +88,10 @@ const AdminStripeInsights = () => {
     const [data, setData] = useState(() => getCachedStats());
     const [loading, setLoading] = useState(() => !getCachedStats());
     const [error, setError] = useState('');
+    const initialHasCacheRef = useRef(Boolean(getCachedStats()));
 
     const loadData = useCallback(async (silent = false) => {
-        if (!silent || !data) {
+        if (!silent) {
             setLoading(true);
         }
         setError('');
@@ -108,14 +109,14 @@ const AdminStripeInsights = () => {
         } finally {
             setLoading(false);
         }
-    }, [data]);
+    }, []);
 
     useEffect(() => {
-        loadData(Boolean(data));
+        loadData(initialHasCacheRef.current);
     }, [loadData]);
 
-    const sql = data?.sql || {};
-    const stripe = data?.stripe || {};
+    const sql = useMemo(() => data?.sql ?? {}, [data]);
+    const stripe = useMemo(() => data?.stripe ?? {}, [data]);
 
     const successRate = useMemo(() => {
         const total = Number(stripe.chargesLast30Days || 0);
@@ -126,8 +127,14 @@ const AdminStripeInsights = () => {
 
     const locale = isRTL ? 'he-IL' : 'en-US';
     const displayCurrency = stripe.defaultCurrency || 'USD';
-    const paymentMethods = stripe.paymentMethodBreakdown || [];
-    const currencies = stripe.currencyBreakdown || [];
+    const paymentMethods = useMemo(
+        () => (Array.isArray(stripe.paymentMethodBreakdown) ? stripe.paymentMethodBreakdown : []),
+        [stripe.paymentMethodBreakdown]
+    );
+    const currencies = useMemo(
+        () => (Array.isArray(stripe.currencyBreakdown) ? stripe.currencyBreakdown : []),
+        [stripe.currencyBreakdown]
+    );
     const conversionRate = useMemo(() => {
         const intents = Number(stripe.paymentIntentsLast30Days || 0);
         const successfulCharges = Number(stripe.successfulChargesLast30Days || 0);

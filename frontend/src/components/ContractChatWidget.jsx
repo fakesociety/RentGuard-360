@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { MessageCircle, X, Send, Copy, Check, Bot } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,11 +16,16 @@ const getAnalysisContractIdFromPath = (pathname) => {
     }
 };
 
-const normalizeAssistantText = (rawText) => {
+const normalizeAssistantText = (rawText, originalQuestion = '') => {
     const text = String(rawText || '');
     if (!text) return '';
 
-    return text
+    const normalizedQuestion = String(originalQuestion || '').trim();
+    const escapedQuestion = normalizedQuestion
+        ? normalizedQuestion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        : '';
+
+    let cleaned = text
         .replace(/\r\n/g, '\n')
         // Remove markdown emphasis markers.
         .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -32,6 +37,15 @@ const normalizeAssistantText = (rawText) => {
         // Collapse overly large vertical gaps after markdown cleanup.
         .replace(/\n{3,}/g, '\n\n')
         .trim();
+
+    if (escapedQuestion) {
+        // Remove prefixed question echoes such as "שאלה: ..." / "Question: ..." if they mirror user text.
+        cleaned = cleaned
+            .replace(new RegExp(`^\\s*(?:שאלה|question)\\s*[:\\-]\\s*${escapedQuestion}\\s*`, 'i'), '')
+            .trim();
+    }
+
+    return cleaned;
 };
 
 const formatMessageTime = (rawTime, locale) => {
@@ -66,18 +80,20 @@ const ContractChatWidget = () => {
     const { isAuthenticated, user, userAttributes } = useAuth();
     const { t, isRTL } = useLanguage();
     const location = useLocation();
-    const navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
     const [loadingContracts, setLoadingContracts] = useState(false);
     const [contracts, setContracts] = useState([]);
     const [selectedContractId, setSelectedContractId] = useState('');
     const [messages, setMessages] = useState([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [question, setQuestion] = useState('');
     const [isAsking, setIsAsking] = useState(false);
     const [errorKey, setErrorKey] = useState('');
     const [copiedMessageKey, setCopiedMessageKey] = useState('');
     const [responseHintKey, setResponseHintKey] = useState('');
+    const [rateLimitRetryAt, setRateLimitRetryAt] = useState(0);
+    const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
     const [isTipCollapsed, setIsTipCollapsed] = useState(true);
     const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
     const [footerOffset, setFooterOffset] = useState(24);
@@ -127,13 +143,14 @@ const ContractChatWidget = () => {
         }
     };
 
-    const isOutOfScopeAnswer = (answerText) => {
-        const text = String(answerText || '').toLowerCase();
+    const isRateLimitError = (error) => {
+        const text = String(error?.message || error || '').toLowerCase();
         return (
-            text.includes('not found in contract') ||
-            text.includes('not supported by the context') ||
-            text.includes('לא נמצאת בחוזה') ||
-            text.includes('לא נמצא בחוזה')
+            text.includes('429') ||
+            text.includes('too many requests') ||
+            text.includes('rate limit') ||
+            text.includes('rate-limit') ||
+            text.includes('קצב')
         );
     };
 
@@ -203,10 +220,12 @@ const ContractChatWidget = () => {
     useEffect(() => {
         if (!selectedContractId || !open) {
             setMessages([]);
+            setIsHistoryLoading(false);
             return;
         }
 
         const loadHistory = async () => {
+            setIsHistoryLoading(true);
             try {
                 const items = await getContractChatHistory(selectedContractId, 30);
                 const mapped = [];
@@ -222,7 +241,7 @@ const ContractChatWidget = () => {
                     if (item.answer) {
                         mapped.push({
                             role: 'assistant',
-                            text: normalizeAssistantText(item.answer),
+                            text: normalizeAssistantText(item.answer, item.question || ''),
                             ts: `${item.messageId || ''}-a`,
                             createdAt: item.createdAt || '',
                             meta: item.meta || null,
@@ -235,13 +254,13 @@ const ContractChatWidget = () => {
                 setMessages([]);
                 setErrorKey('loadHistory');
                 trackChatEvent('chat_history_load_failed', { contractId: selectedContractId });
+            } finally {
+                setIsHistoryLoading(false);
             }
         };
 
         loadHistory();
     }, [selectedContractId, open]);
-
-    if (!isAuthenticated) return null;
 
     useEffect(() => {
         const el = inputRef.current;
@@ -253,9 +272,43 @@ const ContractChatWidget = () => {
         el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
     }, [question, open]);
 
+    useEffect(() => {
+        if (!rateLimitRetryAt) {
+            setRateLimitSecondsLeft(0);
+            return;
+        }
+
+        const update = () => {
+            const seconds = Math.max(0, Math.ceil((rateLimitRetryAt - Date.now()) / 1000));
+            setRateLimitSecondsLeft(seconds);
+            if (seconds <= 0) {
+                setRateLimitRetryAt(0);
+            }
+        };
+
+        update();
+        const intervalId = setInterval(update, 500);
+        return () => clearInterval(intervalId);
+    }, [rateLimitRetryAt]);
+
+    if (!isAuthenticated) return null;
+
     const sendQuestion = async () => {
         const trimmed = question.trim();
         if (!trimmed || isAsking) return;
+
+        if (rateLimitSecondsLeft > 0) {
+            setResponseHintKey('rateLimit');
+            return;
+        }
+
+        if (import.meta.env.DEV && trimmed.toLowerCase() === '/test-rate-limit') {
+            setQuestion('');
+            setResponseHintKey('rateLimit');
+            setRateLimitRetryAt(Date.now() + 60000);
+            return;
+        }
+
         if (!selectedContractId) {
             setErrorKey('selectContract');
             trackChatEvent('chat_send_blocked_no_contract');
@@ -282,8 +335,7 @@ const ContractChatWidget = () => {
 
         try {
             const result = await askContractQuestion(selectedContractId, trimmed);
-            const answer = normalizeAssistantText(result?.answer || t('chat.noAnswer'));
-            const outOfScope = isOutOfScopeAnswer(answer);
+            const answer = normalizeAssistantText(result?.answer || t('chat.noAnswer'), trimmed);
             const botMsg = {
                 role: 'assistant',
                 text: answer,
@@ -292,14 +344,17 @@ const ContractChatWidget = () => {
                 meta: result?.meta || null,
             };
             setMessages((prev) => [...prev, botMsg]);
-            setResponseHintKey(outOfScope ? 'outOfScope' : '');
             trackChatEvent('chat_answer_received', {
                 contractId: selectedContractId,
-                outOfScope,
                 usedFullTextFallback: Boolean(result?.meta?.usedFullTextFallback),
             });
-        } catch {
-            setErrorKey('askFailed');
+        } catch (error) {
+            if (isRateLimitError(error)) {
+                setResponseHintKey('rateLimit');
+                setRateLimitRetryAt(Date.now() + 60000);
+            } else {
+                setErrorKey('askFailed');
+            }
             trackChatEvent('chat_answer_failed', { contractId: selectedContractId });
         } finally {
             setIsAsking(false);
@@ -412,13 +467,6 @@ const ContractChatWidget = () => {
         }
     };
 
-    const openContactSupport = () => {
-        trackChatEvent('chat_contact_support_clicked', {
-            contractId: selectedContractId || null,
-        });
-        navigate('/contact');
-    };
-
     return (
         <div
             className={`chat-widget ${open ? 'open' : ''}`}
@@ -430,7 +478,6 @@ const ContractChatWidget = () => {
                     <header className="chat-widget-header">
                         <div>
                             <h3>{t('chat.title')}</h3>
-                            <p>{t('chat.subtitle')}</p>
                             <p className="chat-widget-scope">{t('chat.scope')}</p>
                         </div>
                         <button
@@ -468,7 +515,7 @@ const ContractChatWidget = () => {
                                 type="button"
                                 className="chat-widget-clear"
                                 onClick={clearHistory}
-                                disabled={!selectedContractId || isAsking || messages.length === 0}
+                                disabled={!selectedContractId || isAsking || isHistoryLoading || messages.length === 0}
                                 title={t('chat.clear')}
                             >
                                 {t('chat.clearShort')}
@@ -477,15 +524,21 @@ const ContractChatWidget = () => {
                     </div>
 
                     <div className="chat-widget-messages" role="log" aria-live="polite">
+                        {selectedContractId && isHistoryLoading && (
+                            <div className="chat-widget-empty">
+                                {`${t('common.loading')}...`}
+                            </div>
+                        )}
+
                         {!selectedContractId && (
                             <div className="chat-widget-empty">{t('chat.emptySelectContract')}</div>
                         )}
 
-                        {selectedContractId && messages.length === 0 && (
+                        {selectedContractId && !isHistoryLoading && messages.length === 0 && (
                             <div className="chat-widget-empty">{t('chat.emptyStart')}</div>
                         )}
 
-                        {selectedContractId && messages.length === 0 && (
+                        {selectedContractId && !isHistoryLoading && messages.length === 0 && (
                             <div className="chat-widget-quick-prompts" aria-label={t('chat.quickPromptsLabel')}>
                                 {quickPrompts.map((promptText) => (
                                     <button
@@ -552,12 +605,25 @@ const ContractChatWidget = () => {
                         )}
                     </div>
 
-                    {responseHintKey === 'outOfScope' && (
+                    {responseHintKey && (
                         <div className="chat-widget-hint" role="status" aria-live="polite">
-                            <p>{t('chat.outOfScopeHint')}</p>
-                            <button type="button" onClick={openContactSupport}>
-                                {t('chat.contactSupport')}
-                            </button>
+                            <div className="chat-widget-hint-head">
+                                <p>
+                                    {t(`chat.hints.${responseHintKey}`)}
+                                    {responseHintKey === 'rateLimit' && rateLimitSecondsLeft > 0
+                                        ? ` ${t('chat.rateLimitRetryIn').replace('{seconds}', String(rateLimitSecondsLeft))}`
+                                        : ''}
+                                </p>
+                                <button
+                                    type="button"
+                                    className="chat-widget-hint-close"
+                                    onClick={() => setResponseHintKey('')}
+                                    aria-label={t('chat.dismissHint')}
+                                    title={t('chat.dismissHint')}
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -571,11 +637,11 @@ const ContractChatWidget = () => {
                             onKeyDown={onInputKeyDown}
                             placeholder={t('chat.inputPlaceholder')}
                             maxLength={1200}
-                            disabled={isAsking}
+                            disabled={isAsking || rateLimitSecondsLeft > 0}
                             rows={1}
                             dir="auto"
                         />
-                        <button type="submit" disabled={isAsking || !question.trim()} aria-label={t('chat.send')}>
+                        <button type="submit" disabled={isAsking || rateLimitSecondsLeft > 0 || !question.trim()} aria-label={t('chat.send')}>
                             <Send size={16} />
                         </button>
                     </form>

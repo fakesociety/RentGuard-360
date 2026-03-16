@@ -37,7 +37,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 /**
  * Inner checkout form — must be inside <Elements> provider
  */
-const CheckoutForm = ({ pkg, clientSecret, paymentIntentId, onSuccess }) => {
+const CheckoutForm = ({ pkg, clientSecret, onSuccess }) => {
     const stripe = useStripe();
     const elements = useElements();
     const { t, isRTL } = useLanguage();
@@ -159,7 +159,6 @@ const CheckoutPage = () => {
 
     const [pkg, setPkg] = useState(null);
     const [clientSecret, setClientSecret] = useState(null);
-    const [paymentIntentId, setPaymentIntentId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -190,8 +189,6 @@ const CheckoutPage = () => {
                 // 3. Create PaymentIntent for paid packages
                 const intentData = await createPaymentIntent(userId, parseInt(packageId));
                 setClientSecret(intentData.clientSecret);
-                setPaymentIntentId(intentData.paymentIntentId);
-
             } catch (err) {
                 console.error('Checkout init error:', err);
                 setError(err.message);
@@ -338,7 +335,6 @@ const CheckoutPage = () => {
                                     <CheckoutForm
                                         pkg={pkg}
                                         clientSecret={clientSecret}
-                                        paymentIntentId={paymentIntentId}
                                         onSuccess={handlePaymentSuccess}
                                     />
                                 </Elements>

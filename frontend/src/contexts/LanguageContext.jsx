@@ -281,7 +281,6 @@ const translations = {
         // Contract Chat Widget
         chat: {
             title: 'RentGuard 360 Chat',
-            subtitle: 'איך אפשר לעזור היום?',
             open: 'פתיחת צ׳אט חוזה',
             close: 'סגירת צ׳אט',
             contractLabel: 'חוזה',
@@ -312,8 +311,11 @@ const translations = {
             showNotice: 'הצג מידע',
             hideNotice: 'הסתר מידע',
             noAnswer: 'לא נוצרה תשובה.',
-            outOfScopeHint: 'נראה שהשאלה מחוץ להקשר החוזה. נסו לנסח שאלה ממוקדת על סעיפים או תנאים בחוזה.',
-            contactSupport: 'מעבר לתמיכה',
+            dismissHint: 'סגור הודעה',
+            hints: {
+                rateLimit: 'הגעתם כרגע למגבלת שאלות זמנית בגלל עומס. חכו כדקה ונסו שוב.'
+            },
+            rateLimitRetryIn: 'נסו שוב בעוד {seconds} שניות.',
             errors: {
                 loadContracts: 'טעינת החוזים נכשלה. נסו שוב.',
                 loadHistory: 'טעינת היסטוריית הצ׳אט נכשלה. נסו שוב.',
@@ -796,7 +798,6 @@ const translations = {
         // Contract Chat Widget
         chat: {
             title: 'RentGuard 360 Chat',
-            subtitle: 'How can I assist you today?',
             open: 'Open contract chat',
             close: 'Close chat',
             contractLabel: 'Contract',
@@ -827,8 +828,11 @@ const translations = {
             showNotice: 'Show info',
             hideNotice: 'Hide info',
             noAnswer: 'No answer generated.',
-            outOfScopeHint: 'This question may be outside the selected contract scope. Try a clause-specific question, or contact support.',
-            contactSupport: 'Contact support',
+            dismissHint: 'Dismiss message',
+            hints: {
+                rateLimit: 'You hit a temporary question limit due to load. Please wait about a minute and try again.'
+            },
+            rateLimitRetryIn: 'Try again in {seconds}s.',
             errors: {
                 loadContracts: 'Failed to load contracts. Please retry.',
                 loadHistory: 'Failed to load chat history. Please retry.',
