@@ -241,25 +241,35 @@ const DashboardPage = () => {
                 <section className="guide-section animate-fadeIn" style={{ animationDelay: '600ms' }}>
                     <Card variant="glass" padding="lg" className="guide-card">
                         <h2>{t('dashboard.howToStart')}</h2>
-                        <div className="guide-steps">
-                            <div className="guide-step">
-                                <div className="guide-number">1</div>
+                        <div className="guide-steps guide-steps-professional">
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">1</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step1Title')}</h4>
                                     <p>{t('dashboard.step1Desc')}</p>
                                 </div>
                             </div>
-                            <span className="step-arrow">{isRTL ? '←' : '→'}</span>
-                            <div className="guide-step">
-                                <div className="guide-number">2</div>
+
+                            <span className="step-arrow" aria-hidden="true">{isRTL ? '←' : '→'}</span>
+
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">2</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step2Title')}</h4>
                                     <p>{t('dashboard.step2Desc')}</p>
                                 </div>
                             </div>
-                            <span className="step-arrow">{isRTL ? '←' : '→'}</span>
-                            <div className="guide-step">
-                                <div className="guide-number">3</div>
+
+                            <span className="step-arrow" aria-hidden="true">{isRTL ? '←' : '→'}</span>
+
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">3</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step3Title')}</h4>
                                     <p>{t('dashboard.step3Desc')}</p>

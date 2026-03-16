@@ -219,6 +219,7 @@
 .guide-card h2 {
     text-align: center;
     color: var(--text-primary);
+    letter-spacing: -0.02em;
     margin-bottom: var(--space-xl);
 }
 
@@ -230,12 +231,20 @@
     gap: var(--space-lg);
 }
 
+.guide-steps-professional {
+    position: relative;
+    align-items: stretch;
+}
+
 .step-arrow {
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--accent-primary);
-    font-weight: bold;
+    font-weight: 900;
     flex-shrink: 0;
     align-self: center;
+    opacity: 0.85;
+    transform: translateY(-4px);
+    text-shadow: 0 0 0.5px currentColor, 0 0 0.5px currentColor;
 }
 
 .guide-step {
@@ -247,28 +256,58 @@
     min-width: 200px;
 }
 
+.guide-step-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--glass-border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg-page) 88%, transparent), color-mix(in srgb, var(--bg-page) 94%, transparent));
+    border-radius: 18px;
+    padding: 1.1rem 1rem 1rem;
+    box-shadow: 0 12px 28px rgba(7, 15, 28, 0.12);
+}
+
+[data-theme="dark"] .guide-step-card {
+    background: linear-gradient(180deg, rgba(25, 38, 61, 0.88), rgba(17, 28, 47, 0.92));
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+.guide-step-head {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
 .guide-number {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--accent-primary);
+    background: linear-gradient(145deg, #22d3a6, #0fbf96);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-md);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
 }
 
 .guide-content h4 {
     color: var(--text-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: 0.38rem;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
 }
 
 .guide-content p {
     color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 28ch;
 }
 
 /* ============================================
@@ -462,6 +501,11 @@
 
     .guide-steps {
         flex-direction: column;
+    }
+
+    .guide-step-card {
+        width: 100%;
+        min-width: 0;
     }
 
     .step-arrow {

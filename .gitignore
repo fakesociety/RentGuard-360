@@ -76,6 +76,7 @@ docs/api_documentation.html
 backend/StripePaymentAPI/bin/
 backend/StripePaymentAPI/obj/
 backend/StripePaymentAPI/publish/
+backend/StripePaymentAPI/out_clean/
 
 # C# secrets (never commit API keys!)
 backend/StripePaymentAPI/appsettings.json

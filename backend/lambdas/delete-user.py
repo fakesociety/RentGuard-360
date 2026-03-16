@@ -85,12 +85,18 @@ def delete_sql_subscription(user_id):
     if not user_id or not STRIPE_API_URL:
         return {'attempted': False, 'deleted': False, 'reason': 'Missing userId or STRIPE_API_URL'}
 
+    if not PAYMENT_INTERNAL_API_KEY:
+        return {
+            'attempted': False,
+            'deleted': False,
+            'reason': 'PAYMENT_INTERNAL_API_KEY is not configured'
+        }
+
     endpoint = f"{STRIPE_API_URL}/api/payments/subscription?userId={quote(user_id)}"
     headers = {
         'Accept': 'application/json',
     }
-    if PAYMENT_INTERNAL_API_KEY:
-        headers['X-Internal-Api-Key'] = PAYMENT_INTERNAL_API_KEY
+    headers['X-Internal-Api-Key'] = PAYMENT_INTERNAL_API_KEY
 
     request = Request(endpoint, method='DELETE', headers=headers)
     try:

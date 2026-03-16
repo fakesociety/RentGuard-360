@@ -25,6 +25,17 @@
  */
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import {
+    UserRound,
+    Palette,
+    BellRing,
+    Info,
+    ShieldAlert,
+    Mail,
+    Lightbulb,
+    AlertTriangle,
+    X,
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -89,7 +100,10 @@ const SettingsPage = () => {
 
             {/* Profile Section */}
             <section className="settings-section animate-slideUp">
-                <h2 className="section-title">👤 {isRTL ? 'פרופיל' : 'Profile'}</h2>
+                <h2 className="section-title">
+                    <span className="section-icon" aria-hidden="true"><UserRound size={16} strokeWidth={2.4} /></span>
+                    <span>{isRTL ? 'פרופיל' : 'Profile'}</span>
+                </h2>
                 <Card variant="elevated" padding="lg">
                     <div className="profile-info-grid">
                         <div className="profile-avatar-large">
@@ -111,7 +125,10 @@ const SettingsPage = () => {
 
             {/* Appearance Section */}
             <section className="settings-section animate-slideUp" style={{ animationDelay: '100ms' }}>
-                <h2 className="section-title">🎨 {isRTL ? 'תצוגה' : 'Appearance'}</h2>
+                <h2 className="section-title">
+                    <span className="section-icon" aria-hidden="true"><Palette size={16} strokeWidth={2.4} /></span>
+                    <span>{isRTL ? 'תצוגה' : 'Appearance'}</span>
+                </h2>
                 <Card variant="elevated" padding="lg">
                     <div className="setting-row">
                         <div className="setting-info">
@@ -138,10 +155,13 @@ const SettingsPage = () => {
 
             {/* Notifications Section */}
             <section className="settings-section animate-slideUp" style={{ animationDelay: '200ms' }}>
-                <h2 className="section-title">🔔 {isRTL ? 'התראות' : 'Notifications'}</h2>
+                <h2 className="section-title">
+                    <span className="section-icon" aria-hidden="true"><BellRing size={16} strokeWidth={2.4} /></span>
+                    <span>{isRTL ? 'התראות' : 'Notifications'}</span>
+                </h2>
                 <Card variant="elevated" padding="lg">
                     <div className="notification-info-box">
-                        <div className="notification-icon">✉️</div>
+                        <div className="notification-icon" aria-hidden="true"><Mail size={22} strokeWidth={2.3} /></div>
                         <div className="notification-content">
                             <h3>{isRTL ? 'התראות אימייל' : 'Email Notifications'}</h3>
                             <p className="notification-description">
@@ -151,7 +171,7 @@ const SettingsPage = () => {
                                 }
                             </p>
                             <div className="notification-tip">
-                                <span className="tip-icon">💡</span>
+                                <span className="tip-icon" aria-hidden="true"><Lightbulb size={13} strokeWidth={2.5} /></span>
                                 <span className="tip-text">
                                     {isRTL
                                         ? 'בדוק גם בתיקיית הספאם אם לא קיבלת את המייל'
@@ -166,7 +186,10 @@ const SettingsPage = () => {
 
             {/* About Section */}
             <section className="settings-section animate-slideUp" style={{ animationDelay: '300ms' }}>
-                <h2 className="section-title">ℹ️ {isRTL ? 'אודות' : 'About'}</h2>
+                <h2 className="section-title">
+                    <span className="section-icon" aria-hidden="true"><Info size={16} strokeWidth={2.4} /></span>
+                    <span>{isRTL ? 'אודות' : 'About'}</span>
+                </h2>
                 <Card variant="elevated" padding="lg">
                     <div className="about-info">
                         <div className="about-row">
@@ -187,7 +210,10 @@ const SettingsPage = () => {
 
             {/* Danger Zone */}
             <section className="settings-section animate-slideUp" style={{ animationDelay: '400ms' }}>
-                <h2 className="section-title danger">⚠️ {isRTL ? 'חשבון' : 'Account'}</h2>
+                <h2 className="section-title danger">
+                    <span className="section-icon danger" aria-hidden="true"><ShieldAlert size={16} strokeWidth={2.4} /></span>
+                    <span>{isRTL ? 'חשבון' : 'Account'}</span>
+                </h2>
                 <Card variant="elevated" padding="lg" className="danger-card">
                     <div className="setting-row">
                         <div className="setting-info">
@@ -220,11 +246,12 @@ const SettingsPage = () => {
                             className="modal-close"
                             onClick={() => setShowDeleteModal(false)}
                             disabled={isDeleting}
+                            aria-label={isRTL ? 'סגירה' : 'Close'}
                         >
-                            ✕
+                            <X size={18} strokeWidth={2.5} />
                         </button>
 
-                        <div className="modal-icon danger-icon">⚠️</div>
+                        <div className="modal-icon danger-icon" aria-hidden="true"><AlertTriangle size={24} strokeWidth={2.5} /></div>
 
                         <h2>{t('account.deleteConfirmTitle')}</h2>
 

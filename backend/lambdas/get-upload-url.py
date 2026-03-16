@@ -188,6 +188,14 @@ def lambda_handler(event, context):
 
         is_admin = user_in_admin_group(groups_value)
         if not is_admin:
+            if STRIPE_API_URL and not PAYMENT_INTERNAL_API_KEY:
+                print('Configuration error: PAYMENT_INTERNAL_API_KEY is missing while STRIPE_API_URL is configured')
+                return {
+                    'statusCode': 500,
+                    'headers': CORS_HEADERS,
+                    'body': json.dumps({'error': 'Subscription service internal key is not configured'})
+                }
+
             try:
                 allowed, reason = deduct_scan_for_user(user_id)
                 if not allowed:

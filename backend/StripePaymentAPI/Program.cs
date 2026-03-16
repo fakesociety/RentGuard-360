@@ -117,8 +117,27 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("corspolicy", policy =>
     {
-        policy.AllowAnyOrigin()        // Allow requests from any domain
-              .AllowAnyHeader()        // Allow Content-Type, Authorization, etc.
+        string rawAllowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
+            ?? Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+            ?? string.Empty;
+
+        string[] allowedOrigins = rawAllowedOrigins
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        // Safe rollout: keep existing behavior unless explicit origins are configured.
+        if (allowedOrigins.Length == 0)
+        {
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+
+        policy.AllowAnyHeader()        // Allow Content-Type, Authorization, etc.
               .AllowAnyMethod();       // Allow GET, POST, PUT, DELETE
     });
 });

@@ -89,6 +89,35 @@
     color: var(--accent-danger);
 }
 
+.section-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-primary);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    flex-shrink: 0;
+}
+
+.section-icon.danger {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.28);
+}
+
+[data-theme="dark"] .section-icon,
+[data-theme="dark"] .section-icon.danger,
+[data-theme="dark"] .notification-icon,
+[data-theme="dark"] .tip-icon,
+[data-theme="dark"] .danger-icon {
+    color: var(--text-secondary);
+    background: transparent;
+    border-color: var(--glass-border);
+}
+
 /* ============================================
    4. PROFILE SECTION
    ============================================ */
@@ -261,7 +290,15 @@
 }
 
 .notification-icon {
-    font-size: 2.5rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-primary);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.26);
     flex-shrink: 0;
 }
 
@@ -289,7 +326,9 @@
 }
 
 .tip-icon {
-    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tip-text {
@@ -473,7 +512,9 @@
     right: var(--space-md);
     background: none;
     border: none;
-    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: var(--text-tertiary);
     cursor: pointer;
     padding: var(--space-xs);
@@ -492,7 +533,6 @@
 }
 
 .modal-icon {
-    font-size: 48px;
     text-align: center;
     margin-bottom: var(--space-md);
     line-height: 1;
@@ -605,8 +645,6 @@
     }
 
     .modal-icon {
-        font-size: 40px;
-        /* DAN DID IT - Smaller icon on mobile */
         height: 50px;
     }
 
