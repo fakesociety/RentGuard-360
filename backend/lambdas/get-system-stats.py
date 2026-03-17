@@ -213,7 +213,7 @@ def lambda_handler(event, context):
                         risk_dist['mediumRisk'] += 1
                     else:
                         risk_dist['highRisk'] += 1
-                except:
+                except Exception:
                     pass
 
             # Contracts by day
@@ -227,7 +227,7 @@ def lambda_handler(event, context):
 
                     date_str = analyzed_date.isoformat()
                     contracts_by_day[date_str] = contracts_by_day.get(date_str, 0) + 1
-                except:
+                except Exception:
                     pass
 
         avg_risk_score = round(sum(risk_scores) / len(risk_scores), 1) if risk_scores else 0
@@ -254,7 +254,7 @@ def lambda_handler(event, context):
                     diff_seconds = (analyzed_date - upload).total_seconds()
                     if diff_seconds > 0:
                         analysis_times.append(diff_seconds)
-                except:
+                except Exception:
                     pass
         avg_analysis_time = round(sum(analysis_times) / len(analysis_times), 1) if analysis_times else 0
         
@@ -316,7 +316,7 @@ def lambda_handler(event, context):
                 if isinstance(res, str):
                     try:
                         res = json.loads(res)
-                    except:
+                    except Exception:
                         continue
                 
                 if isinstance(res, dict):
