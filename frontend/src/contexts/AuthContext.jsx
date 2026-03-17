@@ -29,6 +29,7 @@ import {
     signIn,
     signUp,
     signOut,
+    signInWithRedirect,
     getCurrentUser,
     fetchUserAttributes,
     confirmSignUp,
@@ -40,14 +41,32 @@ import {
 } from 'aws-amplify/auth';
 import api from '../services/api';
 
+const oauthDomain = import.meta.env.VITE_COGNITO_DOMAIN;
+const oauthRedirectIn = import.meta.env.VITE_OAUTH_REDIRECT_URI;
+const oauthRedirectOut = import.meta.env.VITE_OAUTH_REDIRECT_OUT_URI;
+
+const cognitoConfig = {
+    userPoolId: import.meta.env.VITE_USER_POOL_ID,
+    userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
+    signUpVerificationMethod: 'code',
+};
+
+if (oauthDomain && oauthRedirectIn && oauthRedirectOut) {
+    cognitoConfig.loginWith = {
+        oauth: {
+            domain: oauthDomain,
+            scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
+            redirectSignIn: [oauthRedirectIn],
+            redirectSignOut: [oauthRedirectOut],
+            responseType: 'code',
+        },
+    };
+}
+
 // Configure Amplify
 Amplify.configure({
     Auth: {
-        Cognito: {
-            userPoolId: import.meta.env.VITE_USER_POOL_ID,
-            userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
-            signUpVerificationMethod: 'code',
-        },
+        Cognito: cognitoConfig,
     },
 });
 
@@ -148,6 +167,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const socialLogin = async (provider) => {
+        try {
+            await signOut().catch(() => { });
+            await signInWithRedirect({ provider });
+            return { success: true };
+        } catch (error) {
+            console.error('Social login error:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     const confirmRegistration = async (email, code) => {
         try {
             const normalizedEmail = normalizeEmail(email);
@@ -237,6 +267,7 @@ export const AuthProvider = ({ children }) => {
             isAuthenticated,
             isAdmin,
             login,
+            socialLogin,
             register,
             confirmRegistration,
             logout,

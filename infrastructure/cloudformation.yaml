@@ -251,6 +251,7 @@ Resources:
           - email
       LambdaConfig:
         PostConfirmation: !GetAtt AutoVerifySESFunction.Arn
+        PostAuthentication: !GetAtt VerifySesOnLoginFunction.Arn
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -729,10 +730,34 @@ Resources:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref LambdaCodeKey
 
+  VerifySesOnLoginFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-VerifySesOnLogin${NameSuffix}'
+      Runtime: python3.11
+      Handler: verify_ses_on_login.lambda_handler
+      Role: !GetAtt RentGuardLambdaRole.Arn
+      Timeout: 5
+      MemorySize: 128
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+
   LambdaPermissionCognitoAutoVerify:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt AutoVerifySESFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  LambdaPermissionCognitoVerifySesOnLogin:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt VerifySesOnLoginFunction.Arn
       Action: lambda:InvokeFunction
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn
