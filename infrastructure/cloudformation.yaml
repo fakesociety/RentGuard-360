@@ -250,6 +250,7 @@ Resources:
         AttributesRequireVerificationBeforeUpdate:
           - email
       LambdaConfig:
+        PreSignUp: !GetAtt PreSignUpLinkAccountsFunction.Arn
         PostConfirmation: !GetAtt AutoVerifySESFunction.Arn
         PostAuthentication: !GetAtt VerifySesOnLoginFunction.Arn
 
@@ -717,6 +718,22 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
 
+  PreSignUpLinkAccountsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-PreSignUpLinkAccounts${NameSuffix}'
+      Runtime: python3.11
+      Handler: pre_signup_link_accounts.lambda_handler
+      Role: !GetAtt RentGuardLambdaRole.Arn
+      Timeout: 10
+      MemorySize: 128
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+
   AutoVerifySESFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -750,6 +767,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt AutoVerifySESFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  LambdaPermissionCognitoPreSignUpLinkAccounts:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt PreSignUpLinkAccountsFunction.Arn
       Action: lambda:InvokeFunction
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn

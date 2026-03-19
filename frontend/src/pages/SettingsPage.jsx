@@ -175,7 +175,7 @@ const SettingsPage = () => {
                         </div>
                         <div className="about-row">
                             <span>{isRTL ? 'נבנה על ידי' : 'Built by'}</span>
-                            <span className="about-value">Ron, Moty & Dan</span>
+                            <span className="about-value">Ron, Moty & Idan</span>
                         </div>
                         <div className="about-row">
                             <span>{isRTL ? 'פרויקט' : 'Project'}</span>

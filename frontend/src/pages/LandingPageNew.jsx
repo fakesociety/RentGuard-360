@@ -409,6 +409,7 @@ const LandingPageNew = () => {
 
     // DAN DID IT - State for verification success modal
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
+    const [showSocialConflictModal, setShowSocialConflictModal] = useState(false);
 
     // Track user existence for guidance buttons
     const [userExistsStatus, setUserExistsStatus] = useState(null); // 'EXISTS' | 'NEEDS_VERIFICATION' | null
@@ -562,6 +563,11 @@ const LandingPageNew = () => {
         // On success, Cognito Hosted UI redirects away from this page.
     };
 
+    const isSocialProviderConflictError = (message) => {
+        const value = String(message || '');
+        return value.includes('EMAIL_LINKED_SOCIAL_PROVIDER') || value.includes('Email already linked to a social provider');
+    };
+
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
@@ -596,7 +602,7 @@ const LandingPageNew = () => {
         setLoading(true);
         setUserExistsStatus(null);
 
-        // Step 1: Check if user already exists using our custom backend
+        //  Check if user already exists using our custom backend
         const check = await checkUserStatus(trimmedEmail);
         
         if (check.status === 'EXISTS') {
@@ -618,13 +624,27 @@ const LandingPageNew = () => {
             return;
         }
 
-        // Step 2: Proceed with normal registration
+        if (check.status === 'SOCIAL_ONLY') {
+            setShowSocialConflictModal(true);
+            setError(isRTL ? 'האימייל הזה מחובר לחשבון חברתי. יש להתחבר דרך Google או Facebook.' : 'This email is linked to a social account. Please sign in with Google or Facebook.');
+            setLoading(false);
+            return;
+        }
+
+        //  Proceed with normal registration
         const result = await register(trimmedEmail, password, trimmedName);
         if (result.success) {
             setTempEmail(trimmedEmail);
             localStorage.setItem('rentguard_pending_verification', trimmedEmail);
             setAuthModal('confirm');
         } else {
+            if (isSocialProviderConflictError(result.error)) {
+                setShowSocialConflictModal(true);
+                setError(isRTL ? 'האימייל הזה מחובר לחשבון חברתי. יש להתחבר דרך Google או Facebook.' : 'This email is linked to a social account. Please sign in with Google or Facebook.');
+                setLoading(false);
+                return;
+            }
+
             // Translate common errors
             let errorMsg = result.error;
             if (isRTL) {
@@ -646,10 +666,8 @@ const LandingPageNew = () => {
         if (result.success) {
             localStorage.removeItem('rentguard_pending_verification');
             setLoading(false);
-            // DAN DID IT - Show success modal instead of immediately going to login
             setShowVerificationSuccess(true);
         } else {
-            // Translate errors to Hebrew
             let errorMsg = result.error;
             if (isRTL) {
                 if (errorMsg.includes('Invalid') || errorMsg.includes('code')) errorMsg = 'קוד אימות שגוי';
@@ -661,7 +679,6 @@ const LandingPageNew = () => {
         }
     };
 
-    // DAN DID IT - Handle continuing to login after verification success
     const handleContinueToLogin = () => {
         setShowVerificationSuccess(false);
         setAuthModal('login');
@@ -692,7 +709,6 @@ const LandingPageNew = () => {
         setAuthModal('register');
     };
 
-    // DAN DID IT - Added handleForgotPassword to send reset code to user's email
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setError('');
@@ -714,7 +730,7 @@ const LandingPageNew = () => {
         setLoading(false);
     };
 
-    // DAN DID IT - Added handleResetPassword to reset password with code and new password
+    // Added handleResetPassword to reset password with code and new password
     const handleResetPassword = async (e) => {
         e.preventDefault();
         setError('');
@@ -732,7 +748,6 @@ const LandingPageNew = () => {
             setPassword('');
             setResetCode('');
             setNewPassword('');
-            // Show success message (optional)
             setError('');
         } else {
             setError(translateError(result.error || 'Failed to reset password'));
@@ -982,6 +997,44 @@ const LandingPageNew = () => {
                                 </p>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Social conflict modal for native signup against social-only email */}
+            {showSocialConflictModal && (
+                <div className="auth-backdrop" onClick={() => setShowSocialConflictModal(false)}>
+                    <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="auth-modal-close" onClick={() => setShowSocialConflictModal(false)} aria-label="Close">
+                            <X size={20} />
+                        </button>
+                        <div className="auth-form">
+                            <h3>{isRTL ? 'התחברות דרך רשת חברתית' : 'Sign in with Social Account'}</h3>
+                            <p className="confirm-msg" style={{ textAlign: 'center' }}>
+                                {isRTL
+                                    ? 'האימייל הזה כבר מקושר להתחברות חברתית. כדי להמשיך, התחבר דרך Google (או Facebook בהמשך).'
+                                    : 'This email is already linked to a social login. Continue with Google (Facebook support is coming next).'}
+                            </p>
+                            <button
+                                type="button"
+                                className="auth-social-btn google"
+                                onClick={() => {
+                                    setShowSocialConflictModal(false);
+                                    setAuthModal('login');
+                                    handleSocialLogin('Google');
+                                }}
+                                disabled={loading}
+                            >
+                                {isRTL ? 'התחברות עם Google' : 'Sign in with Google'}
+                            </button>
+                            <button
+                                type="button"
+                                className="auth-social-btn facebook"
+                                onClick={() => {}}
+                            >
+                                {isRTL ? 'התחברות עם Facebook' : 'Sign in with Facebook'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

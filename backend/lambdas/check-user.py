@@ -7,7 +7,7 @@ Used to provide better UX during signup (Sign In vs. Verify instructions).
 
 Trigger: API Gateway (GET /auth/check-user)
 Input: Query parameter 'email'
-Output: JSON object with { status: 'EXISTS' | 'NEEDS_VERIFICATION' | 'USER_NOT_FOUND' }
+Output: JSON object with { status: 'EXISTS' | 'NEEDS_VERIFICATION' | 'SOCIAL_ONLY' | 'USER_NOT_FOUND' }
 
 Security:
   - Uses admin_get_user for definitive state check.
@@ -73,6 +73,9 @@ def lambda_handler(event, context):
             # Determine simplified status for frontend
             if user_status == 'UNCONFIRMED':
                 status = 'NEEDS_VERIFICATION'
+            elif user_status == 'EXTERNAL_PROVIDER':
+                # Email belongs to social login identity; native signup should route to social auth UI.
+                status = 'SOCIAL_ONLY'
             else:
                 status = 'EXISTS'
 

@@ -75,7 +75,7 @@ const Footer = () => {
                                 {isRTL ? 'נבנה ע"י' : 'Built by'}{' '}
                                 {isRTL ? (
                                     <>
-                                        <a href="https://github.com/Dangutman98" target="_blank" rel="noopener noreferrer">Dan</a>
+                                        <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
                                         {' & '}
                                         <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
                                         {', '}
@@ -87,7 +87,7 @@ const Footer = () => {
                                         {', '}
                                         <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
                                         {' & '}
-                                        <a href="https://github.com/Dangutman98" target="_blank" rel="noopener noreferrer">Dan</a>
+                                        <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
                                     </>
                                 )}
                             </div>
