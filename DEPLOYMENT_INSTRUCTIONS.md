@@ -62,6 +62,8 @@ Set these values:
 - `SENDER_EMAIL` (must be verified in AWS SES)
 - `STACK_NAME="RentGuard360"` (or `"RentGuard360-Test"` for testing)
 - `NAME_SUFFIX=""` (or `"-test"` for testing)
+- `STRIPE_API_URL` (base URL of StripePaymentAPI, e.g. `https://xxxx.execute-api.us-east-1.amazonaws.com/prod`)
+- `PAYMENT_INTERNAL_API_KEY` (strong random shared secret used between GetUploadUrl Lambda and Payment API)
 
 Safety note: Deploying the main stack (`STACK_NAME="RentGuard360"` with empty `NAME_SUFFIX`) requires typing `DEPLOY_MAIN` when prompted.
 
@@ -73,6 +75,20 @@ chmod +x deploy-cloudshell.sh
 ```
 
 At the end of a successful run, the script prints the key CloudFormation outputs required for the frontend (API URL, user pool IDs, buckets, CloudFront domain).
+
+## Payment API hardening (required)
+
+The Payment API now enforces Cognito JWT user identity and blocks userId spoofing.
+
+Set these configuration values for `backend/StripePaymentAPI` deployment environment:
+- `Cognito__UserPoolId=<CloudFormation UserPoolId output>`
+- `Cognito__Region=us-east-1`
+- `Cognito__AppClientId=<CloudFormation UserPoolClientId output>`
+- `InternalApi__Key=<same value as PAYMENT_INTERNAL_API_KEY>`
+
+Notes:
+- The `deduct` endpoint allows either valid JWT user auth (matching userId) or `X-Internal-Api-Key` for trusted backend calls.
+- `get-upload-url` Lambda now deducts one scan server-side before returning upload URL.
 
 ## Frontend deployment (build from the Git repo)
 Clone the repository locally, build the frontend, then upload to the stack's frontend bucket.
@@ -99,13 +115,20 @@ API_URL=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 
 USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
 USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId'].OutputValue" --output text)
 CONTRACTS_BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='ContractsBucketName'].OutputValue" --output text)
+CHECK_USER_API_KEY_ID=$(aws cloudformation describe-stack-resources --stack-name "$STACK_NAME" --logical-resource-id CheckUserApiKey --query "StackResources[0].PhysicalResourceId" --output text)
+CHECK_USER_API_KEY=$(aws apigateway get-api-key --api-key "$CHECK_USER_API_KEY_ID" --include-value --query "value" --output text)
 
 echo "VITE_API_ENDPOINT=$API_URL" > .env
 echo "VITE_USER_POOL_ID=$USER_POOL_ID" >> .env
 echo "VITE_USER_POOL_CLIENT_ID=$USER_POOL_CLIENT_ID" >> .env
 echo "VITE_AWS_REGION=us-east-1" >> .env
 echo "VITE_S3_BUCKET=$CONTRACTS_BUCKET" >> .env
+echo "VITE_CHECK_USER_API_KEY=$CHECK_USER_API_KEY" >> .env
 ```
+
+Notes:
+- `VITE_CHECK_USER_API_KEY` is required for `GET /auth/check-user`.
+- Contract chat endpoints (`/contract-chat/ask`, `/contract-chat/history`) use Cognito auth and do not require an API key.
 
 ### 3) Build and upload
 
@@ -153,6 +176,9 @@ aws cognito-idp admin-add-user-to-group \
 1) Open the CloudFront URL printed by the deploy script.
 2) Sign up -> confirm email -> upload a PDF.
 3) Log in as admin and open the Admin dashboard.
+4) Open the contract chat widget (bottom-right), choose a contract, and ask a question.
+5) Refresh the page and confirm chat history is loaded from backend.
+6) Click clear history and confirm the thread is removed after refresh.
 
 ## Troubleshooting (only the common blockers)
 - CloudShell `$'\r': command not found` -> run `sed -i 's/\r$//' config.env`

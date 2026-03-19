@@ -31,7 +31,7 @@ export const useSubscription = () => {
 };
 
 export const SubscriptionProvider = ({ children }) => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, isAdmin } = useAuth();
     const [subscription, setSubscription] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -42,6 +42,18 @@ export const SubscriptionProvider = ({ children }) => {
     const refreshSubscription = useCallback(async () => {
         const userId = getUserId();
         if (!userId) return;
+
+        // Admin users always have unlimited access and do not require a bundle.
+        if (isAdmin) {
+            setSubscription({
+                userId,
+                packageName: 'Admin',
+                scansRemaining: -1,
+                isUnlimited: true,
+                updatedAt: new Date().toISOString(),
+            });
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -57,7 +69,7 @@ export const SubscriptionProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [getUserId]);
+    }, [getUserId, isAdmin]);
 
     // Fetch subscription on login
     useEffect(() => {

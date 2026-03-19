@@ -21,6 +21,7 @@
  * ============================================
  */
 import React, { useState } from 'react';
+import { Mail, CheckCircle2, CircleHelp, Clock3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { sendContactMessage } from '../services/api';
@@ -79,7 +80,12 @@ const ContactPage = () => {
     return (
         <div className="contact-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="contact-header animate-fadeIn">
-                <h1>📧 {t('nav.contact')}</h1>
+                <h1>
+                    <span className="contact-title-icon" aria-hidden="true">
+                        <Mail size={20} strokeWidth={2.2} />
+                    </span>
+                    <span>{t('nav.contact')}</span>
+                </h1>
                 <p>{isRTL ? 'יש לכם שאלה או צריכים עזרה? אנחנו כאן בשבילכם!' : 'Have a question or need help? We\'re here for you!'}</p>
             </div>
 
@@ -87,7 +93,9 @@ const ContactPage = () => {
                 <Card variant="elevated" padding="lg" className="contact-form-card animate-slideUp">
                     {submitStatus === 'success' ? (
                         <div className="success-message">
-                            <span className="success-icon">✅</span>
+                            <span className="success-icon" aria-hidden="true">
+                                <CheckCircle2 size={36} strokeWidth={2.4} />
+                            </span>
                             <h3>{isRTL ? 'ההודעה נשלחה!' : 'Message Sent!'}</h3>
                             <p>{isRTL ? 'נחזור אליכם תוך 24 שעות.' : 'We\'ll get back to you within 24 hours.'}</p>
                             <Button
@@ -160,7 +168,12 @@ const ContactPage = () => {
 
                 <div className="contact-info animate-slideUp" style={{ animationDelay: '100ms' }}>
                     <Card variant="glass" padding="md">
-                        <h4>📍 {isRTL ? 'עזרה מהירה' : 'Quick Help'}</h4>
+                        <h4>
+                            <span className="info-card-icon" aria-hidden="true">
+                                <CircleHelp size={16} strokeWidth={2.4} />
+                            </span>
+                            <span>{isRTL ? 'עזרה מהירה' : 'Quick Help'}</span>
+                        </h4>
                         <ul className="help-list">
                             <li>
                                 <strong>{isRTL ? 'הניתוח מראה "מעבד..."?' : 'Analysis shows "Processing"?'}</strong>
@@ -182,7 +195,12 @@ const ContactPage = () => {
                     </Card>
 
                     <Card variant="glass" padding="md">
-                        <h4>⏰ {isRTL ? 'זמן תגובה' : 'Response Time'}</h4>
+                        <h4>
+                            <span className="info-card-icon" aria-hidden="true">
+                                <Clock3 size={16} strokeWidth={2.4} />
+                            </span>
+                            <span>{isRTL ? 'זמן תגובה' : 'Response Time'}</span>
+                        </h4>
                         <p className="response-info">
                             {isRTL
                                 ? <>אנחנו בדרך כלל עונים תוך <strong>24 שעות</strong> בימי עבודה. לבעיות דחופות, הוסיפו "דחוף" בנושא ההודעה.</>

@@ -78,6 +78,16 @@ ENVIRONMENT="${ENVIRONMENT:-prod}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 PROJECT_NAME="${PROJECT_NAME:-RentGuard360}"
 NAME_SUFFIX="${NAME_SUFFIX:-}"
+STRIPE_API_URL="${STRIPE_API_URL:-}"
+PAYMENT_INTERNAL_API_KEY="${PAYMENT_INTERNAL_API_KEY:-}"
+
+if [ -z "$STRIPE_API_URL" ]; then
+    echo_warning "STRIPE_API_URL is empty. Upload Lambda will reject uploads (subscription service not configured)."
+fi
+
+if [ -z "$PAYMENT_INTERNAL_API_KEY" ]; then
+    echo_warning "PAYMENT_INTERNAL_API_KEY is empty. Upload Lambda cannot authenticate to Payment API deduct endpoint."
+fi
 
 if [ "$AWS_REGION" != "us-east-1" ]; then
     echo_warning "This stack includes CloudFront+WAF (CLOUDFRONT scope). Deployment is most reliable in us-east-1. Current: $AWS_REGION"
@@ -192,6 +202,8 @@ aws cloudformation $OPERATION \
         ParameterKey=LambdaCodeKey,ParameterValue="$LAMBDA_CODE_KEY" \
         ParameterKey=SenderEmail,ParameterValue="$SENDER_EMAIL" \
         ParameterKey=Environment,ParameterValue="$ENVIRONMENT" \
+        ParameterKey=StripeApiUrl,ParameterValue="$STRIPE_API_URL" \
+        ParameterKey=PaymentInternalApiKey,ParameterValue="$PAYMENT_INTERNAL_API_KEY" \
     || {
         if [ "$OPERATION" = "update-stack" ]; then
             echo_warning "No updates to perform (stack is up to date)"

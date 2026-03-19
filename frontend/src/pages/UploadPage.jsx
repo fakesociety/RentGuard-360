@@ -22,6 +22,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { pollForAnalysis, uploadFile } from '../services/api';
 import Card from '../components/Card';
@@ -32,7 +33,8 @@ import './UploadPage.css';
 const UploadPage = () => {
     const { t, isRTL } = useLanguage();
     const navigate = useNavigate();
-    const { scansRemaining, isUnlimited, hasSubscription, deductScan } = useSubscription();
+    const { isAdmin } = useAuth();
+    const { scansRemaining, isUnlimited, hasSubscription, refreshSubscription } = useSubscription();
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -51,6 +53,12 @@ const UploadPage = () => {
     const [customFileName, setCustomFileName] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
+    const hasUploadEntitlement = isAdmin || hasSubscription;
+    const hasScansAvailable = isAdmin || isUnlimited || scansRemaining > 0;
+    const canChooseFile = hasUploadEntitlement && hasScansAvailable;
+    const blockReason = !hasUploadEntitlement
+        ? t('subscription.noActivePlanMessage')
+        : t('subscription.noScansMessage');
     const emitGlobalToast = (title, message) => {
         const toast = {
             id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
@@ -118,6 +126,11 @@ const UploadPage = () => {
     };
 
     const handleFileSelect = (selectedFile) => {
+        if (!canChooseFile) {
+            setError(blockReason);
+            return;
+        }
+
         setError('');
         setUploadSuccess(false);
         const validationError = validateFile(selectedFile);
@@ -130,18 +143,33 @@ const UploadPage = () => {
         setCustomFileName(nameWithoutExt);
     };
 
-    const handleDragEnter = (e) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        if (!canChooseFile) return;
+        setIsDragging(true);
+    };
     const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
-    const handleDragOver = (e) => { e.preventDefault(); };
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        if (!canChooseFile) return;
+    };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
+        if (!canChooseFile) {
+            setError(blockReason);
+            return;
+        }
         const droppedFile = e.dataTransfer.files[0];
         if (droppedFile) handleFileSelect(droppedFile);
     };
 
     const handleInputChange = (e) => {
+        if (!canChooseFile) {
+            setError(blockReason);
+            return;
+        }
         const selectedFile = e.target.files[0];
         if (selectedFile) handleFileSelect(selectedFile);
     };
@@ -149,8 +177,14 @@ const UploadPage = () => {
     const handleUpload = async () => {
         if (!file || !termsAccepted) return;
 
+        // Users without an active plan cannot upload contracts.
+        if (!isAdmin && !hasSubscription) {
+            setError(t('subscription.noActivePlanMessage'));
+            return;
+        }
+
         // Check if user has scans remaining
-        if (hasSubscription && !isUnlimited && scansRemaining <= 0) {
+        if (!isAdmin && hasSubscription && !isUnlimited && scansRemaining <= 0) {
             setError(t('subscription.noScansMessage'));
             return;
         }
@@ -160,22 +194,14 @@ const UploadPage = () => {
         setError('');
 
         try {
-            // Deduct scan credit before uploading (if user has a subscription)
-            if (hasSubscription) {
-                const deductResult = await deductScan();
-                if (!deductResult.success) {
-                    setError(deductResult.error || t('subscription.noScansMessage'));
-                    setIsUploading(false);
-                    return;
-                }
-            }
-
             const result = await uploadFile(file, setUploadProgress, {
                 propertyAddress: metadata.propertyAddress,
                 landlordName: metadata.landlordName,
                 customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
                 termsAccepted: true,
             });
+
+            await refreshSubscription();
 
             setUploadedContractId(result.contractId || '');
             setUploadSuccess(true);
@@ -212,15 +238,30 @@ const UploadPage = () => {
                     <h1>{t('upload.title')}</h1>
                     <p>{t('upload.subtitle')}</p>
 
-                    {/* No scans warning */}
-                    {hasSubscription && !isUnlimited && scansRemaining <= 0 && (
+                    {/* No active plan warning */}
+                    {!isAdmin && !hasSubscription && (
                         <Card variant="glass" padding="md" className="no-scans-banner animate-slideUp">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                                <div>
-                                    <h3 style={{ color: 'var(--accent-warning)', marginBottom: '4px' }}>{t('subscription.noScansLeft')}</h3>
-                                    <p style={{ fontSize: 'var(--font-size-sm)', margin: 0 }}>{t('subscription.noScansMessage')}</p>
+                            <div className="no-scans-banner-content">
+                                <div className="no-scans-banner-copy">
+                                    <h3>{t('subscription.noActivePlan')}</h3>
+                                    <p>{t('subscription.noActivePlanMessage')}</p>
                                 </div>
-                                <Button variant="primary" onClick={() => navigate('/pricing')}>
+                                <Button variant="primary" className="no-scans-banner-cta" onClick={() => navigate('/pricing')}>
+                                    {t('subscription.choosePlan')}
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* No scans warning */}
+                    {!isAdmin && hasSubscription && !isUnlimited && scansRemaining <= 0 && (
+                        <Card variant="glass" padding="md" className="no-scans-banner animate-slideUp">
+                            <div className="no-scans-banner-content">
+                                <div className="no-scans-banner-copy">
+                                    <h3>{t('subscription.noScansLeft')}</h3>
+                                    <p>{t('subscription.noScansMessage')}</p>
+                                </div>
+                                <Button variant="primary" className="no-scans-banner-cta" onClick={() => navigate('/pricing')}>
                                     {t('subscription.upgradePlan')}
                                 </Button>
                             </div>
@@ -258,23 +299,41 @@ const UploadPage = () => {
                         <Card
                             variant="glass"
                             padding="lg"
-                            className={`drop-zone animate-slideUp ${isDragging ? 'dragging' : ''} ${file ? 'has-file' : ''}`}
+                            className={`drop-zone animate-slideUp ${isDragging ? 'dragging' : ''} ${file ? 'has-file' : ''} ${!canChooseFile ? 'blocked' : ''}`}
                             onDragEnter={handleDragEnter}
                             onDragLeave={handleDragLeave}
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
-                            onClick={() => !file && fileInputRef.current?.click()}
-                            style={{ cursor: file ? 'default' : 'pointer' }}
+                            onClick={() => {
+                                if (!canChooseFile) {
+                                    setError(blockReason);
+                                    return;
+                                }
+                                if (!file) fileInputRef.current?.click();
+                            }}
+                            style={{ cursor: !canChooseFile ? 'not-allowed' : (file ? 'default' : 'pointer') }}
                         >
                             {!file ? (
                                 <div className="drop-content">
                                     <div className="drop-icon">📄</div>
                                     <h3>{t('upload.dragDrop')}</h3>
                                     <p>{t('upload.or')}</p>
-                                    <Button variant="secondary" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                                    <Button
+                                        variant="secondary"
+                                        disabled={!canChooseFile}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!canChooseFile) {
+                                                setError(blockReason);
+                                                return;
+                                            }
+                                            fileInputRef.current?.click();
+                                        }}
+                                    >
                                         {t('upload.selectFile')}
                                     </Button>
                                     <p className="drop-hint">{t('upload.maxSize')}</p>
+                                    {!canChooseFile && <p className="drop-locked-note">{blockReason}</p>}
                                 </div>
                             ) : (
                                 <div className="file-preview">
@@ -368,7 +427,7 @@ const UploadPage = () => {
                                 fullWidth
                                 onClick={handleUpload}
                                 className="upload-button animate-slideUp"
-                                disabled={!termsAccepted}
+                                disabled={!termsAccepted || !hasUploadEntitlement || !hasScansAvailable}
                             >
                                 {t('upload.uploadBtn')}
                             </Button>

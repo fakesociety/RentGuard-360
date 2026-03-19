@@ -45,6 +45,27 @@ def cors_headers():
         'Access-Control-Allow-Methods': 'POST,OPTIONS'
     }
 
+
+def user_in_admin_group(raw_groups):
+    """Safely check whether Cognito groups include exactly 'Admins'."""
+    if isinstance(raw_groups, list):
+        return any(str(group).strip() == 'Admins' for group in raw_groups)
+
+    groups_text = str(raw_groups or '').strip()
+    if not groups_text:
+        return False
+
+    try:
+        parsed = json.loads(groups_text)
+        if isinstance(parsed, list):
+            return any(str(group).strip() == 'Admins' for group in parsed)
+    except Exception:
+        pass
+
+    normalized = groups_text.replace('[', '').replace(']', '').replace('"', '')
+    parts = [part.strip() for part in normalized.split(',') if part.strip()]
+    return 'Admins' in parts
+
 # =============================================================================
 # MAIN HANDLER
 # =============================================================================
@@ -81,8 +102,8 @@ def lambda_handler(event, context):
         # 1. Verify admin group membership
         claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
         groups = claims.get('cognito:groups', '')
-        
-        if 'Admins' not in str(groups):
+
+        if not user_in_admin_group(groups):
             return {
                 'statusCode': 403,
                 'headers': cors_headers(),

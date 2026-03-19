@@ -47,6 +47,17 @@ Parameters:
     Default: lambdas.zip
     Description: S3 key for the Lambda deployment package within LambdaCodeBucket
 
+  StripeApiUrl:
+    Type: String
+    Default: ''
+    Description: Base URL of the Stripe Payment API (example: https://xxxx.execute-api.us-east-1.amazonaws.com/prod)
+
+  PaymentInternalApiKey:
+    Type: String
+    NoEcho: true
+    Default: ''
+    Description: Shared secret for trusted server-to-server calls from GetUploadUrl Lambda to Payment API
+
 # =============================================================================
 # RESOURCES
 # =============================================================================
@@ -447,6 +458,8 @@ Resources:
           CONTRACTS_BUCKET: !Ref ContractsBucket
           CONTRACTS_TABLE: !Ref ContractsTable
           USER_CONSENT_TABLE: !Ref UserConsentTable
+          STRIPE_API_URL: !Ref StripeApiUrl
+          PAYMENT_INTERNAL_API_KEY: !Ref PaymentInternalApiKey
 
   GetContractsFunction:
     Type: AWS::Lambda::Function

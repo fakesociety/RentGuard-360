@@ -117,7 +117,14 @@ const apiCall = async (endpoint, options = {}) => {
             if (!(response.status === 404 && options.silent404)) {
                 console.error(`API Error ${response.status}:`, errorText);
             }
-            throw new Error(`API Error: ${response.status}`);
+            let serverMessage = '';
+            try {
+                const parsed = JSON.parse(errorText);
+                serverMessage = parsed?.error || parsed?.message || '';
+            } catch {
+                serverMessage = errorText;
+            }
+            throw new Error(serverMessage || `API Error: ${response.status}`);
         }
 
         const text = await response.text();
@@ -650,7 +657,10 @@ export const getContractChatHistory = async (contractId, limit = 30) => {
 export const clearContractChatHistory = async (contractId) => {
     const data = await apiCall(
         `/contract-chat/history?contractId=${encodeURIComponent(contractId)}`,
-        { method: 'DELETE' }
+        {
+            method: 'DELETE',
+            body: JSON.stringify({ contractId }),
+        }
     );
     return data;
 };

@@ -78,6 +78,27 @@ def cors_headers():
     }
 
 
+def user_in_admin_group(raw_groups):
+    """Safely check whether Cognito groups include exactly 'Admins'."""
+    if isinstance(raw_groups, list):
+        return any(str(group).strip() == 'Admins' for group in raw_groups)
+
+    groups_text = str(raw_groups or '').strip()
+    if not groups_text:
+        return False
+
+    try:
+        parsed = json.loads(groups_text)
+        if isinstance(parsed, list):
+            return any(str(group).strip() == 'Admins' for group in parsed)
+    except Exception:
+        pass
+
+    normalized = groups_text.replace('[', '').replace(']', '').replace('"', '')
+    parts = [part.strip() for part in normalized.split(',') if part.strip()]
+    return 'Admins' in parts
+
+
 class DecimalEncoder(json.JSONEncoder):
     """Custom JSON encoder for DynamoDB Decimal types."""
     def default(self, obj):
@@ -147,24 +168,14 @@ def lambda_handler(event, context):
                 claims = jwt_claims
         
         groups = claims.get('cognito:groups', '')
-        
-        is_admin = False
-        if isinstance(groups, list):
-            is_admin = 'Admins' in groups
-        elif isinstance(groups, str) and groups:
-            is_admin = 'Admins' in groups
+
+        is_admin = user_in_admin_group(groups)
         
         if not is_admin:
             return {
                 'statusCode': 403,
                 'headers': cors_headers(),
-                'body': json.dumps({
-                    'error': 'Admin access required',
-                    'debug': {
-                        'groups_found': str(groups),
-                        'claims_keys': list(claims.keys()) if claims else []
-                    }
-                })
+                'body': json.dumps({'error': 'Admin access required'})
             }
         
         # 2. Scan contracts table
@@ -202,7 +213,7 @@ def lambda_handler(event, context):
                         risk_dist['mediumRisk'] += 1
                     else:
                         risk_dist['highRisk'] += 1
-                except:
+                except Exception:
                     pass
 
             # Contracts by day
@@ -216,7 +227,7 @@ def lambda_handler(event, context):
 
                     date_str = analyzed_date.isoformat()
                     contracts_by_day[date_str] = contracts_by_day.get(date_str, 0) + 1
-                except:
+                except Exception:
                     pass
 
         avg_risk_score = round(sum(risk_scores) / len(risk_scores), 1) if risk_scores else 0
@@ -243,7 +254,7 @@ def lambda_handler(event, context):
                     diff_seconds = (analyzed_date - upload).total_seconds()
                     if diff_seconds > 0:
                         analysis_times.append(diff_seconds)
-                except:
+                except Exception:
                     pass
         avg_analysis_time = round(sum(analysis_times) / len(analysis_times), 1) if analysis_times else 0
         
@@ -305,7 +316,7 @@ def lambda_handler(event, context):
                 if isinstance(res, str):
                     try:
                         res = json.loads(res)
-                    except:
+                    except Exception:
                         continue
                 
                 if isinstance(res, dict):

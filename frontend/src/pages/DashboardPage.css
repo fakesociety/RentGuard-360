@@ -74,35 +74,80 @@
 }
 
 .stat-card {
+    position: relative;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: var(--space-md);
+    text-align: center;
+    gap: 10px;
+    min-height: 118px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in oklab, var(--glass-border) 78%, transparent);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95));
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .stat-card {
+    background: linear-gradient(180deg, rgba(21, 30, 45, 0.92), rgba(15, 23, 35, 0.96));
+    border-color: rgba(148, 163, 184, 0.22);
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
+}
+
+
+.stat-card-contracts {
+    border-color: color-mix(in oklab, #2563eb 34%, var(--glass-border));
+}
+
+.stat-card-analyzed {
+    border-color: color-mix(in oklab, #0f9f6e 34%, var(--glass-border));
+}
+
+.stat-card-pending {
+    border-color: color-mix(in oklab, #d97706 34%, var(--glass-border));
+}
+
+.stat-card-risk {
+    border-color: color-mix(in oklab, #dc2626 34%, var(--glass-border));
 }
 
 .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-md);
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
     flex-shrink: 0;
+    border: 1px solid currentColor;
+    background: color-mix(in oklab, currentColor 12%, white);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.66);
+}
+
+[data-theme="dark"] .stat-icon {
+    background: color-mix(in oklab, currentColor 16%, #0b1220);
+    box-shadow: none;
 }
 
 .stat-content {
-    flex: 1;
+    width: 100%;
+    text-align: center;
 }
 
 .stat-value {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
+    margin: 0;
+    font-size: clamp(1.9rem, 2.5vw, 2.25rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: color-mix(in oklab, var(--text-primary) 92%, #0f172a 8%);
 }
 
 .stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    margin: 6px 0 0;
+    font-size: 0.95rem;
+    font-weight: 520;
+    color: color-mix(in oklab, var(--text-secondary) 86%, #334155 14%);
 }
 
 /* ============================================
@@ -174,6 +219,7 @@
 .guide-card h2 {
     text-align: center;
     color: var(--text-primary);
+    letter-spacing: -0.02em;
     margin-bottom: var(--space-xl);
 }
 
@@ -185,12 +231,20 @@
     gap: var(--space-lg);
 }
 
+.guide-steps-professional {
+    position: relative;
+    align-items: stretch;
+}
+
 .step-arrow {
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--accent-primary);
-    font-weight: bold;
+    font-weight: 900;
     flex-shrink: 0;
     align-self: center;
+    opacity: 0.85;
+    transform: translateY(-4px);
+    text-shadow: 0 0 0.5px currentColor, 0 0 0.5px currentColor;
 }
 
 .guide-step {
@@ -202,28 +256,58 @@
     min-width: 200px;
 }
 
+.guide-step-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--glass-border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg-page) 88%, transparent), color-mix(in srgb, var(--bg-page) 94%, transparent));
+    border-radius: 18px;
+    padding: 1.1rem 1rem 1rem;
+    box-shadow: 0 12px 28px rgba(7, 15, 28, 0.12);
+}
+
+[data-theme="dark"] .guide-step-card {
+    background: linear-gradient(180deg, rgba(25, 38, 61, 0.88), rgba(17, 28, 47, 0.92));
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+.guide-step-head {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
 .guide-number {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--accent-primary);
+    background: linear-gradient(145deg, #22d3a6, #0fbf96);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-md);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
 }
 
 .guide-content h4 {
     color: var(--text-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: 0.38rem;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
 }
 
 .guide-content p {
     color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 28ch;
 }
 
 /* ============================================
@@ -417,6 +501,11 @@
 
     .guide-steps {
         flex-direction: column;
+    }
+
+    .guide-step-card {
+        width: 100%;
+        min-width: 0;
     }
 
     .step-arrow {

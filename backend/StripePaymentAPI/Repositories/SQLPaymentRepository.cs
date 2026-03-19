@@ -257,5 +257,22 @@ namespace StripePaymentAPI.Repositories
                 return (bool)successParam.Value;
             }
         }
+
+        /// <summary>
+        /// SQL DELETE - removes the user's active subscription row.
+        /// Used when an admin permanently deletes a user from Cognito.
+        /// </summary>
+        public bool DeleteSubscriptionByUserId(string userId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand("DELETE FROM UserSubscriptions WHERE UserId = @UserId", connection);
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                connection.Open();
+                int affectedRows = command.ExecuteNonQuery();
+                return affectedRows > 0;
+            }
+        }
     }
 }

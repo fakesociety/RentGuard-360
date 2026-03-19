@@ -25,7 +25,6 @@ Security:
 import json
 import os
 import boto3
-from decimal import Decimal
 
 # =============================================================================
 # CONFIGURATION

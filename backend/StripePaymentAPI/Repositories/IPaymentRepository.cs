@@ -64,5 +64,11 @@ namespace StripePaymentAPI.Repositories
         /// Does NOT deduct if the user has unlimited scans (ScansRemaining = -1).
         /// </summary>
         bool DeductScan(string userId);
+
+        /// <summary>
+        /// Deletes the user's active subscription row.
+        /// Returns true when a row was deleted, false when no subscription existed.
+        /// </summary>
+        bool DeleteSubscriptionByUserId(string userId);
     }
 }

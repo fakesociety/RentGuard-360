@@ -26,6 +26,7 @@ import {
     LayoutDashboard,
     Users,
     BarChart3,
+    CreditCard,
     Settings,
     Shield,
     LogOut,
@@ -54,6 +55,11 @@ const AdminSidebar = ({ onNavigate }) => {
             path: '/admin/analytics',
             icon: BarChart3,
             label: t('admin.analytics') || 'Analytics'
+        },
+        {
+            path: '/admin/stripe',
+            icon: CreditCard,
+            label: t('admin.stripeTab') || 'Stripe Insights'
         }
     ];
 

@@ -527,8 +527,9 @@ const AnalysisPage = () => {
 
                     {/* Full Contract View Tab */}
                     {activeTab === 'contract' && (
-                        result?.is_contract === false ? (
-                            <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
+                        <section className="contract-scroll-section" dir={isRTL ? 'rtl' : 'ltr'}>
+                            {result?.is_contract === false ? (
+                                <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
                                 <div style={{
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -557,9 +558,9 @@ const AnalysisPage = () => {
                                             : 'The uploaded document does not appear to be a valid rental contract. Cannot display contract content.'}
                                     </p>
                                 </div>
-                            </Card>
-                        ) : (
-                            <ContractView
+                                </Card>
+                            ) : (
+                                <ContractView
                                 contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
                                 backendClauses={analysis?.clauses_list || analysis?.clauses || []}
                                 issues={issues}
@@ -583,8 +584,9 @@ const AnalysisPage = () => {
                                     const contractIdClean = analysis?.contractId || contractId;
                                     await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
                                 }}
-                            />
-                        )
+                                />
+                            )}
+                        </section>
                     )}
                 </main>
             </div>

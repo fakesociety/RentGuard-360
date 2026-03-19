@@ -21,7 +21,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { getPackages } from '../services/stripeApi';
 import Card from '../components/Card';
@@ -30,8 +29,7 @@ import './PricingPage.css';
 
 const PricingPage = () => {
     const { t, isRTL } = useLanguage();
-    const { user } = useAuth();
-    const { subscription, packageName: currentPlan, scansRemaining, isUnlimited, hasSubscription } = useSubscription();
+    const { subscription, packageName: currentPlan, scansRemaining, hasSubscription } = useSubscription();
     const navigate = useNavigate();
 
     const [packages, setPackages] = useState([]);
@@ -177,7 +175,7 @@ const PricingPage = () => {
 
                     {currentPlan && (
                         <div className="current-plan-banner">
-                            <span className="current-plan-label">{isRTL ? 'רכישה אחרונה' : 'Last Purchase'}</span>
+                            <span className="current-plan-label">{isRTL ? 'חבילה אחרונה' : 'Last Bundle'}</span>
                             <span className="current-plan-name">{currentPlan}</span>
                             <span className="current-plan-scans">
                                 {getLastPurchaseDateTime()}

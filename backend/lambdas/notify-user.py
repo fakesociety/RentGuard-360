@@ -183,7 +183,6 @@ def lambda_handler(event, context):
         
         # 1. Get data from previous step (SaveResults)
         user_id = event.get('userId')
-        contract_id = event.get('contractId')
         risk_score = event.get('risk_score', 0)
         
         # 2. Skip if no valid user

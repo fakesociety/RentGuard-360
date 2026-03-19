@@ -362,7 +362,7 @@ def recalculate_scores(analysis_json):
     analysis_json['overall_risk_score'] = overall_score
     
     # Debug logging
-    print(f"=== SCORE CALCULATION ===")
+    print("=== SCORE CALCULATION ===")
     print(f"Issues count: {len(filtered_issues)}")
     for cat, data in score_breakdown.items():
         print(f"  {cat}: {data['score']}/20 (penalties: {data['penalties']})")

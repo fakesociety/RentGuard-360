@@ -17,25 +17,43 @@
  * ============================================
  */
 
+import { fetchAuthSession } from 'aws-amplify/auth';
+
 // C# Stripe API base URL (separate from the main Node.js API Gateway)
 const STRIPE_API_URL = import.meta.env.VITE_STRIPE_API_URL;
-
 if (!STRIPE_API_URL) {
     console.warn('Missing VITE_STRIPE_API_URL. Stripe payment features will not work.');
 }
 
+const getAuthToken = async () => {
+    try {
+        const session = await fetchAuthSession();
+        const token = session?.tokens?.idToken?.toString();
+        return token || null;
+    } catch {
+        return null;
+    }
+};
+
 /**
  * Generic fetch helper for the Stripe API.
- * No Cognito auth needed — the C# API is open (secured by API Gateway).
+ * Auth is required for payment/subscription endpoints.
  */
-const stripeApiCall = async (endpoint, options = {}) => {
+const stripeApiCall = async (endpoint, options = {}, requiresAuth = false) => {
     const url = `${STRIPE_API_URL}${endpoint}`;
+    const token = await getAuthToken();
+
+    if (requiresAuth && !token) {
+        throw new Error('Authentication required');
+    }
 
     const config = {
+        ...options,
         headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...options.headers,
         },
-        ...options,
     };
 
     const response = await fetch(url, config);
@@ -80,7 +98,7 @@ export const createPaymentIntent = async (userId, packageId) => {
     return stripeApiCall('/api/payments/create-intent', {
         method: 'POST',
         body: JSON.stringify({ userId, packageId }),
-    });
+    }, true);
 };
 
 /**
@@ -94,7 +112,7 @@ export const confirmPayment = async (paymentIntentId) => {
             action: 'confirm', 
             paymentIntentId 
         }),
-    });
+    }, true);
 };
 
 // ============================================
@@ -106,7 +124,7 @@ export const confirmPayment = async (paymentIntentId) => {
  * GET /api/payments/subscription?userId=xxx
  */
 export const getSubscription = async (userId) => {
-    return stripeApiCall(`/api/payments/subscription?userId=${encodeURIComponent(userId)}`);
+    return stripeApiCall(`/api/payments/subscription?userId=${encodeURIComponent(userId)}`, {}, true);
 };
 
 // ============================================
@@ -118,7 +136,7 @@ export const getSubscription = async (userId) => {
  * GET /api/payments/transactions?userId=xxx
  */
 export const getTransactions = async (userId) => {
-    return stripeApiCall(`/api/payments/transactions?userId=${encodeURIComponent(userId)}`);
+    return stripeApiCall(`/api/payments/transactions?userId=${encodeURIComponent(userId)}`, {}, true);
 };
 
 // ============================================
@@ -133,7 +151,15 @@ export const deductScan = async (userId) => {
     return stripeApiCall('/api/payments/deduct', {
         method: 'POST',
         body: JSON.stringify({ userId }),
-    });
+    }, true);
+};
+
+/**
+ * Get admin Stripe + SQL billing insights.
+ * GET /api/payments/admin-stats
+ */
+export const getAdminStripeStats = async () => {
+    return stripeApiCall('/api/payments/admin-stats', {}, true);
 };
 
 export default {
@@ -144,4 +170,5 @@ export default {
     getSubscription,
     getTransactions,
     deductScan,
+    getAdminStripeStats,
 };

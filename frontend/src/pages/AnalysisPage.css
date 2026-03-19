@@ -23,6 +23,16 @@
     padding: var(--space-md);
     padding-bottom: 120px;
     /* Space for footer */
+    --analysis-panel-height: calc(100vh - 120px);
+    --issues-surface-bg: linear-gradient(135deg, #e8eaed 0%, #d3d7dc 100%);
+    --issues-surface-border: rgba(17, 24, 39, 0.08);
+    --issues-surface-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="dark"] .analysis-page {
+    --issues-surface-bg: linear-gradient(135deg, #242b36 0%, #1b212b 100%);
+    --issues-surface-border: rgba(148, 163, 184, 0.25);
+    --issues-surface-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
 .analysis-header {
@@ -42,22 +52,31 @@
     gap: var(--space-xl);
     max-width: 1400px;
     margin: 0 auto;
-    align-items: start;
+    align-items: stretch;
+    /* REMOVE any explicit height: calc() or var() from here */
 }
 
 /* Reorder for RTL - main content first, sidebar second */
 .analysis-main {
     order: 1;
+    display: flex;
+    flex-direction: column;
+    /* THE MAX BRAIN POWER FIX: 
+       This tells the grid to completely ignore the tall PDF/Issues content.
+       It forces this column to perfectly snap to the sidebar's bottom line. */
+    contain: size;
 }
 
 .analysis-sidebar {
     order: 2;
+    position: static;
+    height: auto;
 }
 
-/* Sticky Sidebar */
+/* Sidebar follows normal page flow so full content is visible without
+   creating an internal scroll area. */
 .analysis-sidebar {
-    position: sticky;
-    top: 80px;
+    position: static;
 }
 
 .sidebar-card {
@@ -65,19 +84,18 @@
     flex-direction: column;
     gap: var(--space-md);
     padding: var(--space-lg) !important;
-    
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-    
-    scrollbar-width: none; 
+    height: auto;
+    /* Fully displays content, naturally pushes footer down */
+    overflow: visible;
+    /* NO scrolling here */
 }
 
-.sidebar-card > * {
+.sidebar-card>* {
     flex-shrink: 0;
 }
 
 .sidebar-card::-webkit-scrollbar {
-    display: none;
+    display: initial;
 }
 
 /* Contract Hero Card - Premium Glassmorphic Design */
@@ -389,25 +407,49 @@
 /* Main Content */
 .analysis-main {
     min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
-/* Issues section: prefer letting the whole page scroll on desktop so
-   users can smoothly scroll from the left column into the issues list
-   without being trapped in a nested scroll container. If you want the
-   old independent scrolling behavior, restore the original rules. */
 .issues-section {
-    max-height: calc(100vh - 180px); 
+    flex: 1;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
     overflow-y: auto;
-    padding-right: var(--space-xs);
-    scrollbar-width: none; 
+    margin-bottom: 0;
+    padding: var(--space-md);
+    padding-right: var(--space-sm);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--issues-surface-border);
+    background: var(--glass-bg);
+    box-shadow: var(--issues-surface-shadow);
+    scrollbar-width: none;
 }
 
 .issues-section::-webkit-scrollbar {
-    display: none; 
+    display: none;
 }
 
-/* Keep hidden scrollbar rule harmless when using visible overflow */
-.issues-section::-webkit-scrollbar {
+.contract-scroll-section {
+    flex: 1;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+    scrollbar-width: none;
+}
+
+.contract-scroll-section .virtual-pdf-container {
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.contract-scroll-section::-webkit-scrollbar {
     display: none;
 }
 
@@ -452,12 +494,28 @@
         position: static;
         order: -1;
         width: 100%;
+        height: auto;
+    }
+
+    .analysis-main {
+        contain: none;
+        /* Turns off the cloaking device on mobile */
+        height: auto;
+        display: block;
     }
 
     .sidebar-card {
         display: flex;
         flex-direction: column;
         gap: var(--space-md);
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .issues-section,
+    .contract-scroll-section {
+        overflow-y: visible;
+        margin-bottom: var(--space-xl);
     }
 
     .sidebar-summary-hero {
@@ -495,6 +553,17 @@
 
     .contract-hero-card {
         padding: 16px;
+    }
+
+    .issues-section {
+        max-height: none;
+        overflow-y: visible;
+        padding: var(--space-sm);
+    }
+
+    .contract-scroll-section {
+        max-height: none;
+        overflow-y: visible;
     }
 
     .meta-row {
@@ -713,7 +782,7 @@
 
 /* Issues Section */
 .issues-section {
-    margin-bottom: var(--space-xl);
+    margin-bottom: 0;
 }
 
 .analysis-page .section-title {
@@ -1394,7 +1463,8 @@
     align-items: center;
     width: 40px;
     flex-shrink: 0;
-    margin-top: 4px; /* Align icon with first line of text */
+    margin-top: 4px;
+    /* Align icon with first line of text */
 }
 
 .step-icon {

@@ -59,6 +59,54 @@
     font-size: var(--font-size-lg);
 }
 
+.no-scans-banner {
+    border: 1px solid var(--glass-border) !important;
+    background:
+        radial-gradient(circle at 10% 30%, rgba(56, 189, 248, 0.14), transparent 40%),
+        radial-gradient(circle at 88% 75%, rgba(16, 185, 129, 0.14), transparent 38%),
+        var(--glass-bg) !important;
+    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+}
+
+.no-scans-banner-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.no-scans-banner-copy h3 {
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    font-size: var(--font-size-xl);
+    letter-spacing: -0.01em;
+}
+
+.no-scans-banner-copy p {
+    font-size: var(--font-size-sm);
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.no-scans-banner-cta {
+    min-width: 190px;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .no-scans-banner {
+    background:
+        radial-gradient(circle at 10% 30%, rgba(56, 189, 248, 0.12), transparent 42%),
+        radial-gradient(circle at 88% 75%, rgba(16, 185, 129, 0.1), transparent 38%),
+        rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(148, 163, 184, 0.32) !important;
+}
+
+[data-theme="dark"] .no-scans-banner {
+    border-color: rgba(71, 85, 105, 0.55) !important;
+}
+
 /* ============================================
    3. DROP ZONE
    ============================================ */
@@ -130,6 +178,17 @@
     background: rgba(240, 253, 250, 0.9) !important;
 }
 
+.drop-zone.blocked {
+    border-style: solid !important;
+    border-color: rgba(148, 163, 184, 0.45) !important;
+    background: linear-gradient(135deg, rgba(226, 232, 240, 0.45), rgba(203, 213, 225, 0.28)) !important;
+}
+
+.drop-zone.blocked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* Drop Content */
 .drop-content {
     display: flex;
@@ -161,6 +220,13 @@
     margin-top: var(--space-sm);
 }
 
+.drop-locked-note {
+    margin-top: 6px;
+    color: #ef4444;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
 /* ============================================
    4. DROP ZONE DARK MODE
    ============================================ */
@@ -181,6 +247,11 @@
 [data-theme="dark"] .drop-zone.dragging {
     background: rgba(20, 184, 166, 0.15) !important;
     border-color: #5eead4 !important;
+}
+
+[data-theme="dark"] .drop-zone.blocked {
+    background: rgba(30, 41, 59, 0.75) !important;
+    border-color: rgba(100, 116, 139, 0.55) !important;
 }
 
 [data-theme="dark"] .drop-content h3 {
@@ -584,6 +655,10 @@
         max-width: 90%;
         max-height: 85vh;
     }
+
+    .no-scans-banner-copy h3 {
+        font-size: var(--font-size-xl);
+    }
 }
 
 /* Mobile (iPhone Pro) */
@@ -627,6 +702,15 @@
 
     .terms-modal-footer {
         flex-direction: column;
+    }
+
+    .no-scans-banner-content {
+        align-items: flex-start;
+    }
+
+    .no-scans-banner-cta {
+        width: 100%;
+        min-width: 0;
     }
 }
 

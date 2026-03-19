@@ -14,7 +14,7 @@
  * NOTE: Admin pages use AdminLayout with sidebar (no main nav)
  * ============================================
  */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import { Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -23,22 +23,23 @@ import LanguageToggle from './components/LanguageToggle';
 import Button from './components/Button';
 import { Shield } from 'lucide-react';
 import DashboardPage from './pages/DashboardPage';
-import UploadPage from './pages/UploadPage';
-import ContractsPage from './pages/ContractsPage';
-import AnalysisPage from './pages/AnalysisPage';
-import SettingsPage from './pages/SettingsPage';
-import ContactPage from './pages/ContactPage';
-import PricingPage from './pages/PricingPage';
-import CheckoutPage from './pages/CheckoutPage';
-import PaymentSuccessPage from './pages/PaymentSuccessPage';
-import AdminLayout from './pages/AdminLayout';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminUsers from './pages/AdminUsers';
-import AdminAnalytics from './pages/AdminAnalytics';
+const UploadPage = lazy(() => import('./pages/UploadPage'));
+const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const AnalysisPage = lazy(() => import('./pages/AnalysisPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const PaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
+const AdminLayout = lazy(() => import('./pages/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
+const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
+const AdminStripeInsights = lazy(() => import('./pages/AdminStripeInsights'));
 import LandingPage from './pages/LandingPageNew';
 import Footer from './components/Footer';
 import { SubscriptionProvider, useSubscription } from './contexts/SubscriptionContext';
-import ContractChatWidget from './components/ContractChatWidget';
+const ContractChatWidget = lazy(() => import('./components/ContractChatWidget'));
 import './styles/design-system.css';
 import './App.css';
 
@@ -56,6 +57,26 @@ const ProtectedRoute = ({ children }) => {
   }
 
   return isAuthenticated ? children : <Navigate to="/" replace />;
+};
+
+const RequireActivePlanRoute = ({ children }) => {
+  const { isAdmin } = useAuth();
+  const { hasSubscription, isLoading } = useSubscription();
+
+  if (isAdmin) {
+    return children;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="app-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  return hasSubscription ? children : <Navigate to="/pricing" replace />;
 };
 
 // Modern Navigation Component
@@ -91,7 +112,7 @@ const Navigation = () => {
     { path: '/dashboard', label: t('nav.dashboard') },
     { path: '/upload', label: t('nav.upload') },
     { path: '/contracts', label: t('nav.contracts') },
-    { path: '/pricing', label: t('nav.pricing') },
+    ...(!isAdmin ? [{ path: '/pricing', label: t('nav.pricing') }] : []),
     ...(isAdmin ? [{ path: '/admin', label: t('nav.admin') }] : []),
   ];
 
@@ -125,17 +146,23 @@ const Navigation = () => {
         {/* Right Side - Scan Badge, Language Toggle, Theme Toggle & Profile */}
         <div className="nav-right">
           {/* Scan Credits Badge */}
-          {hasSubscription && (
+          {(hasSubscription || isAdmin) && (
             <button
               className="scan-badge"
-              onClick={() => navigate('/pricing')}
-              title={isUnlimited ? t('nav.unlimited') : `${scansRemaining} ${t('nav.scansLeft')}`}
+              onClick={() => navigate(isAdmin ? '/admin/stripe' : '/pricing')}
+              title={(isAdmin || isUnlimited) ? t('nav.unlimited') : `${scansRemaining} ${t('nav.scansLeft')}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
-              <span>{isUnlimited ? '∞' : scansRemaining}</span>
+              {(isAdmin || isUnlimited) ? (
+                <span className="scan-badge-unlimited">
+                  <span className="scan-badge-infinity">∞</span>
+                </span>
+              ) : (
+                <span>{scansRemaining}</span>
+              )}
             </button>
           )}
           <LanguageToggle />
@@ -210,7 +237,7 @@ const Navigation = () => {
 };
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const location = useLocation();
   const [toast, setToast] = useState(() => {
     try {
@@ -230,6 +257,10 @@ function App() {
 
   // Check if current route is an admin page
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isContractChatRoute =
+    location.pathname === '/dashboard' ||
+    location.pathname === '/contracts' ||
+    location.pathname.startsWith('/analysis/');
 
   useEffect(() => {
     const handleToast = (event) => {
@@ -318,34 +349,48 @@ function App() {
       {isAuthenticated && !isAdminRoute && <Navigation />}
 
       <main className={`app-main ${isAdminRoute ? 'admin-page' : ''}`}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
-          <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
-          <Route path="/analysis/:contractId" element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
-          <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
-          <Route path="/checkout/:packageId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+        <Suspense
+          fallback={
+            <div className="app-loading">
+              <div className="loading-spinner"></div>
+              <p>Loading...</p>
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><RequireActivePlanRoute><DashboardPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/upload" element={<ProtectedRoute><RequireActivePlanRoute><UploadPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/contracts" element={<ProtectedRoute><RequireActivePlanRoute><ContractsPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/analysis/:contractId" element={<ProtectedRoute><RequireActivePlanRoute><AnalysisPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><RequireActivePlanRoute><SettingsPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/contact" element={<ProtectedRoute><RequireActivePlanRoute><ContactPage /></RequireActivePlanRoute></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute>{isAdmin ? <Navigate to="/dashboard" replace /> : <PricingPage />}</ProtectedRoute>} />
+            <Route path="/checkout/:packageId" element={<ProtectedRoute>{isAdmin ? <Navigate to="/dashboard" replace /> : <CheckoutPage />}</ProtectedRoute>} />
+            <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
 
-          {/* Admin routes with sidebar layout */}
-          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
-          </Route>
+            {/* Admin routes with sidebar layout */}
+            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="stripe" element={<AdminStripeInsights />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
-        </Routes>
+            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
+          </Routes>
+        </Suspense>
       </main>
 
       {/* Hide footer on admin pages */}
       {isAuthenticated && !isAdminRoute && <Footer />}
 
-      {/* Global contract mini-chat for authenticated users */}
-      {isAuthenticated && <ContractChatWidget />}
+      {/* Show contract chat only in contract-relevant user flows */}
+      {isAuthenticated && !isAdminRoute && isContractChatRoute && (
+        <Suspense fallback={null}>
+          <ContractChatWidget />
+        </Suspense>
+      )}
     </div>
   );
 }

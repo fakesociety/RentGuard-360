@@ -36,7 +36,7 @@ import { ThemeToggle } from '../components/Toggle';
 import LanguageToggle from '../components/LanguageToggle';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2, X } from 'lucide-react';
+import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2, X, Cloud, Bot, Lock, Zap, Pause, Wallet, House } from 'lucide-react';
 import Footer from '../components/Footer';
 import './LandingPageNew.css';
 
@@ -66,7 +66,7 @@ const RegisterPromptModal = ({ isOpen, onClose, onRegister, isRTL }) => {
                     {isRTL ? 'הרשמה חינם' : 'Register Free'}
                 </button>
                 <p className="modal-note">
-                    {isRTL ? '✨ ללא צורך בכרטיס אשראי' : '✨ No credit card required'}
+                    {isRTL ? 'ללא צורך בכרטיס אשראי' : 'No credit card required'}
                 </p>
             </div>
         </div>
@@ -90,7 +90,10 @@ const DashboardMockup = ({ isRTL, onUploadClick }) => (
     <div className="mockup-dashboard-real" onClick={onUploadClick} style={{ cursor: 'pointer' }}>
         {/* Header Bar */}
         <div className="mock-header">
-            <span className="mock-logo">🛡️ RentGuard 360</span>
+            <span className="mock-logo">
+                <Shield size={14} strokeWidth={2.2} className="mock-logo-icon" />
+                <span>RentGuard 360</span>
+            </span>
             <div className="mock-nav">
                 <span className="mock-nav-item active">{isRTL ? 'לוח בקרה' : 'Dashboard'}</span>
                 <span className="mock-nav-item">{isRTL ? 'חוזים' : 'Contracts'}</span>
@@ -298,12 +301,12 @@ const ContractViewerMockup = ({ isRTL, onScoreClick }) => (
             <span className="mock-risk-badge warning">{isRTL ? 'סיכון בינוני' : 'Medium Risk'}</span>
             <div className="mock-breakdown">
                 <div className="breakdown-item">
-                    <span>💰</span>
+                    <span className="breakdown-icon"><Wallet size={13} strokeWidth={2} /></span>
                     <span className="breakdown-bar"><div style={{ width: '70%' }}></div></span>
                     <span>14/20</span>
                 </div>
                 <div className="breakdown-item">
-                    <span>🏠</span>
+                    <span className="breakdown-icon"><House size={13} strokeWidth={2} /></span>
                     <span className="breakdown-bar"><div style={{ width: '60%' }}></div></span>
                     <span>12/20</span>
                 </div>
@@ -423,28 +426,28 @@ const LandingPageNew = () => {
 
     const benefits = [
         {
-            icon: '☁️',
+            icon: Cloud,
             titleHe: 'אחסון ענן מאובטח',
             titleEn: 'Secure Cloud Storage',
             descHe: 'כל החוזים שלך מאוחסנים בצורה מאובטחת בענן AWS עם הצפנה מלאה.',
             descEn: 'All your contracts are securely stored in AWS cloud with full encryption.'
         },
         {
-            icon: '🤖',
+            icon: Bot,
             titleHe: 'ניתוח AI מתקדם',
             titleEn: 'Advanced AI Analysis',
             descHe: 'בינה מלאכותית מתקדמת מזהה סעיפים בעייתיים ומצביעה על סיכונים.',
             descEn: 'Advanced AI identifies problematic clauses and highlights risks.'
         },
         {
-            icon: '🔒',
+            icon: Lock,
             titleHe: 'פרטיות מלאה',
             titleEn: 'Full Privacy',
             descHe: 'המידע האישי שלך מוסתר אוטומטית לפני הניתוח ומוחזר אחריו.',
             descEn: 'Your personal info is automatically hidden before analysis and restored after.'
         },
         {
-            icon: '⚡',
+            icon: Zap,
             titleHe: 'תוצאות בשניות',
             titleEn: 'Results in Seconds',
             descHe: 'קבל ניתוח מלא של החוזה תוך פחות מדקה, בלי צורך בעורך דין.',
@@ -783,6 +786,7 @@ const LandingPageNew = () => {
 
     const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % benefits.length);
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + benefits.length) % benefits.length);
+    const CurrentBenefitIcon = benefits[currentSlide].icon;
 
     return (
         <div className="landing-real" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -1064,7 +1068,7 @@ const LandingPageNew = () => {
                             {isRTL ? 'התחל ניתוח חינם' : 'Start Free Analysis'}
                         </button>
                         <span className="cta-note highlight">
-                            ✨ {isRTL ? 'ללא צורך בכרטיס אשראי' : 'No credit card required'}
+                            {isRTL ? 'ללא צורך בכרטיס אשראי' : 'No credit card required'}
                         </span>
                     </motion.div>
                 </motion.div>
@@ -1091,7 +1095,7 @@ const LandingPageNew = () => {
                     animate={carouselInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.5 }}
                 >
-                    {isPaused && <span className="carousel-paused">⏸</span>}
+                    {isPaused && <span className="carousel-paused"><Pause size={14} /></span>}
                     <button
                         className="carousel-arrow"
                         onClick={prevSlide}
@@ -1100,7 +1104,7 @@ const LandingPageNew = () => {
                         ‹
                     </button>
                     <div className="carousel-content" key={currentSlide}>
-                        <div className="carousel-icon">{benefits[currentSlide].icon}</div>
+                        <div className="carousel-icon"><CurrentBenefitIcon size={34} strokeWidth={1.9} /></div>
                         <h4>{isRTL ? benefits[currentSlide].titleHe : benefits[currentSlide].titleEn}</h4>
                         <p>{isRTL ? benefits[currentSlide].descHe : benefits[currentSlide].descEn}</p>
                     </div>

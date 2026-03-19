@@ -26,11 +26,21 @@ import { useSubscription } from '../contexts/SubscriptionContext';
 import { getContracts } from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { Shield, Zap, BarChart3, Lightbulb, Cloud } from 'lucide-react';
+import {
+    Shield,
+    Zap,
+    BarChart3,
+    Lightbulb,
+    Cloud,
+    FileText,
+    BadgeCheck,
+    Clock3,
+    TriangleAlert,
+} from 'lucide-react';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
-    const { userAttributes, user } = useAuth();
+    const { userAttributes, user, isAdmin } = useAuth();
     const { t, isRTL } = useLanguage();
     const { packageName, scansRemaining, isUnlimited, hasSubscription } = useSubscription();
     const [stats, setStats] = useState({
@@ -94,46 +104,35 @@ const DashboardPage = () => {
     };
 
     const statCards = [
-        { label: t('dashboard.totalContracts'), value: stats.total, icon: 'contracts', color: '#3b82f6' },
-        { label: t('dashboard.analyzed'), value: stats.analyzed, icon: 'check', color: '#10b981' },
-        { label: t('dashboard.pending'), value: stats.pending, icon: 'clock', color: '#f59e0b' },
-        { label: t('dashboard.highRisk'), value: stats.highRisk, icon: 'alert', color: '#ef4444' },
+        {
+            key: 'contracts',
+            label: t('dashboard.totalContracts'),
+            value: stats.total,
+            icon: <FileText size={22} strokeWidth={2} />,
+            accent: '#2563eb',
+        },
+        {
+            key: 'analyzed',
+            label: t('dashboard.analyzed'),
+            value: stats.analyzed,
+            icon: <BadgeCheck size={22} strokeWidth={2} />,
+            accent: '#0f9f6e',
+        },
+        {
+            key: 'pending',
+            label: t('dashboard.pending'),
+            value: stats.pending,
+            icon: <Clock3 size={22} strokeWidth={2} />,
+            accent: '#d97706',
+        },
+        {
+            key: 'risk',
+            label: t('dashboard.highRisk'),
+            value: stats.highRisk,
+            icon: <TriangleAlert size={22} strokeWidth={2} />,
+            accent: '#dc2626',
+        },
     ];
-
-    const getIcon = (iconName) => {
-        switch (iconName) {
-            case 'contracts':
-                return (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14,2 14,8 20,8" />
-                    </svg>
-                );
-            case 'check':
-                return (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="20,6 9,17 4,12" />
-                    </svg>
-                );
-            case 'clock':
-                return (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12,6 12,12 16,14" />
-                    </svg>
-                );
-            case 'alert':
-                return (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                );
-            default:
-                return null;
-        }
-    };
 
     return (
         <div className="dashboard-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -156,11 +155,11 @@ const DashboardPage = () => {
                                 key={stat.label}
                                 variant="glass"
                                 padding="md"
-                                className="stat-card animate-slideUp"
+                                className={`stat-card stat-card-${stat.key} animate-slideUp`}
                                 style={{ animationDelay: `${index * 100}ms` }}
                             >
-                                <div className="stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
-                                    {getIcon(stat.icon)}
+                                <div className="stat-icon" style={{ color: stat.accent }}>
+                                    {stat.icon}
                                 </div>
                                 <div className="stat-content">
                                     <p className="stat-value">{isLoading ? '-' : stat.value}</p>
@@ -208,30 +207,31 @@ const DashboardPage = () => {
                             </Link>
                         </Card>
 
-                        {/* My Plan Card */}
-                        <Card variant="elevated" padding="lg" className="action-card action-card-inset animate-slideUp" style={{ animationDelay: '600ms' }}>
-                            <div className="action-icon-wrapper">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-                                </svg>
-                            </div>
-                            <h3>{t('subscription.myPlan')}</h3>
-                            {hasSubscription ? (
-                                <p>
-                                    {packageName} — {isUnlimited
-                                        ? t('subscription.unlimited')
-                                        : `${scansRemaining} ${t('subscription.scansRemaining')}`
-                                    }
-                                </p>
-                            ) : (
-                                <p>{t('subscription.noPlan')}</p>
-                            )}
-                            <Link to="/pricing">
-                                <Button variant="secondary" fullWidth>
-                                    {hasSubscription ? t('subscription.upgrade') : t('subscription.choosePlan')}
-                                </Button>
-                            </Link>
-                        </Card>
+                        {!isAdmin && (
+                            <Card variant="elevated" padding="lg" className="action-card action-card-inset animate-slideUp" style={{ animationDelay: '600ms' }}>
+                                <div className="action-icon-wrapper">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                                    </svg>
+                                </div>
+                                <h3>{t('subscription.myPlan')}</h3>
+                                {hasSubscription ? (
+                                    <p>
+                                        {packageName} — {isUnlimited
+                                            ? t('subscription.unlimited')
+                                            : `${scansRemaining} ${t('subscription.scansRemaining')}`
+                                        }
+                                    </p>
+                                ) : (
+                                    <p>{t('subscription.noPlan')}</p>
+                                )}
+                                <Link to="/pricing">
+                                    <Button variant="secondary" fullWidth>
+                                        {hasSubscription ? t('subscription.upgrade') : t('subscription.choosePlan')}
+                                    </Button>
+                                </Link>
+                            </Card>
+                        )}
                     </div>
                 </section>
             </div>
@@ -241,25 +241,35 @@ const DashboardPage = () => {
                 <section className="guide-section animate-fadeIn" style={{ animationDelay: '600ms' }}>
                     <Card variant="glass" padding="lg" className="guide-card">
                         <h2>{t('dashboard.howToStart')}</h2>
-                        <div className="guide-steps">
-                            <div className="guide-step">
-                                <div className="guide-number">1</div>
+                        <div className="guide-steps guide-steps-professional">
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">1</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step1Title')}</h4>
                                     <p>{t('dashboard.step1Desc')}</p>
                                 </div>
                             </div>
-                            <span className="step-arrow">{isRTL ? '←' : '→'}</span>
-                            <div className="guide-step">
-                                <div className="guide-number">2</div>
+
+                            <span className="step-arrow" aria-hidden="true">{isRTL ? '←' : '→'}</span>
+
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">2</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step2Title')}</h4>
                                     <p>{t('dashboard.step2Desc')}</p>
                                 </div>
                             </div>
-                            <span className="step-arrow">{isRTL ? '←' : '→'}</span>
-                            <div className="guide-step">
-                                <div className="guide-number">3</div>
+
+                            <span className="step-arrow" aria-hidden="true">{isRTL ? '←' : '→'}</span>
+
+                            <div className="guide-step-card">
+                                <div className="guide-step-head">
+                                    <span className="guide-number">3</span>
+                                </div>
                                 <div className="guide-content">
                                     <h4>{t('dashboard.step3Title')}</h4>
                                     <p>{t('dashboard.step3Desc')}</p>

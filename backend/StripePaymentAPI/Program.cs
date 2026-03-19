@@ -1,5 +1,7 @@
 using Stripe;
 using StripePaymentAPI.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 // =============================================================================
 // PROGRAM.CS - Server Configuration
@@ -17,6 +19,55 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IPaymentRepository, SQLPaymentRepository>();
 
 // =============================================================================
+// 1.5 AUTHENTICATION (COGNITO JWT)
+//    Protects payment/subscription endpoints from userId spoofing.
+// =============================================================================
+var cognitoUserPoolId = builder.Configuration["Cognito:UserPoolId"];
+var cognitoRegion = builder.Configuration["Cognito:Region"];
+var cognitoAppClientId = builder.Configuration["Cognito:AppClientId"];
+
+if (string.IsNullOrWhiteSpace(cognitoUserPoolId) ||
+    string.IsNullOrWhiteSpace(cognitoRegion) ||
+    string.IsNullOrWhiteSpace(cognitoAppClientId))
+{
+    throw new InvalidOperationException("Missing Cognito configuration. Set Cognito:UserPoolId, Cognito:Region, and Cognito:AppClientId.");
+}
+
+var cognitoAuthority = $"https://cognito-idp.{cognitoRegion}.amazonaws.com/{cognitoUserPoolId}";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = cognitoAuthority;
+        options.RequireHttpsMetadata = true;
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                string authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(authHeader) &&
+                    !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = authHeader;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = cognitoAuthority,
+            ValidateAudience = true,
+            ValidAudience = cognitoAppClientId,
+            ValidateLifetime = true,
+            NameClaimType = "sub"
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// =============================================================================
 // 2. STRIPE CONFIGURATION
 //    Set the Stripe API key so the SDK can talk to Stripe's servers.
 //    The key is read from appsettings.json (local) or environment variables (AWS).
@@ -25,21 +76,28 @@ StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // =============================================================================
 // 2.5 DB MIGRATION / HOTFIX
-//    Update 'unlimited' packages to have exactly 15 scans, as the unlimited
-//    option is being replaced entirely.
+//    Startup data updates are disabled by default and can be enabled explicitly
+//    for controlled one-off rollouts.
 // =============================================================================
-try
+var runStartupPackageHotfix = string.Equals(
+    builder.Configuration["StartupHotfix:EnablePackageScanLimitUpdate"]
+        ?? Environment.GetEnvironmentVariable("RUN_STARTUP_PACKAGE_HOTFIX"),
+    "true",
+    StringComparison.OrdinalIgnoreCase);
+
+if (runStartupPackageHotfix)
 {
-    using (var connection = new System.Data.SqlClient.SqlConnection(builder.Configuration.GetConnectionString("PaymentsDB")))
+    try
     {
+        using var connection = new System.Data.SqlClient.SqlConnection(builder.Configuration.GetConnectionString("PaymentsDB"));
         connection.Open();
-        var cmd = new System.Data.SqlClient.SqlCommand("UPDATE Packages SET ScanLimit = 15 WHERE ScanLimit = -1", connection);
+        using var cmd = new System.Data.SqlClient.SqlCommand("UPDATE Packages SET ScanLimit = 15 WHERE ScanLimit = -1", connection);
         cmd.ExecuteNonQuery();
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine("Warning: DB update failed on startup: " + ex.Message);
+    catch (Exception ex)
+    {
+        Console.WriteLine("Warning: DB update failed on startup: " + ex.Message);
+    }
 }
 
 // =============================================================================
@@ -66,8 +124,43 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("corspolicy", policy =>
     {
-        policy.AllowAnyOrigin()        // Allow requests from any domain
-              .AllowAnyHeader()        // Allow Content-Type, Authorization, etc.
+        var isDevelopment = builder.Environment.IsDevelopment();
+        string rawAllowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
+            ?? Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+            ?? string.Empty;
+
+        string[] allowedOrigins = rawAllowedOrigins
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        // In development, allow local frontend origins without extra config.
+        // In non-development environments, explicit origins are mandatory.
+        if (allowedOrigins.Length == 0)
+        {
+            if (isDevelopment)
+            {
+                policy.WithOrigins(
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173",
+                    "http://localhost:4173",
+                    "http://127.0.0.1:4173",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000");
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "CORS is not configured. Set Cors:AllowedOrigins or CORS_ALLOWED_ORIGINS for non-development environments.");
+            }
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+
+        policy.AllowAnyHeader()        // Allow Content-Type, Authorization, etc.
               .AllowAnyMethod();       // Allow GET, POST, PUT, DELETE
     });
 });
@@ -84,6 +177,9 @@ app.UseSwaggerUI();
 
 // Enable CORS - MUST be before MapControllers
 app.UseCors("corspolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Map controller routes (e.g., api/packages, api/payments)
 app.MapControllers();

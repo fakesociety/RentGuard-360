@@ -85,7 +85,6 @@ def lambda_handler(event, context):
 
         # 1. Parse request body
         body = json.loads(event.get('body', '{}'))
-        contract_id = body.get('contractId')
         clause_text = body.get('clauseText')
         
         if not clause_text:

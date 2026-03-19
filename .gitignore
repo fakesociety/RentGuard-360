@@ -76,6 +76,12 @@ docs/api_documentation.html
 backend/StripePaymentAPI/bin/
 backend/StripePaymentAPI/obj/
 backend/StripePaymentAPI/publish/
+backend/StripePaymentAPI/publish_stripezip/
+backend/StripePaymentAPI/out_clean/
+backend/StripePaymentAPI/publish*/
 
 # C# secrets (never commit API keys!)
 backend/StripePaymentAPI/appsettings.json
+# Publish output
+backend/StripePaymentAPI/out/
+docs/FINAL_QA_CHECKLIST (1).md

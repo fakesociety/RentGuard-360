@@ -34,6 +34,7 @@ CHAT_HISTORY_TABLE = os.environ.get("CHAT_HISTORY_TABLE", "RentGuard-ContractCha
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 MAX_QUESTION_LENGTH = 1200
 MAX_CLAUSES = 6
+PROMPT_VERSION = "v2-json-guarded"
 
 bedrock = boto3.client(
     service_name="bedrock-runtime",
@@ -95,6 +96,10 @@ def _normalize(text):
     return re.sub(r"\s+", " ", str(text)).strip()
 
 
+def _detect_question_language(question):
+    return "he" if re.search(r"[\u0590-\u05FF]", question or "") else "en"
+
+
 def _tokenize(text):
     clean = re.sub(r"[^\w\u0590-\u05FF\s]", " ", (text or "").lower())
     terms = [t for t in clean.split() if len(t) > 2 and t not in STOPWORDS]
@@ -149,23 +154,92 @@ def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_te
         context_parts += ["", "Full contract text:", full_text or ""]
 
     context = "\n".join(context_parts)
+    output_language = "Hebrew" if _detect_question_language(question) == "he" else "English"
 
     system_prompt = (
         "You are RentGuard's contract Q&A assistant. "
         "Answer ONLY from the provided contract context. "
-        "If the answer is not supported by the context, say explicitly that it is not found. "
-        "Keep answers practical and concise. "
-        "When possible, cite short clause snippets in quotes. "
-        "Do not provide definitive legal advice; provide contract interpretation guidance."
+        "If context does not support the answer, say so explicitly. "
+        "Do NOT repeat the user question. "
+        "Do NOT prefix with labels like 'Answer:' or 'תשובה:'. "
+        "Do NOT use markdown. "
+        "Keep the answer concise and practical. "
+        "Do not provide definitive legal advice; provide contract interpretation guidance. "
+        "Return ONLY valid JSON and nothing else."
     )
 
     user_prompt = (
+        f"Output language: {output_language}.\n\n"
         f"Context:\n{context}\n\n"
         f"User question:\n{question}\n\n"
-        "Return a direct answer and mention the most relevant clause snippet(s)."
+        "Return JSON with this exact schema:\n"
+        "{\n"
+        "  \"answer\": \"string\",\n"
+        "  \"found_in_contract\": true,\n"
+        "  \"evidence\": [\"short clause snippet\"]\n"
+        "}\n"
+        "Rules:\n"
+        "- If answer is unsupported, set found_in_contract=false and explain briefly in answer.\n"
+        "- evidence must contain 0-3 short snippets quoted from context (no fabrication).\n"
+        "- Return ONLY JSON."
     )
 
     return system_prompt, user_prompt
+
+
+def _parse_json_response(ai_output_text):
+    clean_text = str(ai_output_text or "").replace("```json", "").replace("```", "").strip()
+    match = re.search(r"\{.*\}", clean_text, re.DOTALL)
+    if not match:
+        return None
+
+    json_str = match.group(0)
+    json_str = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", json_str)
+
+    try:
+        return json.loads(json_str)
+    except Exception:
+        return None
+
+
+def _clean_answer_text(answer_text, question):
+    answer = str(answer_text or "").strip()
+    if not answer:
+        return ""
+
+    answer = re.sub(r"^\s*(?:תשובה|answer)\s*[:-]\s*", "", answer, flags=re.IGNORECASE).strip()
+
+    normalized_question = _normalize(question)
+    if normalized_question:
+        answer = re.sub(
+            rf"^\s*(?:שאלה|question)\s*[:-]\s*{re.escape(normalized_question)}\s*",
+            "",
+            answer,
+            flags=re.IGNORECASE,
+        ).strip()
+
+    answer = re.sub(r"\n{3,}", "\n\n", answer).strip()
+    return answer
+
+
+def _extract_answer(raw_model_output, question):
+    parsed = _parse_json_response(raw_model_output)
+    if isinstance(parsed, dict):
+        answer = _clean_answer_text(parsed.get("answer", ""), question)
+        evidence = parsed.get("evidence")
+        if not isinstance(evidence, list):
+            evidence = []
+        evidence = [str(item).strip() for item in evidence if str(item).strip()][:3]
+
+        found_in_contract = parsed.get("found_in_contract")
+        if isinstance(found_in_contract, bool):
+            found = found_in_contract
+        else:
+            found = None
+
+        return (answer or "No answer generated."), found, evidence
+
+    return _clean_answer_text(raw_model_output, question) or "No answer generated.", None, []
 
 
 def _call_model(system_prompt, user_prompt):
@@ -202,8 +276,14 @@ def _persist_history(user_id, contract_id, question, answer, meta):
                 "meta": meta or {},
             }
         )
+
+        return {
+            "messageId": message_id,
+            "createdAt": now,
+        }
     except Exception as exc:
         print(f"history persist warning: {exc}")
+        return None
 
 
 def lambda_handler(event, context):
@@ -257,16 +337,22 @@ def lambda_handler(event, context):
             use_full_text=low_confidence,
         )
 
-        answer = _call_model(system_prompt, user_prompt)
+        raw_answer = _call_model(system_prompt, user_prompt)
+        answer, found_in_contract, evidence = _extract_answer(raw_answer, question)
 
         response_meta = {
             "contractId": contract_id,
             "usedFullTextFallback": low_confidence,
             "selectedClauses": len(top_clauses),
             "modelId": MODEL_ID,
+            "promptVersion": PROMPT_VERSION,
         }
+        if found_in_contract is not None:
+            response_meta["foundInContract"] = found_in_contract
+        if evidence:
+            response_meta["evidence"] = evidence
 
-        _persist_history(
+        persisted = _persist_history(
             user_id=user_id,
             contract_id=contract_id,
             question=question,
@@ -274,11 +360,16 @@ def lambda_handler(event, context):
             meta=response_meta,
         )
 
+        created_at = (persisted or {}).get("createdAt")
+        message_id = (persisted or {}).get("messageId")
+
         return _response(
             200,
             {
                 "answer": answer,
                 "meta": response_meta,
+                "createdAt": created_at,
+                "messageId": message_id,
             },
         )
 
