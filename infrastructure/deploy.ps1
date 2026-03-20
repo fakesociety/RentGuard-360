@@ -407,16 +407,77 @@ Write-Info "CloudFront Domain: https://$CloudFrontDomain"
 Write-Step "Updating frontend configuration..."
 
 $envFile = Join-Path $FrontendDir ".env"
+
+# Preserve any previously configured values (OAuth domain/redirects, API key, etc.)
+$existingEnv = @{}
+if (Test-Path -LiteralPath $envFile) {
+    try {
+        $existingEnv = Read-ConfigEnv -Path $envFile
+    } catch {
+        Write-Info "Could not parse existing .env, continuing with fresh values"
+    }
+}
+
+# Prefer existing values, then config.env, then derived defaults.
+$checkUserApiKey = Get-EnvValue -Map $existingEnv -Key 'VITE_CHECK_USER_API_KEY'
+if (-not $checkUserApiKey) {
+    $checkUserApiKey = Get-EnvValue -Map $config -Key 'VITE_CHECK_USER_API_KEY'
+}
+
+if (-not $checkUserApiKey) {
+    try {
+        $apiKeyName = "$ProjectName-CheckUserKey$NameSuffix"
+        $checkUserApiKey = aws apigateway get-api-keys --name-query $apiKeyName --include-values --query "items[0].value" --output text 2>$null
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($checkUserApiKey) -or $checkUserApiKey -eq 'None') {
+            $checkUserApiKey = ''
+        }
+    } catch {
+        $checkUserApiKey = ''
+    }
+}
+
+$oauthDomain = Get-EnvValue -Map $existingEnv -Key 'VITE_COGNITO_DOMAIN'
+if (-not $oauthDomain) {
+    $oauthDomain = Get-EnvValue -Map $config -Key 'VITE_COGNITO_DOMAIN'
+}
+
+$oauthRedirectIn = Get-EnvValue -Map $existingEnv -Key 'VITE_OAUTH_REDIRECT_URI'
+if (-not $oauthRedirectIn) {
+    $oauthRedirectIn = Get-EnvValue -Map $config -Key 'VITE_OAUTH_REDIRECT_URI'
+}
+if (-not $oauthRedirectIn) {
+    $oauthRedirectIn = "https://$CloudFrontDomain/"
+}
+
+$oauthRedirectOut = Get-EnvValue -Map $existingEnv -Key 'VITE_OAUTH_REDIRECT_OUT_URI'
+if (-not $oauthRedirectOut) {
+    $oauthRedirectOut = Get-EnvValue -Map $config -Key 'VITE_OAUTH_REDIRECT_OUT_URI'
+}
+if (-not $oauthRedirectOut) {
+    $oauthRedirectOut = $oauthRedirectIn
+}
+
 $envContent = @"
 VITE_API_ENDPOINT=$ApiUrl
+VITE_CHECK_USER_API_KEY=$checkUserApiKey
 VITE_USER_POOL_ID=$UserPoolId
 VITE_USER_POOL_CLIENT_ID=$UserPoolClientId
+VITE_COGNITO_DOMAIN=$oauthDomain
+VITE_OAUTH_REDIRECT_URI=$oauthRedirectIn
+VITE_OAUTH_REDIRECT_OUT_URI=$oauthRedirectOut
 VITE_AWS_REGION=$Region
 VITE_S3_BUCKET=$ContractsBucket
 "@
 
 Set-Content -Path $envFile -Value $envContent
 Write-Success "Updated .env file"
+
+if (-not $checkUserApiKey) {
+    Write-Host "⚠️  VITE_CHECK_USER_API_KEY is empty. check-user endpoint may fail until you set it." -ForegroundColor Yellow
+}
+if (-not $oauthDomain) {
+    Write-Host "⚠️  VITE_COGNITO_DOMAIN is empty. Social login requires Cognito Hosted UI domain." -ForegroundColor Yellow
+}
 
 # =============================================================================
 # STEP 6: Build and Deploy Frontend

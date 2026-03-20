@@ -382,7 +382,7 @@ const ContractViewerMockup = ({ isRTL, onScoreClick }) => (
 
 const LandingPageNew = () => {
     // DAN DID IT - Added forgotPassword and resetUserPassword from useAuth for forgot password feature
-    const { login, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword, checkUserStatus } = useAuth();
+    const { login, socialLogin, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword, checkUserStatus } = useAuth();
     const { t, isRTL } = useLanguage();
 
     const getPendingVerificationEmail = () => {
@@ -551,6 +551,18 @@ const LandingPageNew = () => {
             }
         }
         setLoading(false);
+    };
+
+    const handleSocialLogin = async (provider) => {
+        setError('');
+        setLoading(true);
+
+        const result = await socialLogin(provider);
+        if (!result?.success) {
+            setError(translateError(result?.error || (isRTL ? 'ההתחברות נכשלה' : 'Social login failed')));
+            setLoading(false);
+        }
+        // On success, Cognito Hosted UI redirects away from this page.
     };
 
     const handleRegister = async (e) => {
@@ -793,6 +805,26 @@ const LandingPageNew = () => {
                         {authModal === 'login' && (
                             <form onSubmit={handleLogin} className="auth-form">
                                 <h3>{t('auth.login')}</h3>
+                                <div className="auth-social-group">
+                                    <button
+                                        type="button"
+                                        className="auth-social-btn google"
+                                        onClick={() => handleSocialLogin('Google')}
+                                        disabled={loading}
+                                    >
+                                        {isRTL ? 'התחברות עם Google' : 'Sign in with Google'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="auth-social-btn facebook"
+                                        onClick={() => {}}
+                                    >
+                                        {isRTL ? 'התחברות עם Facebook' : 'Sign in with Facebook'}
+                                    </button>
+                                </div>
+                                <div className="auth-divider">
+                                    <span>{isRTL ? 'או עם אימייל' : 'or with email'}</span>
+                                </div>
                                 <Input type="email" label={t('auth.email')} value={email}
                                     onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password}
@@ -831,6 +863,26 @@ const LandingPageNew = () => {
                         {authModal === 'register' && (
                             <form onSubmit={handleRegister} className="auth-form">
                                 <h3>{t('auth.register')}</h3>
+                                <div className="auth-social-group">
+                                    <button
+                                        type="button"
+                                        className="auth-social-btn google"
+                                        onClick={() => handleSocialLogin('Google')}
+                                        disabled={loading}
+                                    >
+                                        {isRTL ? 'הרשמה עם Google' : 'Continue with Google'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="auth-social-btn facebook"
+                                        onClick={() => {}}
+                                    >
+                                        {isRTL ? 'הרשמה עם Facebook' : 'Continue with Facebook'}
+                                    </button>
+                                </div>
+                                <div className="auth-divider">
+                                    <span>{isRTL ? 'או הרשמה באימייל' : 'or sign up with email'}</span>
+                                </div>
                                 <Input label={t('auth.fullName')} value={name}
                                     onChange={(e) => setName(e.target.value)} required maxLength={50} />
                                 <Input type="email" label={t('auth.email')} value={email}
