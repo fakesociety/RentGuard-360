@@ -247,7 +247,7 @@ namespace StripePaymentAPI.Repositories
                 successParam.Direction = System.Data.ParameterDirection.Output;
                 command.Parameters.Add(successParam);
 
-                SqlParameter remainingParam = new SqlParameter("@RemainingScans", System.Data.SqlDbType.Int);
+                SqlParameter remainingParam = new SqlParameter("@ScansRemaining", System.Data.SqlDbType.Int);
                 remainingParam.Direction = System.Data.ParameterDirection.Output;
                 command.Parameters.Add(remainingParam);
 

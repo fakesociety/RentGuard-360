@@ -27,7 +27,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { getAnalysis, saveEditedContract } from '../services/api';
-import { exportToWord, exportToPDF, exportEditedContract } from '../services/ExportService';
+import { exportToWord, exportToPDF, exportEditedContract, exportToWordBlob } from '../services/ExportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
@@ -35,7 +35,8 @@ import Button from '../components/Button';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import ScoreMethodology from '../components/ScoreMethodology';
 import ContractView from '../components/ContractView';
-import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle } from 'lucide-react';
+import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle, Share2 } from 'lucide-react';
+import useShareFile from '../hooks/useShareFile';
 import './AnalysisPage.css';
 import './LegalCard.css';
 
@@ -54,6 +55,8 @@ const AnalysisPage = () => {
     const [expandedIssue, setExpandedIssue] = useState(null);
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const { shareFile } = useShareFile();
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
     const [_editedClauses, setEditedClauses] = useState({});
     const [copiedIndex, setCopiedIndex] = useState(null);
@@ -203,6 +206,7 @@ const AnalysisPage = () => {
     const scoreBreakdown = result?.score_breakdown || {};
 
     return (
+        <>
         <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="analysis-header animate-fadeIn">
                 <Link to="/contracts" className="back-button-premium">
@@ -324,6 +328,23 @@ const AnalysisPage = () => {
                                         >
                                             📕 PDF - {isRTL ? 'דוח ניתוח' : 'Analysis Report'}
                                             <span className="export-note">{isRTL ? '(אנגלית בלבד)' : '(English only)'}</span>
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                setIsSharing(true);
+                                                try {
+                                                    const blob = await exportToWordBlob(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
+                                                    const fileName = `${(analysis?.fileName || 'Analysis_Report').replace(/\.pdf$/i, '')}.docx`;
+                                                    await shareFile(blob, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                                                } finally {
+                                                    setIsSharing(false);
+                                                    setShowExportMenu(false);
+                                                }
+                                            }}
+                                            disabled={isSharing}
+                                        >
+                                            <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
+                                            {isRTL ? 'שיתוף Word' : 'Share Word'}
                                         </button>
                                     </div>
                                 )}
@@ -591,6 +612,7 @@ const AnalysisPage = () => {
                 </main>
             </div>
         </div>
+        </>
     );
 };
 

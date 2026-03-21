@@ -851,9 +851,210 @@ export const exportEditedContractWithSignatures = async (clauseTexts, editedClau
     saveAs(blob, `${fileName}.docx`);
 };
 
+/**
+ * Generate Word document blob for edited contract WITH SIGNATURES
+ * WITHOUT downloading — for sharing via Web Share API.
+ */
+export const exportEditedContractWithSignaturesBlob = async (clauseTexts, editedClauses, fileName = 'חוזה_שכירות_ערוך') => {
+    const sections = [];
+
+    // ===== HEADER =====
+    sections.push(
+        new Paragraph({
+            text: 'חוזה שכירות בלתי מוגנת',
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+        }),
+        new Paragraph({
+            text: `נערך ונחתם ביום: ${new Date().toLocaleDateString('he-IL')}`,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { after: 600 },
+        })
+    );
+
+    // ===== CONTRACT CLAUSES =====
+    clauseTexts.forEach((text, index) => {
+        const clauseId = `clause-${index}`;
+        const edit = editedClauses[clauseId];
+        const wasEdited = edit && (edit.action === 'accepted' || edit.action === 'edited');
+
+        let displayText = text;
+
+        if (wasEdited && edit.originalNumber) {
+            if (!text.match(/^\d+\.\s*/)) {
+                displayText = `${edit.originalNumber} ${text}`;
+            }
+        }
+
+        sections.push(
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: displayText,
+                        rightToLeft: true,
+                        highlight: wasEdited ? 'yellow' : undefined,
+                    }),
+                ],
+                bidirectional: true,
+                spacing: { after: 300, line: 360 },
+            })
+        );
+    });
+
+    // ===== SIGNATURE PLACEHOLDERS =====
+    sections.push(
+        new Paragraph({
+            text: 'ולראיה באו הצדדים על החתום:',
+            heading: HeadingLevel.HEADING_2,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { before: 800, after: 400 },
+        })
+    );
+
+    const signatureTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' }, insideHorizontal: { style: 'none' }, insideVertical: { style: 'none' } },
+        rows: [
+            new TableRow({
+                children: [
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({ text: 'המשכיר', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 400 } }),
+                            new Paragraph({ text: 'שם: ________________', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 150 } }),
+                            new Paragraph({ text: 'ת.ז.: ________________', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 150 } }),
+                        ],
+                    }),
+                    new TableCell({
+                        borders: { top: { style: 'none' }, bottom: { style: 'none' }, left: { style: 'none' }, right: { style: 'none' } },
+                        children: [
+                            new Paragraph({ text: 'השוכר', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 400 } }),
+                            new Paragraph({ text: 'שם: ________________', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 150 } }),
+                            new Paragraph({ text: 'ת.ז.: ________________', alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 150 } }),
+                        ],
+                    }),
+                ],
+            }),
+        ],
+    });
+
+    sections.push(signatureTable);
+
+    sections.push(
+        new Paragraph({ spacing: { before: 400 } }),
+        new Paragraph({ children: [new TextRun({ text: 'תאריך: ________________', rightToLeft: true })], alignment: AlignmentType.CENTER, bidirectional: true, spacing: { after: 400 } })
+    );
+
+    // Create document
+    const doc = new Document({
+        sections: [{
+            properties: { page: { margin: { top: 720, bottom: 720, left: 720, right: 720 } } },
+            children: sections,
+        }],
+    });
+
+    return await Packer.toBlob(doc);
+};
+
+/**
+ * Generate Word document blob WITHOUT downloading — for sharing via Web Share API.
+ * Same logic as exportToWord but returns the Blob instead of saving.
+ */
+export const exportToWordBlob = async (analysis, fileName = 'Contract_Analysis_Report') => {
+    const result = analysis?.analysis_result || analysis;
+    const riskScore = result?.overall_risk_score || 0;
+    const issues = result?.issues || [];
+    const summary = result?.summary || 'Analysis complete.';
+
+    const sections = [];
+
+    sections.push(
+        new Paragraph({
+            text: 'דוח ניתוח חוזה שכירות',
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+        }),
+        new Paragraph({
+            text: `נוצר בתאריך: ${new Date().toLocaleDateString('he-IL')}`,
+            alignment: AlignmentType.CENTER,
+            bidirectional: true,
+            spacing: { after: 400 },
+        }),
+        new Paragraph({
+            text: 'הערכת סיכון כללית',
+            heading: HeadingLevel.HEADING_1,
+            bidirectional: true,
+        }),
+        new Paragraph({
+            children: [
+                new TextRun({ text: 'ציון סיכון: ', bold: true, rightToLeft: true }),
+                new TextRun({ text: `${riskScore}/100`, bold: true, size: 32 }),
+            ],
+            bidirectional: true,
+            spacing: { after: 200 },
+        }),
+        new Paragraph({
+            text: summary,
+            bidirectional: true,
+            spacing: { after: 400 },
+        })
+    );
+
+    if (issues.length > 0) {
+        sections.push(
+            new Paragraph({
+                text: `בעיות שנמצאו (${issues.length})`,
+                heading: HeadingLevel.HEADING_1,
+                bidirectional: true,
+            })
+        );
+        issues.forEach((issue, idx) => {
+            sections.push(
+                new Paragraph({
+                    text: `${idx + 1}. ${issue.clause_topic || 'Issue'}`,
+                    heading: HeadingLevel.HEADING_2,
+                    bidirectional: true,
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: 'רמת סיכון: ', bold: true, rightToLeft: true }),
+                        new TextRun({ text: issue.risk_level || 'Medium' }),
+                    ],
+                    bidirectional: true,
+                    spacing: { after: 200 },
+                })
+            );
+            if (issue.explanation) {
+                sections.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: 'הסבר: ', bold: true, rightToLeft: true }),
+                            new TextRun({ text: issue.explanation, rightToLeft: true }),
+                        ],
+                        bidirectional: true,
+                        spacing: { after: 300 },
+                    })
+                );
+            }
+        });
+    }
+
+    const doc = new Document({
+        sections: [{ properties: {}, children: sections }],
+    });
+
+    return await Packer.toBlob(doc);
+};
+
 export default {
     exportToWord,
     exportToPDF,
     exportEditedContract,
     exportEditedContractWithSignatures,
+    exportToWordBlob,
+    exportEditedContractWithSignaturesBlob,
 };

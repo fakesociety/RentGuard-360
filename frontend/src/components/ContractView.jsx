@@ -32,8 +32,10 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { processContractClauses } from '../utils/contractTextProcessor';
 import { consultClause } from '../services/api';
-import { exportEditedContractWithSignatures } from '../services/ExportService';
+import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../services/ExportService';
 import RecommendationCard from './RecommendationCard';
+import useShareFile from '../hooks/useShareFile';
+import { Share2 } from 'lucide-react';
 import './ContractView.css';
 
 const ContractView = ({
@@ -47,6 +49,10 @@ const ContractView = ({
     const [editedClauses, setEditedClauses] = useState({});
     const [showOnlyIssues, setShowOnlyIssues] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null);
+    const [isSharing, setIsSharing] = useState(false);
+    
+    // Share hook
+    const { shareFile } = useShareFile();
 
     // Modal editing state
     const [selectedClause, setSelectedClause] = useState(null);
@@ -355,7 +361,19 @@ const ContractView = ({
     // Export contract with signatures
     const handleExport = async () => {
         const clauseTexts = clauses.map(c => getClauseText(c));
-        await exportEditedContractWithSignatures(clauseTexts, editedClauses, 'חוזה_שכירות');
+        await exportEditedContractWithSignatures(clauseTexts, editedClauses, 'חוזה_שכירות_ערוך');
+    };
+
+    // Share contract with signatures
+    const handleShare = async () => {
+        setIsSharing(true);
+        try {
+            const clauseTexts = clauses.map(c => getClauseText(c));
+            const blob = await exportEditedContractWithSignaturesBlob(clauseTexts, editedClauses, 'חוזה_שכירות_ערוך');
+            await shareFile(blob, 'חוזה_שכירות_ערוך.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        } finally {
+            setIsSharing(false);
+        }
     };
 
     // Filter clauses
@@ -525,9 +543,18 @@ const ContractView = ({
                 </footer>
 
                 {/* ===== EXPORT BUTTON ===== */}
-                <div className="export-section no-print">
+                <div className="export-section no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button className="export-btn-main" onClick={handleExport}>
                         📝 ייצוא ל-Word
+                    </button>
+                    <button 
+                        className="export-btn-main" 
+                        onClick={handleShare}
+                        disabled={isSharing}
+                        style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
+                    >
+                        <Share2 size={16} style={{ marginInlineEnd: '6px', verticalAlign: 'middle' }} />
+                        שיתוף
                     </button>
 
                     {/* Clear Edits Button */}

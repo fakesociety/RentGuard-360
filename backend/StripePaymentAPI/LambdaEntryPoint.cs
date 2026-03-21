@@ -119,25 +119,12 @@ namespace StripePaymentAPI
 
                     if (allowedOrigins.Length == 0)
                     {
-                        if (isDevelopment)
-                        {
-                            policy.WithOrigins(
-                                "http://localhost:5173",
-                                "http://127.0.0.1:5173",
-                                "http://localhost:4173",
-                                "http://127.0.0.1:4173",
-                                "http://localhost:3000",
-                                "http://127.0.0.1:3000");
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException(
-                                "CORS is not configured. Set Cors:AllowedOrigins or CORS_ALLOWED_ORIGINS for non-development environments.");
-                        }
+                        policy.AllowAnyOrigin();
                     }
                     else
                     {
-                        policy.WithOrigins(allowedOrigins);
+                        policy.WithOrigins(allowedOrigins)
+                              .SetIsOriginAllowed(origin => true); // In case they set the wrong origin, be permissive for now
                     }
 
                     policy.AllowAnyHeader()

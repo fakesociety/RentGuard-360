@@ -28,10 +28,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getContracts, deleteContract, getAnalysis, updateContract } from '../services/api';
-import { exportToWord, exportToPDF } from '../services/ExportService';
+import { exportToWord, exportToPDF, exportToWordBlob } from '../services/ExportService';
+import useShareFile from '../hooks/useShareFile';
 import Button from '../components/Button';
 import RiskGauge from '../components/RiskGauge';
-import { Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check, ChevronDown, ArrowUpDown, Calendar, AlertTriangle } from 'lucide-react';
+import { Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check, ChevronDown, ArrowUpDown, Calendar, AlertTriangle, Share2 } from 'lucide-react';
 import './ContractsPage.css';
 
 // Timeout constant (ms) for when a pending analysis is treated as "timed out".
@@ -61,7 +62,7 @@ const isContractTimedOut = (contract) => {
 };
 
 // Contract Card Component
-const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isRTL }) => {
+const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDate, t, isRTL }) => {
     const [showExportMenu, setShowExportMenu] = useState(false);
     const status = (contract.status || '').toLowerCase();
 
@@ -184,6 +185,9 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, formatDate, t, isR
                             </div>
                         )}
                     </div>
+                    <button className="icon-btn" onClick={(e) => { e.preventDefault(); onShare(contract); }} title={isRTL ? 'שיתוף' : 'Share'}>
+                        <Share2 size={16} />
+                    </button>
                     <button className="icon-btn" onClick={(e) => onEdit(contract, e)} title="עריכה">
                         <Pencil size={16} />
                     </button>
@@ -207,6 +211,7 @@ const ContractsPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [editModal, setEditModal] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    const { shareFile } = useShareFile();
 
     // Filter/Sort state
     const [sortBy, setSortBy] = useState('date'); // 'date' | 'score'
@@ -360,6 +365,18 @@ const ContractsPage = () => {
         }
     };
 
+    const handleShare = async (contract) => {
+        try {
+            const analysis = await getAnalysis(contract.contractId);
+            const blob = await exportToWordBlob(analysis, contract.fileName || 'Report');
+            const fileName = `${(contract.fileName || 'Report').replace(/\.pdf$/i, '')}.docx`;
+            await shareFile(blob, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        } catch (err) {
+            console.error('Share failed:', err);
+            alert(isRTL ? 'השיתוף נכשל' : 'Share failed');
+        }
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const utcDate = dateString.endsWith('Z') ? dateString : dateString + 'Z';
@@ -408,6 +425,7 @@ const ContractsPage = () => {
     }
 
     return (
+        <>
         <div className="contracts-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Refresh Toast */}
             {isRefreshing && (
@@ -548,6 +566,7 @@ const ContractsPage = () => {
                             onDelete={handleDelete}
                             onEdit={handleEdit}
                             onExport={handleExport}
+                            onShare={handleShare}
                             formatDate={formatDate}
                             t={t}
                             isRTL={isRTL}
@@ -579,6 +598,7 @@ const ContractsPage = () => {
                 </div>
             )}
         </div>
+        </>
     );
 };
 

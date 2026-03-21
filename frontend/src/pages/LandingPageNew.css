@@ -221,6 +221,14 @@
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+}
+
+.auth-social-btn svg {
+    flex-shrink: 0;
 }
 
 .auth-social-btn:hover {
@@ -236,6 +244,7 @@
 .auth-social-btn.facebook {
     opacity: 0.8;
 }
+
 
 .auth-divider {
     display: flex;
