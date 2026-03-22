@@ -16,6 +16,7 @@ namespace StripePaymentAPI.Repositories
         
         // Cache the active connection string so we don't delay every request by 3 seconds if AWS is down
         private static string _activeConnectionString = null;
+        public static string ActiveConnectionString => _activeConnectionString;
 
         /// <summary>
         /// Constructor - receives the connection string from configuration.

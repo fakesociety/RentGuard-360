@@ -201,7 +201,9 @@ const PricingPage = () => {
                 <section className="pricing-cards-section">
                     <div className="pricing-cards-grid">
                         {(() => {
-                            const isFreeEligible = !hasSubscription || (currentPlan === 'Free' && scansRemaining > 0);
+                            // Show 'Free' only if the user hasn't claimed a subscription yet.
+                            // Once they have the Free plan (even with 1 scan left), show 'Single' instead.
+                            const isFreeEligible = !hasSubscription;
                             const displayPackages = packages.filter(pkg => {
                                 if (pkg.name === 'Free') return isFreeEligible;
                                 if (pkg.name === 'Single') return !isFreeEligible;
