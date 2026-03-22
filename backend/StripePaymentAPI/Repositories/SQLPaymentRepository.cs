@@ -11,16 +11,43 @@ namespace StripePaymentAPI.Repositories
     /// </summary>
     public class SQLPaymentRepository : IPaymentRepository
     {
-        // Connection string to the SQL Server database (injected via DI)
+        // Connection string to the SQL Server database
         private readonly string _connectionString;
+        
+        // Cache the active connection string so we don't delay every request by 3 seconds if AWS is down
+        private static string _activeConnectionString = null;
+        public static string ActiveConnectionString => _activeConnectionString;
 
         /// <summary>
         /// Constructor - receives the connection string from configuration.
-        /// The controller never creates this directly (DI handles it).
+        /// Tries AWS RDS first. If it's down, falls back to LocalDB automatically.
         /// </summary>
         public SQLPaymentRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("PaymentsDB");
+            if (_activeConnectionString == null)
+            {
+                string primary = configuration.GetConnectionString("PaymentsDB");
+                string fallback = configuration.GetConnectionString("LocalPaymentsDB");
+
+                try
+                {
+                    // Test primary connection with a short 3-second timeout
+                    var builder = new SqlConnectionStringBuilder(primary) { ConnectTimeout = 3 };
+                    using (var connection = new SqlConnection(builder.ConnectionString))
+                    {
+                        connection.Open();
+                    }
+                    _activeConnectionString = primary;
+                    Console.WriteLine("DB Status: Connected to Primary AWS RDS Database.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"DB Status: AWS RDS is down ({ex.Message}). Falling back to LocalDB!");
+                    _activeConnectionString = fallback;
+                }
+            }
+
+            _connectionString = _activeConnectionString;
         }
 
         // =====================================================================

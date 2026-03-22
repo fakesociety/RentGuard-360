@@ -625,7 +625,7 @@ namespace StripePaymentAPI.Controllers
                 List<object> bundleBreakdown = new List<object>();
                 List<object> recentTransactions = new List<object>();
 
-                string connStr = _configuration.GetConnectionString("PaymentsDB");
+                string connStr = SQLPaymentRepository.ActiveConnectionString ?? _configuration.GetConnectionString("PaymentsDB");
                 if (!string.IsNullOrWhiteSpace(connStr))
                 {
                     using (SqlConnection connection = new SqlConnection(connStr))
@@ -635,8 +635,8 @@ namespace StripePaymentAPI.Controllers
                         string overviewSql = @"
 SELECT
     COUNT(*) AS TotalTransactions,
-    SUM(CASE WHEN Status = 'succeeded' THEN 1 ELSE 0 END) AS SuccessfulTransactions,
-    SUM(CASE WHEN Status = 'failed' THEN 1 ELSE 0 END) AS FailedTransactions,
+    ISNULL(SUM(CASE WHEN Status = 'succeeded' THEN 1 ELSE 0 END), 0) AS SuccessfulTransactions,
+    ISNULL(SUM(CASE WHEN Status = 'failed' THEN 1 ELSE 0 END), 0) AS FailedTransactions,
     ISNULL(SUM(CASE WHEN Status = 'succeeded' THEN Amount ELSE 0 END), 0) AS TotalRevenue,
     ISNULL(AVG(CASE WHEN Status = 'succeeded' THEN Amount END), 0) AS AvgOrderValue
 FROM Transactions;

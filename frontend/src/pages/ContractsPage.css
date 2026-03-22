@@ -690,15 +690,15 @@
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--bg-card);
+    background: var(--bg-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     z-index: 100;
-    margin-bottom: 8px;
-    min-width: 100px;
+    margin-bottom: var(--space-xs);
+    min-width: 260px;
+    max-width: 340px;
 }
 
 [data-theme="dark"] .dropdown-menu {
@@ -709,14 +709,63 @@
 .dropdown-menu button {
     display: block;
     width: 100%;
-    padding: 10px 16px;
+    padding: var(--space-sm) var(--space-md);
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 13px;
-    text-align: center;
+    font-size: var(--font-size-xs);
+    text-align: start;
+    line-height: 1.4;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdown-menu-title {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--bg-tertiary);
+}
+
+.dropdown-menu.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+.dropdown-menu.ltr {
+    direction: ltr;
+    text-align: left;
+}
+
+.dropdown-group-title {
+    padding: 8px 12px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.menu-option {
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-start;
+}
+
+.menu-option-title {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.menu-option-note {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-style: italic;
 }
 
 [data-theme="dark"] .dropdown-menu button {
@@ -724,11 +773,18 @@
 }
 
 .dropdown-menu button:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 [data-theme="dark"] .dropdown-menu button:hover {
     background: #334155;
+    color: #f8fafc;
+}
+
+.dropdown-container .icon-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 /* ============================================

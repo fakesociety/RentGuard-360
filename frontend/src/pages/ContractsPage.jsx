@@ -28,8 +28,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getContracts, deleteContract, getAnalysis, updateContract } from '../services/api';
-import { exportToWord, exportToPDF, exportToWordBlob } from '../services/ExportService';
+import { exportToWord, exportToPDF, exportToPDFBlob } from '../services/ExportService';
 import useShareFile from '../hooks/useShareFile';
+import ActionMenu from '../components/ActionMenu';
 import Button from '../components/Button';
 import RiskGauge from '../components/RiskGauge';
 import { Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check, ChevronDown, ArrowUpDown, Calendar, AlertTriangle, Share2 } from 'lucide-react';
@@ -63,7 +64,7 @@ const isContractTimedOut = (contract) => {
 
 // Contract Card Component
 const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDate, t, isRTL }) => {
-    const [showExportMenu, setShowExportMenu] = useState(false);
+    const [activeMenu, setActiveMenu] = useState(null);
     const status = (contract.status || '').toLowerCase();
 
     // Score thresholds match legend: lower score = higher risk
@@ -166,28 +167,44 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                 )}
                 <div className="action-buttons">
                     {/* Export Dropdown */}
-                    <div className="dropdown-container">
-                        <button
-                            className="icon-btn"
-                            onClick={(e) => { e.preventDefault(); setShowExportMenu(!showExportMenu); }}
-                            title="ייצוא"
-                        >
-                            <Download size={16} />
+                    <ActionMenu
+                        isOpen={activeMenu === 'export'}
+                        onToggle={() => setActiveMenu(activeMenu === 'export' ? null : 'export')}
+                        onClose={() => setActiveMenu(null)}
+                        containerClassName="dropdown-container"
+                        triggerClassName="icon-btn"
+                        triggerTitle="ייצוא"
+                        triggerContent={<Download size={16} />}
+                        panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
+                    >
+                        <div className="dropdown-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
+                        <div className="dropdown-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
+                        <button className="menu-option" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }}>
+                            <span className="menu-option-title">{isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}</span>
+                            <span className="menu-option-note">{isRTL ? 'ייצוא כקובץ docx (Word), עריך ומומלץ לעברית' : '.docx editable, best Hebrew support'}</span>
                         </button>
-                        {showExportMenu && (
-                            <div className="dropdown-menu">
-                                <button onClick={() => { onExport(contract, 'pdf'); setShowExportMenu(false); }}>
-                                    PDF
-                                </button>
-                                <button onClick={() => { onExport(contract, 'word'); setShowExportMenu(false); }}>
-                                    Word
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    <button className="icon-btn" onClick={(e) => { e.preventDefault(); onShare(contract); }} title={isRTL ? 'שיתוף' : 'Share'}>
-                        <Share2 size={16} />
-                    </button>
+                        <button className="menu-option" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }}>
+                            <span className="menu-option-title">{isRTL ? 'PDF - דוח ניתוח' : 'PDF - Analysis Report'}</span>
+                            <span className="menu-option-note">{isRTL ? 'סיכום מהיר, אנגלית בלבד' : 'quick summary, English only'}</span>
+                        </button>
+                    </ActionMenu>
+
+                    <ActionMenu
+                        isOpen={activeMenu === 'share'}
+                        onToggle={() => setActiveMenu(activeMenu === 'share' ? null : 'share')}
+                        onClose={() => setActiveMenu(null)}
+                        containerClassName="dropdown-container"
+                        triggerClassName="icon-btn"
+                        triggerTitle={isRTL ? 'שיתוף' : 'Share'}
+                        triggerContent={<Share2 size={16} />}
+                        panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
+                    >
+                        <div className="dropdown-menu-title">{isRTL ? 'שיתוף דוח הניתוח' : 'Share Analysis Report'}</div>
+                        <button className="menu-option" onClick={() => { onShare(contract); setActiveMenu(null); }}>
+                            <span className="menu-option-title">{isRTL ? 'שיתוף קובץ PDF' : 'Share PDF File'}</span>
+                            <span className="menu-option-note">{isRTL ? 'מצרף את הדוח כקובץ לשיתוף' : 'attach the report as a file'}</span>
+                        </button>
+                    </ActionMenu>
                     <button className="icon-btn" onClick={(e) => onEdit(contract, e)} title="עריכה">
                         <Pencil size={16} />
                     </button>
@@ -211,6 +228,7 @@ const ContractsPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [editModal, setEditModal] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [actionNotice, setActionNotice] = useState(null);
     const { shareFile } = useShareFile();
 
     // Filter/Sort state
@@ -220,6 +238,11 @@ const ContractsPage = () => {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const contractsPerPage = 20;
+
+    const showActionNotice = useCallback((message) => {
+        setActionNotice(message);
+        setTimeout(() => setActionNotice(null), 3000);
+    }, []);
 
     const fetchContracts = useCallback(async (showLoader = true) => {
         const userId = user?.userId || user?.username || userAttributes?.sub;
@@ -358,8 +381,13 @@ const ContractsPage = () => {
     const handleExport = async (contract, type) => {
         try {
             const analysis = await getAnalysis(contract.contractId);
-            if (type === 'pdf') await exportToPDF(analysis, contract.fileName || 'Report');
-            else await exportToWord(analysis, contract.fileName || 'Report');
+            if (type === 'pdf') {
+                await exportToPDF(analysis, contract.fileName || 'Report');
+                showActionNotice(isRTL ? 'קובץ PDF ירד למחשב (סיכום באנגלית)' : 'PDF download started (English summary)');
+            } else {
+                await exportToWord(analysis, contract.fileName || 'Report');
+                showActionNotice(isRTL ? 'קובץ docx (Word) ירד למחשב (עריך)' : 'Word (.docx) download started');
+            }
         } catch {
             alert('ייצוא נכשל');
         }
@@ -368,9 +396,10 @@ const ContractsPage = () => {
     const handleShare = async (contract) => {
         try {
             const analysis = await getAnalysis(contract.contractId);
-            const blob = await exportToWordBlob(analysis, contract.fileName || 'Report');
-            const fileName = `${(contract.fileName || 'Report').replace(/\.pdf$/i, '')}.docx`;
-            await shareFile(blob, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            const baseFileName = `${(contract.fileName || 'Report').replace(/\.(pdf|docx)$/i, '')}`;
+            const blob = await exportToPDFBlob(analysis, baseFileName);
+            await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
+            showActionNotice(isRTL ? 'חלון השיתוף נפתח עבור PDF' : 'Share sheet opened for PDF');
         } catch (err) {
             console.error('Share failed:', err);
             alert(isRTL ? 'השיתוף נכשל' : 'Share failed');
@@ -432,6 +461,11 @@ const ContractsPage = () => {
                 <div className="refresh-toast">
                     <RefreshCw size={18} className="spinning" />
                     <span>{isRTL ? 'מרענן...' : 'Refreshing...'}</span>
+                </div>
+            )}
+            {actionNotice && (
+                <div className="refresh-toast" style={{ top: '70px' }}>
+                    <span>{actionNotice}</span>
                 </div>
             )}
 

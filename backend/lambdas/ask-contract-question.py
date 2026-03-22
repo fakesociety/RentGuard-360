@@ -10,6 +10,7 @@ Output: JSON with { answer, meta }
 
 Data sources:
   - RentGuard-Analysis table (full_text, clauses_list, analysis_result, userId)
+  - RentGuard-ContractChatHistory table (sliding window for conversational memory)
 
 Security:
   - Requires Cognito-authenticated request
@@ -18,6 +19,7 @@ Security:
 Notes:
   - Uses lightweight clause retrieval (keyword overlap), not vector embeddings
   - Falls back to full contract text when retrieval confidence is low
+  - Sliding window (last 3 Q&A pairs) + query rewriting for conversational context
 =============================================================================
 """
 
@@ -34,7 +36,9 @@ CHAT_HISTORY_TABLE = os.environ.get("CHAT_HISTORY_TABLE", "RentGuard-ContractCha
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 MAX_QUESTION_LENGTH = 1200
 MAX_CLAUSES = 6
-PROMPT_VERSION = "v2-json-guarded"
+SLIDING_WINDOW_SIZE = 3
+MAX_ANSWER_PREVIEW = 300
+PROMPT_VERSION = "v3-conversational-memory"
 
 bedrock = boto3.client(
     service_name="bedrock-runtime",
@@ -126,7 +130,82 @@ def _top_relevant_clauses(question, clauses, top_n=MAX_CLAUSES):
     return [{"index": i + 1, "score": s, "text": t} for s, i, t in top]
 
 
-def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_text):
+def _fetch_sliding_window(user_id, contract_id, window_size=SLIDING_WINDOW_SIZE):
+    """Fetch the last N Q&A pairs from chat history for conversational context."""
+    try:
+        prefix = f"{contract_id}#"
+        result = chat_history_table.query(
+            KeyConditionExpression="userId = :uid AND begins_with(threadKey, :prefix)",
+            ExpressionAttributeValues={":uid": user_id, ":prefix": prefix},
+            ScanIndexForward=False,
+            Limit=window_size,
+        )
+        items = result.get("Items", [])
+        return list(reversed(items))  # oldest first
+    except Exception as exc:
+        print(f"sliding window fetch warning: {exc}")
+        return []
+
+
+def _build_history_text(history_items):
+    """Format sliding window items into a compact text block."""
+    if not history_items:
+        return ""
+    turns = []
+    for item in history_items:
+        q = _normalize(item.get("question"))
+        a = _normalize(item.get("answer"))
+        if q:
+            turns.append(f"User: {q}")
+        if a:
+            # Truncate long answers to keep token count low.
+            turns.append(f"Assistant: {a[:MAX_ANSWER_PREVIEW]}")
+    return "\n".join(turns)
+
+
+def _rewrite_question(question, history_items):
+    """Use a fast, cheap Claude call to rewrite a follow-up question into a standalone one.
+
+    If the question already stands on its own, Claude returns it unchanged.
+    If there is no history, the rewrite step is skipped entirely.
+    """
+    if not history_items:
+        return question
+
+    history_text = _build_history_text(history_items)
+    if not history_text:
+        return question
+
+    rewrite_system = (
+        "You rewrite follow-up questions into standalone questions. "
+        "If the latest question already stands on its own and does not reference "
+        "previous messages (using words like 'it', 'that', 'this', 'those', 'זה', 'את זה', 'שלו', 'שלה'), "
+        "return it EXACTLY as-is, unchanged. "
+        "Return ONLY the rewritten question text, nothing else. "
+        "Preserve the original language (Hebrew or English)."
+    )
+
+    rewrite_user = (
+        f"Chat history:\n{history_text}\n\n"
+        f"Latest question:\n{question}\n\n"
+        "Rewrite the latest question so it is fully standalone, "
+        "or return it unchanged if it already is."
+    )
+
+    try:
+        raw = _call_model(rewrite_system, rewrite_user)
+        rewritten = str(raw or "").strip().strip('"').strip()
+        if rewritten:
+            print(f"query rewrite: '{question}' -> '{rewritten}'")
+            return rewritten
+        return question
+    except Exception as exc:
+        # If rewrite fails, proceed with original question — never block the user.
+        print(f"query rewrite warning (using original): {exc}")
+        return question
+
+
+def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_text, conversation_history=""):
     issues_text = []
     for issue in (issues or [])[:6]:
         try:
@@ -153,18 +232,22 @@ def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_te
     if use_full_text:
         context_parts += ["", "Full contract text:", full_text or ""]
 
+    if conversation_history:
+        context_parts += ["", "Recent conversation:", conversation_history]
+
     context = "\n".join(context_parts)
     output_language = "Hebrew" if _detect_question_language(question) == "he" else "English"
 
     system_prompt = (
         "You are RentGuard's contract Q&A assistant. "
-        "Answer ONLY from the provided contract context. "
-        "If context does not support the answer, say so explicitly. "
+        "Answer ONLY from the provided contract context, unless the user explicitly requests general advice or consultation. "
+        "If the user asks a factual question and the context does not support the answer, say so explicitly. "
+        "However, if the user asks for general advice, market standards, negotiation tips, or consultation, you MAY draw upon your general knowledge to provide helpful guidance, and DO NOT robotically state 'The contract does not specify this'. "
         "Do NOT repeat the user question. "
         "Do NOT prefix with labels like 'Answer:' or 'תשובה:'. "
         "Do NOT use markdown. "
         "Keep the answer concise and practical. "
-        "Do not provide definitive legal advice; provide contract interpretation guidance. "
+        "Do not provide definitive legal advice; provide contract interpretation and negotiation guidance. "
         "Return ONLY valid JSON and nothing else."
     )
 
@@ -174,12 +257,13 @@ def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_te
         f"User question:\n{question}\n\n"
         "Return JSON with this exact schema:\n"
         "{\n"
-        "  \"answer\": \"string\",\n"
+        "  \"answer\": \"your helpful, conversational response\",\n"
         "  \"found_in_contract\": true,\n"
         "  \"evidence\": [\"short clause snippet\"]\n"
         "}\n"
         "Rules:\n"
-        "- If answer is unsupported, set found_in_contract=false and explain briefly in answer.\n"
+        "- Set found_in_contract=true ONLY if your answer specifically relies on the provided context.\n"
+        "- If the user asks for general advice, negotiation tips, or market standards, just answer naturally and conversationally without saying 'The contract doesn't contain this'.\n"
         "- evidence must contain 0-3 short snippets quoted from context (no fabrication).\n"
         "- Return ONLY JSON."
     )
@@ -319,26 +403,37 @@ def lambda_handler(event, context):
         if stored_user_id and stored_user_id != user_id:
             return _response(403, {"error": "Access denied - contract belongs to another user"})
 
+        # --- Sliding Window: fetch recent conversation history ---
+        history_items = _fetch_sliding_window(user_id, contract_id)
+
+        # --- Query Rewriting: make follow-up questions standalone ---
+        rewritten_question = _rewrite_question(question, history_items)
+
         analysis = item.get("analysis_result") or {}
         summary = _normalize(analysis.get("summary"))
         issues = analysis.get("issues") or []
         clauses = item.get("clauses_list") or []
         full_text = _normalize(item.get("full_text"))
 
-        top_clauses = _top_relevant_clauses(question, clauses)
+        # Use the REWRITTEN question for clause retrieval (better keyword matching).
+        top_clauses = _top_relevant_clauses(rewritten_question, clauses)
         low_confidence = len(top_clauses) == 0
 
+        # Build conversation history text for the final prompt.
+        conversation_history = _build_history_text(history_items)
+
         system_prompt, user_prompt = _build_prompt(
-            question=question,
+            question=rewritten_question,
             summary=summary,
             issues=issues,
             top_clauses=top_clauses,
             full_text=full_text if low_confidence else "",
             use_full_text=low_confidence,
+            conversation_history=conversation_history,
         )
 
         raw_answer = _call_model(system_prompt, user_prompt)
-        answer, found_in_contract, evidence = _extract_answer(raw_answer, question)
+        answer, found_in_contract, evidence = _extract_answer(raw_answer, rewritten_question)
 
         response_meta = {
             "contractId": contract_id,
@@ -346,12 +441,16 @@ def lambda_handler(event, context):
             "selectedClauses": len(top_clauses),
             "modelId": MODEL_ID,
             "promptVersion": PROMPT_VERSION,
+            "usedConversationalMemory": len(history_items) > 0,
         }
+        if rewritten_question != question:
+            response_meta["rewrittenQuestion"] = rewritten_question
         if found_in_contract is not None:
             response_meta["foundInContract"] = found_in_contract
         if evidence:
             response_meta["evidence"] = evidence
 
+        # Persist history with the ORIGINAL question (what the user typed).
         persisted = _persist_history(
             user_id=user_id,
             contract_id=contract_id,

@@ -27,6 +27,23 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, Ta
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
 
+const DOCX_BODY_FONT = 'Calibri';
+const DOCX_DEFAULT_STYLES = {
+    default: {
+        document: {
+            run: {
+                font: DOCX_BODY_FONT,
+                size: 24,
+            },
+        },
+    },
+};
+
+const createModernDoc = (sections) => new Document({
+    styles: DOCX_DEFAULT_STYLES,
+    sections,
+});
+
 // ============================================
 // WORD EXPORT
 // ============================================
@@ -219,12 +236,12 @@ export const exportToWord = async (analysis, fileName = 'Contract_Analysis_Repor
     }
 
     // Create and save document
-    const doc = new Document({
-        sections: [{
+    const doc = createModernDoc([
+        {
             properties: {},
             children: sections,
-        }],
-    });
+        },
+    ]);
 
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${fileName}.docx`);
@@ -239,7 +256,8 @@ export const exportToWord = async (analysis, fileName = 'Contract_Analysis_Repor
  * Note: For Hebrew, use Word export for better formatting
  * PDF uses basic visualization without Hebrew text
  */
-export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report') => {
+export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report', options = {}) => {
+    const { asBlob = false } = options;
     const result = analysis?.analysis_result || analysis;
     const riskScoreRaw = result?.overall_risk_score;
     const riskScore = Math.max(0, Math.min(100, Math.round(Number(riskScoreRaw) || 0)));
@@ -454,7 +472,18 @@ export const exportToPDF = async (analysis, fileName = 'Contract_Analysis_Report
         doc.text(`Page ${i} of ${pageCount} | RentGuard 360`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
     }
 
+    if (asBlob) {
+        return doc.output('blob');
+    }
+
     doc.save(`${fileName}.pdf`);
+};
+
+/**
+ * Generate PDF blob WITHOUT downloading — for sharing via Web Share API.
+ */
+export const exportToPDFBlob = async (analysis, fileName = 'Contract_Analysis_Report') => {
+    return exportToPDF(analysis, fileName, { asBlob: true });
 };
 
 // ============================================
@@ -582,16 +611,16 @@ export const exportEditedContract = async (originalText, editedClauses, ISSUES =
     );
 
     // Create and save document
-    const doc = new Document({
-        sections: [{
+    const doc = createModernDoc([
+        {
             properties: {
                 page: {
                     margin: { top: 720, bottom: 720, left: 720, right: 720 },
                 }
             },
             children: sections,
-        }],
-    });
+        },
+    ]);
 
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${fileName}.docx`);
@@ -836,16 +865,16 @@ export const exportEditedContractWithSignatures = async (clauseTexts, editedClau
     );
 
     // Create document
-    const doc = new Document({
-        sections: [{
+    const doc = createModernDoc([
+        {
             properties: {
                 page: {
                     margin: { top: 720, bottom: 720, left: 720, right: 720 },
                 }
             },
             children: sections,
-        }],
-    });
+        },
+    ]);
 
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${fileName}.docx`);
@@ -949,12 +978,12 @@ export const exportEditedContractWithSignaturesBlob = async (clauseTexts, edited
     );
 
     // Create document
-    const doc = new Document({
-        sections: [{
+    const doc = createModernDoc([
+        {
             properties: { page: { margin: { top: 720, bottom: 720, left: 720, right: 720 } } },
             children: sections,
-        }],
-    });
+        },
+    ]);
 
     return await Packer.toBlob(doc);
 };
@@ -1043,9 +1072,7 @@ export const exportToWordBlob = async (analysis, fileName = 'Contract_Analysis_R
         });
     }
 
-    const doc = new Document({
-        sections: [{ properties: {}, children: sections }],
-    });
+    const doc = createModernDoc([{ properties: {}, children: sections }]);
 
     return await Packer.toBlob(doc);
 };
@@ -1053,6 +1080,7 @@ export const exportToWordBlob = async (analysis, fileName = 'Contract_Analysis_R
 export default {
     exportToWord,
     exportToPDF,
+    exportToPDFBlob,
     exportEditedContract,
     exportEditedContractWithSignatures,
     exportToWordBlob,

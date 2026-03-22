@@ -24,10 +24,10 @@
  * 
  * ============================================
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { getAnalysis, saveEditedContract } from '../services/api';
-import { exportToWord, exportToPDF, exportEditedContract, exportToWordBlob } from '../services/ExportService';
+import { exportToWord, exportToPDF, exportEditedContract, exportToPDFBlob } from '../services/ExportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
@@ -35,7 +35,8 @@ import Button from '../components/Button';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import ScoreMethodology from '../components/ScoreMethodology';
 import ContractView from '../components/ContractView';
-import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle, Share2 } from 'lucide-react';
+import ActionMenu from '../components/ActionMenu';
+import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle, Share2, Trash2 } from 'lucide-react';
 import useShareFile from '../hooks/useShareFile';
 import './AnalysisPage.css';
 import './LegalCard.css';
@@ -56,6 +57,7 @@ const AnalysisPage = () => {
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
+    const [exportNotice, setExportNotice] = useState(null);
     const { shareFile } = useShareFile();
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
     const [_editedClauses, setEditedClauses] = useState({});
@@ -64,6 +66,56 @@ const AnalysisPage = () => {
     const MAX_POLL_ATTEMPTS = 12; // 12 attempts = ~2 minutes total
     const INITIAL_DELAY = 15000; // Wait 15s before first poll (analysis takes 30-60s)
     const POLL_INTERVAL = 10000; // Then poll every 10 seconds
+
+    // ContractView ref and edit state (for the export section)
+    const contractViewRef = useRef(null);
+    const [contractEditState, setContractEditState] = useState({ editedCount: 0, saveStatus: null });
+
+    const showExportNotice = useCallback((message) => {
+        setExportNotice(message);
+        setTimeout(() => setExportNotice(null), 3000);
+    }, []);
+
+    const handleExportWord = useCallback(async () => {
+        setIsExporting(true);
+        try {
+            await exportToWord(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
+            showExportNotice(isRTL ? 'קובץ docx (Word) ירד למחשב' : 'Word (.docx) download started');
+        } finally {
+            setIsExporting(false);
+            setShowExportMenu(false);
+        }
+    }, [analysis, isRTL, showExportNotice]);
+
+    const handleExportPdf = useCallback(async () => {
+        setIsExporting(true);
+        try {
+            await exportToPDF(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
+            showExportNotice(isRTL ? 'קובץ PDF ירד למחשב' : 'PDF file download started');
+        } finally {
+            setIsExporting(false);
+            setShowExportMenu(false);
+        }
+    }, [analysis, isRTL, showExportNotice]);
+
+    const handleSharePdf = useCallback(async () => {
+        setIsSharing(true);
+        try {
+            const baseFileName = `${(analysis?.fileName || 'Analysis_Report').replace(/\.(pdf|docx)$/i, '')}`;
+            const blob = await exportToPDFBlob(analysis, baseFileName);
+            await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
+            showExportNotice(isRTL ? 'חלון השיתוף נפתח עבור PDF' : 'Share sheet opened for PDF');
+        } finally {
+            setIsSharing(false);
+            setShowExportMenu(false);
+        }
+    }, [analysis, isRTL, shareFile, showExportNotice]);
+
+    const handleSaveToCloud = useCallback(async (clauses, fullEditedText) => {
+        const userId = userAttributes?.sub || 'unknown-user';
+        const contractIdClean = analysis?.contractId || contractId;
+        await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
+    }, [analysis?.contractId, contractId, userAttributes?.sub]);
 
     const fetchAnalysis = useCallback(async () => {
         try {
@@ -288,68 +340,39 @@ const AnalysisPage = () => {
                         {/* Actions */}
                         <div className="sidebar-actions">
                             <button className="sidebar-action-btn" onClick={fetchAnalysis}>
-                                🔄 {t('analysis.refresh')}
+                                {t('analysis.refresh')}
                             </button>
-                            <div className="export-dropdown-sidebar">
-                                <button
-                                    className="sidebar-action-btn"
-                                    onClick={() => setShowExportMenu(!showExportMenu)}
-                                >
-                                    📥 {t('analysis.export')} {showExportMenu ? '▲' : '▼'}
+                            <ActionMenu
+                                isOpen={showExportMenu}
+                                onToggle={() => setShowExportMenu(!showExportMenu)}
+                                onClose={() => setShowExportMenu(false)}
+                                containerClassName="export-dropdown-sidebar"
+                                triggerClassName="sidebar-action-btn"
+                                triggerContent={`${t('analysis.export')} ${showExportMenu ? '▲' : '▼'}`}
+                                panelClassName="export-menu-sidebar"
+                            >
+                                <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
+                                <div className="export-menu-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
+                                <button onClick={handleExportWord} disabled={isExporting}>
+                                    {isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}
+                                    <span className="export-note">{isRTL ? '(ייצוא כקובץ docx (Word), ניתן לעריכה מלאה)' : '(.docx editable, best Hebrew support)'}</span>
                                 </button>
-                                {showExportMenu && (
-                                    <div className="export-menu-sidebar">
-                                        <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
-                                        <button
-                                            onClick={async () => {
-                                                setIsExporting(true);
-                                                try {
-                                                    await exportToWord(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
-                                                } finally {
-                                                    setIsExporting(false);
-                                                    setShowExportMenu(false);
-                                                }
-                                            }}
-                                            disabled={isExporting}
-                                        >
-                                            📝 Word - {isRTL ? 'דוח ניתוח' : 'Analysis Report'}
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                setIsExporting(true);
-                                                try {
-                                                    await exportToPDF(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
-                                                } finally {
-                                                    setIsExporting(false);
-                                                    setShowExportMenu(false);
-                                                }
-                                            }}
-                                            disabled={isExporting}
-                                        >
-                                            📕 PDF - {isRTL ? 'דוח ניתוח' : 'Analysis Report'}
-                                            <span className="export-note">{isRTL ? '(אנגלית בלבד)' : '(English only)'}</span>
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                setIsSharing(true);
-                                                try {
-                                                    const blob = await exportToWordBlob(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
-                                                    const fileName = `${(analysis?.fileName || 'Analysis_Report').replace(/\.pdf$/i, '')}.docx`;
-                                                    await shareFile(blob, fileName, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-                                                } finally {
-                                                    setIsSharing(false);
-                                                    setShowExportMenu(false);
-                                                }
-                                            }}
-                                            disabled={isSharing}
-                                        >
-                                            <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
-                                            {isRTL ? 'שיתוף Word' : 'Share Word'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                <button onClick={handleExportPdf} disabled={isExporting}>
+                                    {isRTL ? 'הורדה PDF - דוח ניתוח' : 'Download PDF - Analysis Report'}
+                                    <span className="export-note">{isRTL ? '(תצוגה ושיתוף מהיר, אנגלית בלבד)' : '(best for quick viewing/sharing, English only)'}</span>
+                                </button>
+                                <div className="export-menu-group-title">{isRTL ? 'שיתוף' : 'Share'}</div>
+                                <button onClick={handleSharePdf} disabled={isSharing}>
+                                    <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
+                                    {isRTL ? 'שיתוף PDF' : 'Share PDF'}
+                                </button>
+                            </ActionMenu>
                         </div>
+                        {exportNotice && (
+                            <div className="export-feedback-note" role="status">
+                                {exportNotice}
+                            </div>
+                        )}
                     </Card>
                 </aside>
 
@@ -582,6 +605,7 @@ const AnalysisPage = () => {
                                 </Card>
                             ) : (
                                 <ContractView
+                                ref={contractViewRef}
                                 contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
                                 backendClauses={analysis?.clauses_list || analysis?.clauses || []}
                                 issues={issues}
@@ -598,16 +622,44 @@ const AnalysisPage = () => {
                                     const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
                                     await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
                                 }}
-                                onSaveToCloud={async (clauses, fullEditedText) => {
-                                    // Save to AWS (S3 + DynamoDB)
-                                    // Use real user ID if available, otherwise fallback (should be auth'd though)
-                                    const userId = userAttributes?.sub || 'unknown-user';
-                                    const contractIdClean = analysis?.contractId || contractId;
-                                    await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
-                                }}
+                                onSaveToCloud={handleSaveToCloud}
+                                onEditStateChange={setContractEditState}
                                 />
                             )}
                         </section>
+                    )}
+
+                    {/* Export Section - Always visible when contract tab is active */}
+                    {activeTab === 'contract' && result?.is_contract !== false && (
+                        <div className="contract-export-bar no-print">
+                            <div className="export-primary-action">
+                                <button className="export-btn-main" onClick={() => contractViewRef.current?.handleExport()}>
+                                    <span className="export-btn-label">{isRTL ? 'ייצוא כקובץ docx (Word)' : 'Export to Word (.docx)'}</span>
+                                </button>
+                            </div>
+
+                            {contractEditState.editedCount > 0 && (
+                                <button
+                                    className="export-btn-secondary"
+                                    onClick={() => contractViewRef.current?.requestClearAll()}
+                                >
+                                    <Trash2 size={14} aria-hidden="true" />
+                                    <span>{isRTL ? 'נקה עריכות' : 'Clear edits'} ({contractEditState.editedCount})</span>
+                                </button>
+                            )}
+
+                            <div className="save-status-indicator">
+                                {contractEditState.saveStatus === 'saving' && (
+                                    <span className="save-status saving">💾 {isRTL ? 'שומר שינויים...' : 'Saving...'}</span>
+                                )}
+                                {contractEditState.saveStatus === 'success' && (
+                                    <span className="save-status success">✅ {isRTL ? 'נשמר בהצלחה' : 'Saved'}</span>
+                                )}
+                                {contractEditState.saveStatus === 'error' && (
+                                    <span className="save-status error">⚠️ {isRTL ? 'שגיאה בשמירה' : 'Save error'}</span>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </main>
             </div>

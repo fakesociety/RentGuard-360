@@ -42,8 +42,11 @@ import {
 import api from '../services/api';
 
 const oauthDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-const oauthRedirectIn = import.meta.env.VITE_OAUTH_REDIRECT_URI;
-const oauthRedirectOut = import.meta.env.VITE_OAUTH_REDIRECT_OUT_URI;
+const currentOriginWithSlash = typeof window !== 'undefined'
+    ? `${window.location.origin}/`
+    : undefined;
+const oauthRedirectIn = import.meta.env.VITE_OAUTH_REDIRECT_URI || currentOriginWithSlash;
+const oauthRedirectOut = import.meta.env.VITE_OAUTH_REDIRECT_OUT_URI || currentOriginWithSlash;
 
 const cognitoConfig = {
     userPoolId: import.meta.env.VITE_USER_POOL_ID,

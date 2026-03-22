@@ -60,12 +60,15 @@ export const SubscriptionProvider = ({ children }) => {
             const data = await getSubscription(userId);
             setSubscription(data);
         } catch (err) {
-            // User might not have a subscription yet — that's OK
-            if (err.message?.includes('404') || err.message?.includes('No subscription')) {
-                setSubscription(null);
-            } else {
+            // Gracefully handle: no subscription yet, SQL Server down, or any backend issue.
+            // The app should still work — user just won't see subscription data.
+            const msg = err.message || '';
+            const isExpected = msg.includes('404') || msg.includes('No subscription')
+                || msg.includes('SQL Server') || msg.includes('400');
+            if (!isExpected) {
                 console.error('Failed to fetch subscription:', err);
             }
+            setSubscription(null);
         } finally {
             setIsLoading(false);
         }

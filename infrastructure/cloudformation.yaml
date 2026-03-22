@@ -50,7 +50,7 @@ Parameters:
   StripeApiUrl:
     Type: String
     Default: ''
-    Description: Base URL of the Stripe Payment API (example: https://xxxx.execute-api.us-east-1.amazonaws.com/prod)
+    Description: 'Base URL of the Stripe Payment API (example: https://xxxx.execute-api.us-east-1.amazonaws.com/prod)'
 
   PaymentInternalApiKey:
     Type: String

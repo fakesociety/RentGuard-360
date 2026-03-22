@@ -29,30 +29,25 @@
  * 
  * ============================================
  */
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { processContractClauses } from '../utils/contractTextProcessor';
 import { consultClause } from '../services/api';
-import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../services/ExportService';
+import { exportEditedContractWithSignatures } from '../services/ExportService';
 import RecommendationCard from './RecommendationCard';
-import useShareFile from '../hooks/useShareFile';
-import { Share2 } from 'lucide-react';
 import './ContractView.css';
 
-const ContractView = ({
+const ContractView = forwardRef(({
     contractText = '',
     backendClauses = [],
     issues = [],
     contractId = null,  // NEW: for localStorage persistence
     onClauseChange,
-    onSaveToCloud
-}) => {
+    onSaveToCloud,
+    onEditStateChange,
+}, ref) => {
     const [editedClauses, setEditedClauses] = useState({});
     const [showOnlyIssues, setShowOnlyIssues] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null);
-    const [isSharing, setIsSharing] = useState(false);
-    
-    // Share hook
-    const { shareFile } = useShareFile();
 
     // Modal editing state
     const [selectedClause, setSelectedClause] = useState(null);
@@ -139,6 +134,10 @@ const ContractView = ({
     // Auto-save refs
     const isFirstRender = useRef(true);
     const saveTimeoutRef = useRef(null);
+    const saveStatusTimeoutRef = useRef(null);
+    const skipNextCloudSaveRef = useRef(false);
+    const lastCloudSaveSignatureRef = useRef('');
+    const lastReportedEditStateRef = useRef('');
 
     // Load saved edits from localStorage on mount
     useEffect(() => {
@@ -149,6 +148,8 @@ const ContractView = ({
             if (saved) {
                 const parsed = JSON.parse(saved);
                 setEditedClauses(parsed);
+                // Hydrated edits from localStorage should not immediately trigger cloud save.
+                skipNextCloudSaveRef.current = true;
                 console.log(`Loaded ${Object.keys(parsed).length} saved edits for contract`);
             }
         } catch (error) {
@@ -178,6 +179,24 @@ const ContractView = ({
             return;
         }
 
+        // Skip one cycle after loading existing edits from localStorage.
+        if (skipNextCloudSaveRef.current) {
+            skipNextCloudSaveRef.current = false;
+            return;
+        }
+
+        // Construct full text and a signature to avoid repeated saves of the same data.
+        const fullEditedText = clauses.map(c => getClauseText(c)).join('\n\n');
+        const saveSignature = JSON.stringify({
+            contractId,
+            editedClauses,
+            fullEditedText,
+        });
+
+        if (saveSignature === lastCloudSaveSignatureRef.current) {
+            return;
+        }
+
         // Clear existing timeout
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
@@ -188,14 +207,15 @@ const ContractView = ({
         // Set new timeout (2 seconds debounce)
         saveTimeoutRef.current = setTimeout(async () => {
             try {
-                // Construct full text
-                const fullEditedText = clauses.map(c => getClauseText(c)).join('\n\n');
-
                 await onSaveToCloud(editedClauses, fullEditedText);
+                lastCloudSaveSignatureRef.current = saveSignature;
                 setSaveStatus('success');
 
                 // Clear success message after 3 seconds
-                setTimeout(() => setSaveStatus(null), 3000);
+                if (saveStatusTimeoutRef.current) {
+                    clearTimeout(saveStatusTimeoutRef.current);
+                }
+                saveStatusTimeoutRef.current = setTimeout(() => setSaveStatus(null), 3000);
             } catch (error) {
                 console.error('Auto-save failed:', error);
                 setSaveStatus('error');
@@ -208,6 +228,17 @@ const ContractView = ({
             }
         };
     }, [editedClauses, contractId, onSaveToCloud, clauses, getClauseText]); // Dependencies include content
+
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+            if (saveStatusTimeoutRef.current) {
+                clearTimeout(saveStatusTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Track scroll position - check both container and window
     useEffect(() => {
@@ -359,22 +390,10 @@ const ContractView = ({
     };
 
     // Export contract with signatures
-    const handleExport = async () => {
+    const handleExport = useCallback(async () => {
         const clauseTexts = clauses.map(c => getClauseText(c));
         await exportEditedContractWithSignatures(clauseTexts, editedClauses, 'חוזה_שכירות_ערוך');
-    };
-
-    // Share contract with signatures
-    const handleShare = async () => {
-        setIsSharing(true);
-        try {
-            const clauseTexts = clauses.map(c => getClauseText(c));
-            const blob = await exportEditedContractWithSignaturesBlob(clauseTexts, editedClauses, 'חוזה_שכירות_ערוך');
-            await shareFile(blob, 'חוזה_שכירות_ערוך.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        } finally {
-            setIsSharing(false);
-        }
-    };
+    }, [clauses, getClauseText, editedClauses]);
 
     // Filter clauses
     const filteredClauses = showOnlyIssues
@@ -398,8 +417,33 @@ const ContractView = ({
         color: '#1a1a1a',
     };
 
+    useEffect(() => {
+        if (!onEditStateChange) return;
+
+        const next = {
+            editedCount: Object.keys(editedClauses).length,
+            saveStatus,
+        };
+        const signature = JSON.stringify(next);
+        if (signature === lastReportedEditStateRef.current) {
+            return;
+        }
+
+        lastReportedEditStateRef.current = signature;
+        onEditStateChange(next);
+    }, [editedClauses, saveStatus, onEditStateChange]);
+
+    useImperativeHandle(ref, () => ({
+        handleExport,
+        requestClearAll: () => setShowClearAllConfirm(true),
+    }), [handleExport]);
+
     return (
-        <div className="virtual-pdf-container" ref={containerRef}>
+        <div
+            className="contract-scroll-content"
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        >
+        <div className="virtual-pdf-container" ref={containerRef} style={{ width: '100%' }}>
             <div className="virtual-pdf-page" style={paperStyle}>
                 {/* ===== HEBREW HEADER ===== */}
                 <header className="contract-header-formal">
@@ -542,45 +586,6 @@ const ContractView = ({
                     </div>
                 </footer>
 
-                {/* ===== EXPORT BUTTON ===== */}
-                <div className="export-section no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button className="export-btn-main" onClick={handleExport}>
-                        📝 ייצוא ל-Word
-                    </button>
-                    <button 
-                        className="export-btn-main" 
-                        onClick={handleShare}
-                        disabled={isSharing}
-                        style={{ backgroundColor: '#2196F3', borderColor: '#2196F3' }}
-                    >
-                        <Share2 size={16} style={{ marginInlineEnd: '6px', verticalAlign: 'middle' }} />
-                        שיתוף
-                    </button>
-
-                    {/* Clear Edits Button */}
-                    {Object.keys(editedClauses).length > 0 && (
-                        <button
-                            className="export-btn-secondary"
-                            onClick={() => setShowClearAllConfirm(true)}
-                        >
-                            🗑️ נקה עריכות ({Object.keys(editedClauses).length})
-                        </button>
-                    )}
-
-                    {/* Save to Cloud Status Indicator (Auto-Save) */}
-                    <div className="save-status-indicator">
-                        {saveStatus === 'saving' && (
-                            <span className="save-status saving">💾 שומר שינויים...</span>
-                        )}
-                        {saveStatus === 'success' && (
-                            <span className="save-status success">✅ נשמר בהצלחה</span>
-                        )}
-                        {saveStatus === 'error' && (
-                            <span className="save-status error">⚠️ שגיאה בשמירה</span>
-                        )}
-                    </div>
-                </div>
-
                 {/* Bottom anchor for scroll */}
                 <div ref={bottomRef}></div>
             </div>
@@ -596,6 +601,8 @@ const ContractView = ({
                     {isAtBottom ? 'למעלה' : 'לחתימות'}
                 </span>
             </button>
+        </div>
+
             {/* ===== HEBREW POPUP EDITOR (Same Style as Contract) ===== */}
             {selectedClause && (
                 <div
@@ -778,6 +785,8 @@ const ContractView = ({
             )}
         </div>
     );
-};
+});
+
+ContractView.displayName = 'ContractView';
 
 export default ContractView;

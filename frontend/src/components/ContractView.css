@@ -23,13 +23,24 @@
 
 /* ContractView Component - Virtual PDF A4 Paper Design */
 
+.contract-scroll-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: var(--space-md);
+}
+
 /* ===== Virtual PDF Container ===== */
 .virtual-pdf-container {
-    background: linear-gradient(135deg, #e8eaed 0%, #d3d7dc 100%);
     border-radius: var(--radius-lg);
-    padding: var(--space-xl);
+    padding: var(--space-xl) var(--space-xl) calc(var(--space-xl) + var(--space-md));
+    width: 100%;
     min-height: 600px;
     position: relative;
+    overflow: visible;
 }
 
 /* Dark mode - only affects container background */
@@ -42,7 +53,7 @@
 /* ===== A4 Paper Page - ALWAYS WHITE ===== */
 .virtual-pdf-page {
     max-width: 794px;
-    margin: 0 auto;
+    margin: 0 auto var(--space-md);
     /* Paper is ALWAYS white */
     background-color: #ffffff !important;
     color: #1a1a1a !important;
@@ -50,7 +61,7 @@
         0 2px 4px rgba(0, 0, 0, 0.05),
         0 8px 32px rgba(0, 0, 0, 0.12),
         0 16px 48px rgba(0, 0, 0, 0.08);
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
     padding: 72px 80px;
     font-family: 'David Libre', 'Noto Serif Hebrew', 'Times New Roman', Georgia, serif;
     line-height: 1.85;
@@ -473,31 +484,32 @@
     color: #1a1a1a !important;
 }
 
-/* ===== Export Section ===== */
-.export-section {
+.export-primary-action {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 48px;
-    padding-top: 32px;
-    border-top: 1px dashed #cccccc;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .export-btn-main {
     display: inline-flex;
+    flex-direction: row;
     align-items: center;
     gap: 8px;
-    padding: 14px 32px;
+    padding: 12px 22px;
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white !important;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.25;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     transition: all 0.2s ease;
+}
+
+.export-btn-label {
+    font-weight: 700;
 }
 
 .export-btn-main:hover {
@@ -981,7 +993,7 @@
     }
 
     .virtual-pdf-container {
-        padding: 16px;
+        padding: 16px 16px 28px;
     }
 }
 
@@ -995,14 +1007,18 @@
         align-items: center;
     }
 
-    .export-section {
-        flex-direction: column;
+    .export-primary-action {
+        width: 100%;
     }
 
     .export-btn-main,
     .save-btn-main {
         width: 100%;
         justify-content: center;
+    }
+
+    .export-btn-main {
+        padding: 12px 14px;
     }
 
     .clause-popup-content {

@@ -36,6 +36,14 @@ const PricingPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Hardcoded fallback packages when backend (SQL Server) is unavailable.
+    const FALLBACK_PACKAGES = [
+        { id: 'free', name: 'Free', price: 0, scanLimit: 1 },
+        { id: 'single', name: 'Single', price: 10, scanLimit: 1 },
+        { id: 'basic', name: 'Basic', price: 39, scanLimit: 5 },
+        { id: 'pro', name: 'Pro', price: 79, scanLimit: 15 },
+    ];
+
     // Fetch packages on mount
     useEffect(() => {
         const fetchPackages = async () => {
@@ -44,8 +52,11 @@ const PricingPage = () => {
                 const data = await getPackages();
                 setPackages(data);
             } catch (err) {
-                console.error('Failed to fetch packages:', err);
-                setError(err.message);
+                // If SQL Server is down or any backend error, use fallback packages
+                // so the pricing page still renders.
+                console.warn('Using fallback packages (backend unavailable):', err.message);
+                setPackages(FALLBACK_PACKAGES);
+                // Don't set error — show the page with fallback data instead.
             } finally {
                 setIsLoading(false);
             }
@@ -190,7 +201,9 @@ const PricingPage = () => {
                 <section className="pricing-cards-section">
                     <div className="pricing-cards-grid">
                         {(() => {
-                            const isFreeEligible = !hasSubscription || (currentPlan === 'Free' && scansRemaining > 0);
+                            // Show 'Free' only if the user hasn't claimed a subscription yet.
+                            // Once they have the Free plan (even with 1 scan left), show 'Single' instead.
+                            const isFreeEligible = !hasSubscription;
                             const displayPackages = packages.filter(pkg => {
                                 if (pkg.name === 'Free') return isFreeEligible;
                                 if (pkg.name === 'Single') return !isFreeEligible;
