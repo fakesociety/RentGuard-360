@@ -8,9 +8,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom', 'react-router'],
+          react: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/x-charts', '@emotion/react', '@emotion/styled'],
-          amplify: ['aws-amplify', '@aws-amplify/ui-react'],
+          amplify: ['aws-amplify'],
           stripe: ['@stripe/stripe-js', '@stripe/react-stripe-js'],
           jspdf: ['jspdf'],
           docx: ['docx'],

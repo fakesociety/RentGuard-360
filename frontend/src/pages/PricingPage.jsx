@@ -35,6 +35,7 @@ const PricingPage = () => {
     const [packages, setPackages] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const currentPackageId = Number(subscription?.packageId ?? subscription?.PackageId ?? 0);
 
     // Hardcoded fallback packages when backend (SQL Server) is unavailable.
     const FALLBACK_PACKAGES = [
@@ -130,6 +131,8 @@ const PricingPage = () => {
         return { price: Math.round(basePrice / 3.7), currency: '$' };
     };
 
+    const normalizePlanName = (value) => String(value || '').trim().toLowerCase();
+
     const getLastPurchaseDateTime = () => {
         const updatedAt = subscription?.updatedAt || subscription?.UpdatedAt;
         if (!updatedAt) {
@@ -211,7 +214,9 @@ const PricingPage = () => {
                             }).sort((a, b) => a.price - b.price);
 
                             return displayPackages.map((pkg, index) => {
-                                const isCurrentPlan = currentPlan === pkg.name && pkg.name !== 'Single';
+                                const byId = currentPackageId > 0 && Number(pkg.id) === currentPackageId;
+                                const byName = normalizePlanName(currentPlan) === normalizePlanName(pkg.name);
+                                const isCurrentPlan = byId || byName;
                                 const isPopular = pkg.name === 'Basic';
 
                             return (
@@ -255,8 +260,10 @@ const PricingPage = () => {
                                         </div>
 
                                         <div className="pricing-card-scans">
-                                            <span className="scan-limit">
-                                                {pkg.scanLimit} {t('pricing.scans')}
+                                            <span className={`scan-limit ${pkg.scanLimit === -1 ? 'unlimited' : ''}`}>
+                                                {pkg.scanLimit === -1
+                                                    ? t('subscription.unlimited')
+                                                    : `${pkg.scanLimit} ${t('pricing.scans')}`}
                                             </span>
                                         </div>
 

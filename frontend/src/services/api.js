@@ -151,8 +151,20 @@ const apiCall = async (endpoint, options = {}) => {
  * Generic API call for unauthenticated endpoints (e.g., check-user)
  * Requires Project API Key for security
  */
-const publicApiCall = async (endpoint, options = {}) => {
+const publicApiCall = async (endpoint, options = {}, config = {}) => {
+    const { requireApiKey = true } = config;
     const url = `${API_BASE_URL}${endpoint}`;
+    const method = (options.method || 'GET').toUpperCase();
+    const baseHeaders = {};
+
+    if (requireApiKey && CHECK_USER_API_KEY) {
+        baseHeaders['X-Api-Key'] = CHECK_USER_API_KEY;
+    }
+
+    // Avoid adding Content-Type to GET requests so browsers can skip preflight.
+    if (method !== 'GET') {
+        baseHeaders['Content-Type'] = 'application/json';
+    }
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -162,8 +174,7 @@ const publicApiCall = async (endpoint, options = {}) => {
             ...options,
             signal: controller.signal,
             headers: {
-                'X-Api-Key': CHECK_USER_API_KEY,
-                'Content-Type': 'application/json',
+                ...baseHeaders,
                 ...options.headers,
             },
         });
@@ -285,6 +296,25 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
         // Note: Metadata is passed via query params to the API and stored server-side
         // (e.g., DynamoDB). We don't rely on S3 x-amz-meta headers in the browser PUT.
         xhr.send(file);
+    });
+};
+
+/**
+ * Get analysis results for a SHARED contract (Public, no auth)
+ * GET /shared-analysis?contractId={id}
+ */
+export const getSharedAnalysis = async (shareToken) => {
+    const cacheBuster = Date.now();
+    return publicApiCall(`/shared-analysis?shareToken=${encodeURIComponent(shareToken)}&_t=${cacheBuster}`, {}, { requireApiKey: false });
+};
+
+/**
+ * Create an expiring secure share link token for a contract.
+ */
+export const createShareLink = async (contractId, expiresInDays = 7) => {
+    return apiCall('/contracts/share-link', {
+        method: 'POST',
+        body: JSON.stringify({ contractId, expiresInDays }),
     });
 };
 
@@ -675,6 +705,7 @@ export default {
     consultClause,
     sendContactMessage,
     saveEditedContract,
+    createShareLink,
     getSystemStats,
     getUsers,
     disableUser,

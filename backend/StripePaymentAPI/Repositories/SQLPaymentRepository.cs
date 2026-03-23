@@ -230,15 +230,13 @@ namespace StripePaymentAPI.Repositories
         }
 
         /// <summary>
-        /// SQL MERGE (UPSERT) - creates or updates a user's subscription.
-        /// If the user already has a subscription row, updates it.
-        /// If not, inserts a new row.
+        /// SQL UPSERT via stored procedure - creates or updates a user's subscription.
+        /// Stored procedure semantics are defined in Repositories/SQL/02_StoredProcedures.sql
         /// </summary>
         public UserSubscription UpsertSubscription(string userId, int packageId, int scansRemaining)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                // Call the Upsert Stored Procedure
                 SqlCommand command = new SqlCommand("sp_UpsertSubscription", connection);
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 

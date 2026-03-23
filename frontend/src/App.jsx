@@ -26,6 +26,7 @@ import DashboardPage from './pages/DashboardPage';
 const UploadPage = lazy(() => import('./pages/UploadPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const AnalysisPage = lazy(() => import('./pages/AnalysisPage'));
+const SharedContractView = lazy(() => import('./pages/SharedContractView'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
@@ -368,6 +369,7 @@ function App() {
             <Route path="/pricing" element={<ProtectedRoute>{isAdmin ? <Navigate to="/dashboard" replace /> : <PricingPage />}</ProtectedRoute>} />
             <Route path="/checkout/:packageId" element={<ProtectedRoute>{isAdmin ? <Navigate to="/dashboard" replace /> : <CheckoutPage />}</ProtectedRoute>} />
             <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+            <Route path="/shared/:id" element={<SharedContractView />} />
 
             {/* Admin routes with sidebar layout */}
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>

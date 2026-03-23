@@ -1,4 +1,4 @@
-﻿AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 Description: 'RentGuard 360 - Complete Infrastructure Stack'
 
 # =============================================================================
@@ -145,11 +145,20 @@ Resources:
           AttributeType: S
         - AttributeName: contractId
           AttributeType: S
+        - AttributeName: shareTokenHash
+          AttributeType: S
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
         - AttributeName: contractId
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: shareTokenHash-index
+          KeySchema:
+            - AttributeName: shareTokenHash
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   AnalysisTable:
     Type: AWS::DynamoDB::Table
@@ -493,6 +502,8 @@ Resources:
       Environment:
         Variables:
           ANALYSIS_TABLE: !Ref AnalysisTable
+          CONTRACTS_TABLE: !Ref ContractsTable
+          CONTRACTS_BUCKET: !Ref ContractsBucket
 
   ConsultClauseFunction:
     Type: AWS::Lambda::Function
@@ -595,6 +606,22 @@ Resources:
         Variables:
           CONTRACTS_TABLE: !Ref ContractsTable
           ANALYSIS_TABLE: !Ref AnalysisTable
+
+  CreateShareLinkFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-CreateShareLink${NameSuffix}'
+      Runtime: python3.11
+      Handler: create_share_link.lambda_handler
+      Role: !GetAtt RentGuardLambdaRole.Arn
+      Timeout: 5
+      MemorySize: 128
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Environment:
+        Variables:
+          CONTRACTS_TABLE: !Ref ContractsTable
 
   DeleteContractFunction:
     Type: AWS::Lambda::Function
@@ -1222,6 +1249,51 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
+  # /contracts/share-link
+  ContractsShareLinkResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref ContractsResource
+      PathPart: share-link
+
+  ContractsShareLinkMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ContractsShareLinkResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateShareLinkFunction.Arn}/invocations'
+
+  ContractsShareLinkOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ContractsShareLinkResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
   # /analysis
   AnalysisResource:
     Type: AWS::ApiGateway::Resource
@@ -1248,6 +1320,50 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
       ResourceId: !Ref AnalysisResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # /shared-analysis
+  SharedAnalysisResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: shared-analysis
+
+  SharedAnalysisGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref SharedAnalysisResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetAnalysisFunction.Arn}/invocations'
+
+  SharedAnalysisOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref SharedAnalysisResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -1710,7 +1826,11 @@ Resources:
       - ContractsDeleteMethod
       - ContractsRenameMethod
       - ContractsSaveMethod
+      - ContractsShareLinkMethod
+      - ContractsShareLinkOptionsMethod
       - AnalysisGetMethod
+      - SharedAnalysisGetMethod
+      - SharedAnalysisOptionsMethod
       - ConsultMethod
       - ContactMethod
       - AdminStatsMethod
@@ -1799,6 +1919,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt SaveEditedFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*'
+
+  LambdaPermissionCreateShareLink:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CreateShareLinkFunction.Arn
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*'

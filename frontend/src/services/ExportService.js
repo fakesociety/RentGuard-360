@@ -487,7 +487,89 @@ export const exportToPDFBlob = async (analysis, fileName = 'Contract_Analysis_Re
 };
 
 // ============================================
-// EDITED CONTRACT EXPORT
+// VISUAL PDF EXPORT FOR HEBREW CONTRACTS
+// ============================================
+
+const loadHtml2Canvas = () => {
+    return new Promise((resolve, reject) => {
+        if (window.html2canvas) {
+            resolve(window.html2canvas);
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = () => resolve(window.html2canvas);
+        script.onerror = () => reject(new Error('Failed to load html2canvas'));
+        document.head.appendChild(script);
+    });
+};
+
+/**
+ * Capture a DOM element and turn it into a PDF Blob.
+ * Solves jsPDF's inability to render complex Hebrew/RTL text.
+ */
+export const exportToVisualPDFBlob = async (element) => {
+    if (!element) throw new Error('No element provided for PDF generation');
+    
+    // Dynamically load html2canvas to avoid npm install hanging on user machine
+    const html2canvas = await loadHtml2Canvas();
+    
+    // Hide parts we don't want printed (like hover hints) temporarily
+    const noPrintElements = element.querySelectorAll('.no-print, .clause-hover-hint, .issue-marker');
+    const originalStyles = [];
+    noPrintElements.forEach(el => {
+        originalStyles.push({ el, display: el.style.display });
+        el.style.display = 'none';
+    });
+
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2, // High resolution
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'pt',
+            format: 'a4'
+        });
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calculate image dimensions to fit page width
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Add first page
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        
+        // Add subsequent pages if content is taller than A4
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+        
+        return pdf.output('blob');
+    } finally {
+        // Restore elements
+        noPrintElements.forEach((el, i) => {
+            el.style.display = originalStyles[i].display;
+        });
+    }
+};
+
+// ============================================
+// EDITED CONTRACT EXPORT (WORD)
 // ============================================
 
 /**
@@ -498,7 +580,7 @@ export const exportToPDFBlob = async (analysis, fileName = 'Contract_Analysis_Re
  * @param {string} fileName - Output file name
  * @param {array} backendClauses - Optional: clauses array from backend (preferred)
  */
-export const exportEditedContract = async (originalText, editedClauses, ISSUES = [], fileName = 'Edited_Contract', backendClauses = []) => {
+export const exportEditedContract = async (originalText, editedClauses, ISSUES = [], fileName = 'Edited_Contract', backendClauses = [], options = {}) => {
     const sections = [];
     void ISSUES;
 
@@ -623,7 +705,17 @@ export const exportEditedContract = async (originalText, editedClauses, ISSUES =
     ]);
 
     const blob = await Packer.toBlob(doc);
+    if (options && options.asBlob) {
+        return blob;
+    }
     saveAs(blob, `${fileName}.docx`);
+};
+
+/**
+ * Generate Word docx blob WITHOUT downloading — for sharing via Web Share API.
+ */
+export const exportEditedContractToBlob = async (originalText, editedClauses, ISSUES = [], fileName = 'Edited_Contract', backendClauses = []) => {
+    return exportEditedContract(originalText, editedClauses, ISSUES, fileName, backendClauses, { asBlob: true });
 };
 
 // ============================================

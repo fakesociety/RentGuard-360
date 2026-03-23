@@ -98,14 +98,24 @@ CREATE PROCEDURE sp_UpsertSubscription
 AS
 BEGIN
     SET NOCOUNT ON;
-    MERGE UserSubscriptions AS target
-    USING (SELECT @UserId AS UserId) AS source
-    ON target.UserId = source.UserId
-    WHEN MATCHED THEN
-        UPDATE SET PackageId = @PackageId, ScansRemaining = target.ScansRemaining + @ScansRemaining, UpdatedAt = GETDATE()
-    WHEN NOT MATCHED THEN
-        INSERT (UserId, PackageId, ScansRemaining) VALUES (@UserId, @PackageId, 
-            CASE WHEN @PackageId IN (2, 3) THEN @ScansRemaining + 1 ELSE @ScansRemaining END);
+    IF EXISTS (SELECT 1 FROM UserSubscriptions WHERE UserId = @UserId)
+    BEGIN
+        UPDATE UserSubscriptions
+        SET
+            PackageId = @PackageId,
+            ScansRemaining = CASE
+                WHEN @ScansRemaining = -1 THEN -1
+                WHEN ScansRemaining = -1 THEN -1
+                ELSE ISNULL(ScansRemaining, 0) + @ScansRemaining
+            END,
+            UpdatedAt = GETDATE()
+        WHERE UserId = @UserId;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO UserSubscriptions (UserId, PackageId, ScansRemaining, UpdatedAt)
+        VALUES (@UserId, @PackageId, @ScansRemaining, GETDATE());
+    END
 END;
 GO
 

@@ -33,9 +33,16 @@ from datetime import datetime
 
 BUCKET_NAME = os.environ.get('CONTRACTS_BUCKET')
 TABLE_NAME = os.environ.get('CONTRACTS_TABLE', 'RentGuard-Contracts')
+ANALYSIS_TABLE_NAME = os.environ.get('ANALYSIS_TABLE', 'RentGuard-Analysis')
 
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
+
+
+def _split_to_clauses(text):
+    if not text:
+        return []
+    return [part.strip() for part in text.split('\n\n') if part and part.strip()]
 
 # Standard CORS headers for API Gateway responses
 CORS_HEADERS = {
@@ -117,6 +124,7 @@ def lambda_handler(event, context):
         
         timestamp = datetime.utcnow().isoformat()
         table = dynamodb.Table(TABLE_NAME)
+        analysis_table = dynamodb.Table(ANALYSIS_TABLE_NAME)
         
         # 3. Get original S3 key from contract record
         try:
@@ -144,17 +152,42 @@ def lambda_handler(event, context):
         # 5. Update contract record with edit metadata
         table.update_item(
             Key={'userId': user_id, 'contractId': contract_id},
-            UpdateExpression='SET lastEditedAt = :ts, editedVersion = :v, editsCount = :c',
+            UpdateExpression='SET lastEditedAt = :ts, editedVersion = :v, editsCount = :c, editedClauses = :ec',
             ExpressionAttributeValues={
                 ':ts': timestamp,
                 ':v': edited_key,
-                ':c': len(edited_clauses or {})
+                ':c': len(edited_clauses or {}),
+                ':ec': edited_clauses or {}
             }
         )
+
+        # 6. Best-effort metadata sync to Analysis table for shared-link highlighting only.
+        # Important: do NOT overwrite full_text / clauses_list so the authenticated page
+        # stays in the original editable state (with recommendations and revert).
+        try:
+            analysis_existing = analysis_table.get_item(Key={'contractId': contract_id}).get('Item', {})
+            original_snapshot = analysis_existing.get('original_clauses_list')
+            if not isinstance(original_snapshot, list):
+                original_snapshot = analysis_existing.get('clauses_list')
+            if not isinstance(original_snapshot, list):
+                original_snapshot = []
+
+            analysis_table.update_item(
+                Key={'contractId': contract_id},
+                UpdateExpression='SET lastEditedAt = :editedAt, editedClauses = :editedClauses, original_clauses_list = :originalClauses',
+                ExpressionAttributeValues={
+                    ':editedAt': timestamp,
+                    ':editedClauses': edited_clauses or {},
+                    ':originalClauses': original_snapshot
+                }
+            )
+            print(f"Analysis table synced for contract {contract_id}")
+        except Exception as sync_error:
+            print(f"Warning: could not sync Analysis table for {contract_id}: {str(sync_error)}")
         
         print(f"SUCCESS: Saved to {edited_key}")
         
-        # 6. Return success response
+        # 7. Return success response
         return {
             'statusCode': 200,
             'headers': CORS_HEADERS,

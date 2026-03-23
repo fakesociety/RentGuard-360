@@ -212,6 +212,20 @@
     border-right: 3px solid #10b981;
 }
 
+.clause-item.read-only.is-edited {
+    background: rgba(245, 158, 11, 0.12);
+    border-right: 3px solid #f59e0b;
+}
+
+.clause-item.read-only {
+    cursor: default;
+}
+
+.clause-item.read-only:hover {
+    background: transparent;
+    border-color: transparent;
+}
+
 .clause-view-mode {
     display: flex;
     align-items: flex-start;
@@ -577,21 +591,25 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 24px;
-    background: #f0f0f0;
-    color: #666666 !important;
-    border: 1px solid #d0d0d0;
-    border-radius: 8px;
+    padding: 11px 20px;
+    background: linear-gradient(145deg, #fff7ed 0%, #fee2e2 100%);
+    color: #9f1239 !important;
+    border: 1px solid #fda4af;
+    border-radius: 10px;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(225, 29, 72, 0.12);
 }
 
 .export-btn-secondary:hover {
-    background: #e0e0e0;
-    border-color: #c0c0c0;
-    color: #dc2626 !important;
+    background: linear-gradient(145deg, #ffe4e6 0%, #fecdd3 100%);
+    border-color: #fb7185;
+    color: #881337 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(225, 29, 72, 0.18);
 }
 
 /* Save to Cloud Button */

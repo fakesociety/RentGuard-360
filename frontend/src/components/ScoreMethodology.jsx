@@ -20,7 +20,16 @@
  */
 import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Info, ChevronDown } from 'lucide-react';
+import {
+    Info,
+    ChevronDown,
+    BadgeDollarSign,
+    House,
+    FileText,
+    Wrench,
+    Scale,
+    ScrollText
+} from 'lucide-react';
 import './ScoreMethodology.css';
 
 const ScoreMethodology = () => {
@@ -30,7 +39,7 @@ const ScoreMethodology = () => {
     const categories = [
         {
             key: 'financial_terms',
-            icon: '💰',
+            icon: BadgeDollarSign,
             labelHe: 'תנאים פיננסיים',
             labelEn: 'Financial Terms',
             descHe: 'ערבות, קנסות איחור, ביטוח',
@@ -38,7 +47,7 @@ const ScoreMethodology = () => {
         },
         {
             key: 'tenant_rights',
-            icon: '🏠',
+            icon: House,
             labelHe: 'זכויות השוכר',
             labelEn: 'Tenant Rights',
             descHe: 'כניסה לדירה, סאבלט, פרטיות',
@@ -46,7 +55,7 @@ const ScoreMethodology = () => {
         },
         {
             key: 'termination_clauses',
-            icon: '📋',
+            icon: FileText,
             labelHe: 'סיום חוזה',
             labelEn: 'Termination',
             descHe: 'תקופת הודעה, יציאה מוקדמת',
@@ -54,7 +63,7 @@ const ScoreMethodology = () => {
         },
         {
             key: 'liability_repairs',
-            icon: '🔧',
+            icon: Wrench,
             labelHe: 'אחריות ותיקונים',
             labelEn: 'Liability & Repairs',
             descHe: 'תיקונים, בלאי סביר',
@@ -62,7 +71,7 @@ const ScoreMethodology = () => {
         },
         {
             key: 'legal_compliance',
-            icon: '⚖️',
+            icon: Scale,
             labelHe: 'תאימות חוקית',
             labelEn: 'Legal Compliance',
             descHe: 'התאמה לחוק השכירות 2017',
@@ -126,8 +135,10 @@ const ScoreMethodology = () => {
 
                     <div className="categories-grid">
                         {categories.map((cat) => (
-                            <div key={cat.key} className="category-item">
-                                <span className="category-icon">{cat.icon}</span>
+                            <div key={cat.key} className={`category-item category-${cat.key}`}>
+                                <span className={`category-icon icon-${cat.key}`} aria-hidden="true">
+                                    <cat.icon size={18} strokeWidth={2} />
+                                </span>
                                 <div className="category-info">
                                     <span className="category-label">
                                         {isRTL ? cat.labelHe : cat.labelEn}
@@ -143,7 +154,9 @@ const ScoreMethodology = () => {
 
                     {/* Legal Source */}
                     <div className="legal-source">
-                        <span className="source-icon">📜</span>
+                        <span className="source-icon" aria-hidden="true">
+                            <ScrollText size={16} strokeWidth={2} />
+                        </span>
                         <span className="source-text">
                             {isRTL
                                 ? 'מבוסס על חוק השכירות והשאילה (תיקון 2017) - סעיפים 25א-25טו'

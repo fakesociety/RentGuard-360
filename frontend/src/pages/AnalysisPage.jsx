@@ -26,8 +26,8 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { getAnalysis, saveEditedContract } from '../services/api';
-import { exportToWord, exportToPDF, exportEditedContract, exportToPDFBlob } from '../services/ExportService';
+import { createShareLink, getAnalysis, saveEditedContract } from '../services/api';
+import { exportToWord, exportToPDF, exportEditedContract } from '../services/ExportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
@@ -36,8 +36,24 @@ import ScoreBreakdown from '../components/ScoreBreakdown';
 import ScoreMethodology from '../components/ScoreMethodology';
 import ContractView from '../components/ContractView';
 import ActionMenu from '../components/ActionMenu';
-import { FileText, Scale, AlertTriangle, Lightbulb, CheckCircle, Copy, Check, MessageCircle, Share2, Trash2 } from 'lucide-react';
-import useShareFile from '../hooks/useShareFile';
+import {
+    FileText,
+    Scale,
+    Lightbulb,
+    CheckCircle,
+    Copy,
+    Check,
+    MessageCircle,
+    Share2,
+    Trash2,
+    ExternalLink,
+    MapPin,
+    UserRound,
+    CalendarDays,
+    ScrollText,
+    AlertTriangle,
+    ShieldCheck
+} from 'lucide-react';
 import './AnalysisPage.css';
 import './LegalCard.css';
 
@@ -56,9 +72,10 @@ const AnalysisPage = () => {
     const [expandedIssue, setExpandedIssue] = useState(null);
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
-    const [isSharing, setIsSharing] = useState(false);
+    const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false);
+    const [isSharingLink, setIsSharingLink] = useState(false);
+    const [shareLink, setShareLink] = useState('');
     const [exportNotice, setExportNotice] = useState(null);
-    const { shareFile } = useShareFile();
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
     const [_editedClauses, setEditedClauses] = useState({});
     const [copiedIndex, setCopiedIndex] = useState(null);
@@ -74,6 +91,38 @@ const AnalysisPage = () => {
     const showExportNotice = useCallback((message) => {
         setExportNotice(message);
         setTimeout(() => setExportNotice(null), 3000);
+    }, []);
+
+    const showAppToast = useCallback((title, message) => {
+        window.dispatchEvent(new CustomEvent('rg:toast', {
+            detail: {
+                id: `share-${Date.now()}`,
+                title,
+                message,
+                createdAt: Date.now(),
+                ttlMs: 2600,
+            },
+        }));
+    }, []);
+
+    const copyTextToClipboard = useCallback(async (text) => {
+        if (!text) return false;
+
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return copied;
     }, []);
 
     const handleExportWord = useCallback(async () => {
@@ -98,18 +147,83 @@ const AnalysisPage = () => {
         }
     }, [analysis, isRTL, showExportNotice]);
 
-    const handleSharePdf = useCallback(async () => {
-        setIsSharing(true);
+    const handleCopyShareLink = useCallback(async () => {
+        const shareContractId = analysis?.contractId || contractId;
+        if (!shareContractId) {
+            showExportNotice(isRTL ? 'לא נמצא מזהה חוזה לשיתוף' : 'Missing contract id for sharing');
+            return;
+        }
+
+        setIsGeneratingShareLink(true);
         try {
-            const baseFileName = `${(analysis?.fileName || 'Analysis_Report').replace(/\.(pdf|docx)$/i, '')}`;
-            const blob = await exportToPDFBlob(analysis, baseFileName);
-            await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
-            showExportNotice(isRTL ? 'חלון השיתוף נפתח עבור PDF' : 'Share sheet opened for PDF');
+            // Force-save latest local edits before creating the share token.
+            const currentPayload = contractViewRef.current?.getCurrentEditedPayload?.();
+            if (currentPayload && userAttributes?.sub) {
+                await saveEditedContract(
+                    shareContractId,
+                    userAttributes.sub,
+                    currentPayload.editedClauses || {},
+                    currentPayload.fullEditedText || ''
+                );
+            }
+
+            const shareResult = await createShareLink(shareContractId, 7);
+            const token = shareResult?.shareToken;
+            if (!token) {
+                throw new Error('Missing share token in response');
+            }
+
+            const url = `${window.location.origin}/shared/${encodeURIComponent(token)}`;
+            setShareLink(url);
+            showExportNotice(isRTL ? 'קישור שיתוף נוצר. אפשר להעתיק או לשתף מהפאנל.' : 'Share link created. Copy or share it from the panel.');
+        } catch (err) {
+            console.error('Failed to create share link', err);
+            showExportNotice(isRTL ? 'שגיאה ביצירת קישור שיתוף' : 'Failed to create share link');
         } finally {
-            setIsSharing(false);
+            setIsGeneratingShareLink(false);
             setShowExportMenu(false);
         }
-    }, [analysis, isRTL, shareFile, showExportNotice]);
+    }, [analysis?.contractId, contractId, isRTL, showExportNotice, userAttributes?.sub]);
+
+    const handleManualCopyShareLink = useCallback(async () => {
+        if (!shareLink) return;
+
+        try {
+            await copyTextToClipboard(shareLink);
+            showAppToast(
+                isRTL ? 'הקישור הועתק בהצלחה' : 'Link copied successfully',
+                isRTL ? 'אפשר להדביק ולשתף בכל אפליקציה.' : 'You can now paste and share it anywhere.'
+            );
+        } catch (err) {
+            console.error('Failed to copy share link', err);
+            showExportNotice(isRTL ? 'שגיאה בהעתקת הקישור' : 'Failed to copy link');
+        }
+    }, [copyTextToClipboard, isRTL, shareLink, showAppToast, showExportNotice]);
+
+    const handleShareLinkViaApps = useCallback(async () => {
+        if (!shareLink) return;
+
+        if (!navigator?.share) {
+            await handleManualCopyShareLink();
+            return;
+        }
+
+        setIsSharingLink(true);
+        try {
+            await navigator.share({
+                title: isRTL ? 'חוזה משותף מ-RentGuard 360' : 'Shared contract from RentGuard 360',
+                text: isRTL ? 'צפייה בחוזה (קריאה בלבד):' : 'View the contract (read-only):',
+                url: shareLink,
+            });
+        } catch (err) {
+            if (err?.name !== 'AbortError') {
+                console.error('Failed to share link via apps', err);
+                showExportNotice(isRTL ? 'שגיאה בשיתוף הקישור' : 'Failed to share link');
+            }
+        } finally {
+            setIsSharingLink(false);
+        }
+    }, [handleManualCopyShareLink, isRTL, shareLink, showExportNotice]);
 
     const handleSaveToCloud = useCallback(async (clauses, fullEditedText) => {
         const userId = userAttributes?.sub || 'unknown-user';
@@ -203,7 +317,11 @@ const AnalysisPage = () => {
         }
     }, [analysis]);
 
-    
+    useEffect(() => {
+        setShareLink('');
+    }, [analysis?.contractId, contractId]);
+
+
 
     const getRiskLabel = (level) => {
         const labels = { High: 'high', Medium: 'medium', Low: 'low' };
@@ -259,411 +377,491 @@ const AnalysisPage = () => {
 
     return (
         <>
-        <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="analysis-header animate-fadeIn">
-                <Link to="/contracts" className="back-button-premium">
-                    {isRTL ? <span className="arrow">→</span> : <span className="arrow">←</span>}
-                    {t('analysis.backToContracts')}
-                </Link>
-                <h1>{t('analysis.title')}</h1>
-            </div>
+            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className="analysis-header animate-fadeIn no-print">
+                    <Link to="/contracts" className="back-button-premium">
+                        {isRTL ? <span className="arrow">→</span> : <span className="arrow">←</span>}
+                        {t('analysis.backToContracts')}
+                    </Link>
+                    <h1>{t('analysis.title')}</h1>
+                </div>
 
-            <div className="analysis-layout">
-                {/* Sticky Sidebar - Left */}
-                <aside className="analysis-sidebar">
-                    <Card variant="glass" padding="md" className="sidebar-card">
-                        {/* Contract Brand Card - Premium Design */}
-                        <div className="contract-hero-card animate-slideIn">
-                            <div className="contract-card-header">
-                                <div className="contract-icon-wrapper">
-                                    <span className="contract-icon-main">📄</span>
-                                    <div className="icon-glow"></div>
+                <div className="analysis-layout">
+                    {/* Sticky Sidebar - Left */}
+                    <aside className="analysis-sidebar no-print">
+                        <Card variant="glass" padding="md" className="sidebar-card">
+                            {/* Contract Brand Card - Premium Design */}
+                            <div className="contract-hero-card animate-slideIn">
+                                <div className="contract-card-header">
+                                    <div className="contract-icon-wrapper">
+                                        <FileText size={22} className="contract-icon-main" strokeWidth={1.9} />
+                                        <div className="icon-glow"></div>
+                                    </div>
+                                    <h3 className="contract-hero-title">
+                                        {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
+                                    </h3>
                                 </div>
-                                <h3 className="contract-hero-title">
-                                    {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
-                                </h3>
+
+                                <div className="contract-hero-meta">
+                                    {analysis?.propertyAddress && (
+                                        <div className="meta-block">
+                                            <span className="meta-label">
+                                                <MapPin size={13} strokeWidth={2} />
+                                                <span>{t('contracts.propertyAddress')}</span>
+                                            </span>
+                                            <span className="meta-value address-value">{analysis.propertyAddress}</span>
+                                        </div>
+                                    )}
+                                    <div className="meta-row">
+                                        {analysis?.landlordName && (
+                                            <div className="meta-block half-width">
+                                                <span className="meta-label">
+                                                    <UserRound size={13} strokeWidth={2} />
+                                                    <span>{t('contracts.landlordName')}</span>
+                                                </span>
+                                                <span className="meta-value">{analysis.landlordName}</span>
+                                            </div>
+                                        )}
+                                        {analysis?.uploadDate && (
+                                            <div className="meta-block half-width">
+                                                <span className="meta-label">
+                                                    <CalendarDays size={13} strokeWidth={2} />
+                                                    <span>{t('contracts.uploadDate')}</span>
+                                                </span>
+                                                <span className="meta-value">
+                                                    {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="contract-hero-meta">
-                                {analysis?.propertyAddress && (
-                                    <div className="meta-block">
-                                        <span className="meta-label">{t('contracts.propertyAddress')}</span>
-                                        <span className="meta-value address-value">{analysis.propertyAddress}</span>
+                            <div className="sidebar-divider"></div>
+
+                            {/* Summary - Prominent */}
+                            <div className="sidebar-summary-hero">
+                                <h4 className="summary-title">
+                                    <ScrollText size={16} strokeWidth={2} />
+                                    <span>{t('analysis.summary')}</span>
+                                </h4>
+                                <p>{result?.summary || (isRTL ? 'הניתוח הושלם.' : 'Analysis complete.')}</p>
+                                {result?.is_contract === false && (
+                                    <div className="not-contract-warning">
+                                        <AlertTriangle size={15} strokeWidth={2} />
+                                        <span>{t('analysis.notContract')}</span>
                                     </div>
                                 )}
-                                <div className="meta-row">
-                                    {analysis?.landlordName && (
-                                        <div className="meta-block half-width">
-                                            <span className="meta-label">{t('contracts.landlordName')}</span>
-                                            <span className="meta-value">{analysis.landlordName}</span>
-                                        </div>
-                                    )}
-                                    {analysis?.uploadDate && (
-                                        <div className="meta-block half-width">
-                                            <span className="meta-label">{t('contracts.uploadDate')}</span>
-                                            <span className="meta-value">
-                                                {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
-                        </div>
 
-                        <div className="sidebar-divider"></div>
+                            <div className="sidebar-divider"></div>
 
-                        {/* Summary - Prominent */}
-                        <div className="sidebar-summary-hero">
-                            <h4>{t('analysis.summary')}</h4>
-                            <p>{result?.summary || (isRTL ? 'הניתוח הושלם.' : 'Analysis complete.')}</p>
-                            {result?.is_contract === false && (
-                                <div className="not-contract-warning">
-                                    ⚠️ {t('analysis.notContract')}
+                            {/* Score Section */}
+                            <ScoreBreakdown
+                                overallScore={riskScore}
+                                breakdown={scoreBreakdown}
+                                issues={issues}
+                            />
+
+                            {/* Score Methodology Explanation */}
+                            <ScoreMethodology />
+
+                            <div className="sidebar-divider"></div>
+
+                            {/* Actions */}
+                            <div className="sidebar-actions">
+                                <button className="sidebar-action-btn" onClick={fetchAnalysis}>
+                                    {t('analysis.refresh')}
+                                </button>
+                                <ActionMenu
+                                    isOpen={showExportMenu}
+                                    onToggle={() => setShowExportMenu(!showExportMenu)}
+                                    onClose={() => setShowExportMenu(false)}
+                                    containerClassName="export-dropdown-sidebar"
+                                    triggerClassName="sidebar-action-btn"
+                                    triggerContent={`${t('analysis.export')} ${showExportMenu ? '▲' : '▼'}`}
+                                    panelClassName="export-menu-sidebar"
+                                >
+                                    <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
+                                    <div className="export-menu-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
+                                    <button onClick={handleExportWord} disabled={isExporting}>
+                                        {isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}
+                                        <span className="export-note">{isRTL ? '(ייצוא כקובץ docx (Word), ניתן לעריכה מלאה)' : '(.docx editable, best Hebrew support)'}</span>
+                                    </button>
+                                    <button onClick={handleExportPdf} disabled={isExporting}>
+                                        {isRTL ? 'הורדה PDF - דוח ניתוח' : 'Download PDF - Analysis Report'}
+                                        <span className="export-note">{isRTL ? '(תצוגה ושיתוף מהיר, אנגלית בלבד)' : '(best for quick viewing/sharing, English only)'}</span>
+                                    </button>
+                                    <div className="export-menu-group-title">{isRTL ? 'שיתוף' : 'Share'}</div>
+                                    <button onClick={handleCopyShareLink} disabled={isGeneratingShareLink}>
+                                        <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
+                                        {isGeneratingShareLink
+                                            ? (isRTL ? 'יוצר קישור...' : 'Creating link...')
+                                            : (isRTL ? 'יצירת לינק שיתוף' : 'Create share link')}
+                                    </button>
+                                </ActionMenu>
+                            </div>
+                            {exportNotice && (
+                                <div className="export-feedback-note" role="status">
+                                    {exportNotice}
                                 </div>
                             )}
-                        </div>
+                        </Card>
+                    </aside>
 
-                        <div className="sidebar-divider"></div>
+                    {/* Main Content - Right */}
+                    <main className="analysis-main">
 
-                        {/* Score Section */}
-                        <ScoreBreakdown
-                            overallScore={riskScore}
-                            breakdown={scoreBreakdown}
-                            issues={issues}
-                        />
-
-                        {/* Score Methodology Explanation */}
-                        <ScoreMethodology />
-
-                        <div className="sidebar-divider"></div>
-
-                        {/* Actions */}
-                        <div className="sidebar-actions">
-                            <button className="sidebar-action-btn" onClick={fetchAnalysis}>
-                                {t('analysis.refresh')}
-                            </button>
-                            <ActionMenu
-                                isOpen={showExportMenu}
-                                onToggle={() => setShowExportMenu(!showExportMenu)}
-                                onClose={() => setShowExportMenu(false)}
-                                containerClassName="export-dropdown-sidebar"
-                                triggerClassName="sidebar-action-btn"
-                                triggerContent={`${t('analysis.export')} ${showExportMenu ? '▲' : '▼'}`}
-                                panelClassName="export-menu-sidebar"
+                        {/* Tab Navigation */}
+                        <div className="analysis-tabs no-print">
+                            <button
+                                className={`tab-btn ${activeTab === 'issues' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('issues')}
                             >
-                                <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
-                                <div className="export-menu-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
-                                <button onClick={handleExportWord} disabled={isExporting}>
-                                    {isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}
-                                    <span className="export-note">{isRTL ? '(ייצוא כקובץ docx (Word), ניתן לעריכה מלאה)' : '(.docx editable, best Hebrew support)'}</span>
-                                </button>
-                                <button onClick={handleExportPdf} disabled={isExporting}>
-                                    {isRTL ? 'הורדה PDF - דוח ניתוח' : 'Download PDF - Analysis Report'}
-                                    <span className="export-note">{isRTL ? '(תצוגה ושיתוף מהיר, אנגלית בלבד)' : '(best for quick viewing/sharing, English only)'}</span>
-                                </button>
-                                <div className="export-menu-group-title">{isRTL ? 'שיתוף' : 'Share'}</div>
-                                <button onClick={handleSharePdf} disabled={isSharing}>
-                                    <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
-                                    {isRTL ? 'שיתוף PDF' : 'Share PDF'}
-                                </button>
-                            </ActionMenu>
-                        </div>
-                        {exportNotice && (
-                            <div className="export-feedback-note" role="status">
-                                {exportNotice}
-                            </div>
-                        )}
-                    </Card>
-                </aside>
-
-                {/* Main Content - Right */}
-                <main className="analysis-main">
-
-                    {/* Tab Navigation */}
-                    <div className="analysis-tabs">
-                        <button
-                            className={`tab-btn ${activeTab === 'issues' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('issues')}
-                        >
-                            {t('analysis.issues')} ({issues.length})
-                        </button>
-                        <button
-                            className={`tab-btn ${activeTab === 'contract' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('contract')}
-                        >
-                            {isRTL ? 'החוזה המלא' : 'Full Contract'}
-                        </button>
-                    </div>
-
-                    {/* Tab Content */}
-                    {activeTab === 'issues' && issues.length > 0 && (
-                        <section className="issues-section" dir={isRTL ? 'rtl' : 'ltr'}>
-                            <h2 className="section-title-hebrew">
                                 {t('analysis.issues')} ({issues.length})
-                            </h2>
-                            <div className="issues-list">
-                                {issues.map((issue, index) => {
-                                    const handleCopy = async (text, idx) => {
-                                        try {
-                                            await navigator.clipboard.writeText(text);
-                                            setCopiedIndex(idx);
-                                            setTimeout(() => setCopiedIndex(null), 2000);
-                                        } catch (err) {
-                                            console.error('Failed to copy:', err);
-                                        }
-                                    };
+                            </button>
+                            <button
+                                className={`tab-btn ${activeTab === 'contract' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('contract')}
+                            >
+                                {isRTL ? 'החוזה המלא' : 'Full Contract'}
+                            </button>
+                        </div>
 
-                                    const riskClass = getRiskLabel(issue.risk_level);
+                        {/* Tab Content */}
+                        {activeTab === 'issues' && issues.length > 0 && (
+                            <section className="issues-section" dir={isRTL ? 'rtl' : 'ltr'}>
+                                <h2 className="section-title-hebrew">
+                                    {t('analysis.issues')} ({issues.length})
+                                </h2>
+                                <div className="issues-list">
+                                    {issues.map((issue, index) => {
+                                        const handleCopy = async (text, idx) => {
+                                            try {
+                                                await navigator.clipboard.writeText(text);
+                                                setCopiedIndex(idx);
+                                                setTimeout(() => setCopiedIndex(null), 2000);
+                                            } catch (err) {
+                                                console.error('Failed to copy:', err);
+                                            }
+                                        };
 
-                                    return (
-                                        <div
-                                            key={index}
-                                            className={`legal-card ${riskClass} animate-slideUp`}
-                                            style={{ animationDelay: `${index * 80}ms` }}
-                                        >
-                                            {/* Severity Indicator Glow */}
-                                            <div className={`severity-glow ${riskClass}`}></div>
+                                        const riskClass = getRiskLabel(issue.risk_level);
 
-                                            {/* Card Header */}
+                                        return (
                                             <div
-                                                className="legal-card-header"
-                                                onClick={() => setExpandedIssue(expandedIssue === index ? null : index)}
+                                                key={index}
+                                                className={`legal-card ${riskClass} animate-slideUp`}
+                                                style={{ animationDelay: `${index * 80}ms` }}
                                             >
-                                                <div className="legal-header-main">
-                                                    <h3 className="legal-title">{issue.clause_topic}</h3>
-                                                    <div className="legal-meta">
-                                                        {/* Risk Badge - Pill with dot */}
-                                                        <span className={`risk-pill ${riskClass}`}>
-                                                            <span className="risk-dot"></span>
-                                                            {issue.risk_level === 'High' && t('score.highRisk')}
-                                                            {issue.risk_level === 'Medium' && t('score.mediumRisk')}
-                                                            {issue.risk_level === 'Low' && t('score.lowRisk')}
-                                                        </span>
-                                                        {issue.penalty_points && (
-                                                            <span className="points-badge">
-                                                                -{issue.penalty_points} {isRTL ? 'נקודות' : 'points'}
+                                                {/* Severity Indicator Glow */}
+                                                <div className={`severity-glow ${riskClass}`}></div>
+
+                                                {/* Card Header */}
+                                                <div
+                                                    className="legal-card-header"
+                                                    onClick={() => setExpandedIssue(expandedIssue === index ? null : index)}
+                                                >
+                                                    <div className="legal-header-main">
+                                                        <h3 className="legal-title">{issue.clause_topic}</h3>
+                                                        <div className="legal-meta">
+                                                            {/* Risk Badge - Pill with dot */}
+                                                            <span className={`risk-pill ${riskClass}`}>
+                                                                <span className="risk-dot"></span>
+                                                                {issue.risk_level === 'High' && t('score.highRisk')}
+                                                                {issue.risk_level === 'Medium' && t('score.mediumRisk')}
+                                                                {issue.risk_level === 'Low' && t('score.lowRisk')}
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button className={`expand-trigger ${expandedIssue === index ? 'expanded' : ''}`}>
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            {/* Card Content */}
-                                            <div className={`legal-card-content ${expandedIssue === index ? 'expanded' : ''}`}>
-
-                                                {/* Original Clause - Quote Style */}
-                                                {issue.original_text && (
-                                                    <div className="legal-section quote-section">
-                                                        <div className="section-icon">
-                                                            <FileText size={18} />
-                                                        </div>
-                                                        <div className="section-body">
-                                                            <h4 className="section-label">{isRTL ? 'הסעיף המקורי' : t('analysis.original')}</h4>
-                                                            <blockquote className="original-quote">
-                                                                "{issue.original_text}"
-                                                            </blockquote>
+                                                            {issue.penalty_points && (
+                                                                <span className="points-badge">
+                                                                    -{issue.penalty_points} {isRTL ? 'נקודות' : 'points'}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                )}
-
-                                                {/* Legal Basis - Compact */}
-                                                {issue.legal_basis && (
-                                                    <div className="legal-section compact-section">
-                                                        <div className="section-icon legal-icon">
-                                                            <Scale size={18} />
-                                                        </div>
-                                                        <div className="section-body">
-                                                            <h4 className="section-label">{isRTL ? 'בסיס משפטי' : 'Legal Basis'}</h4>
-                                                            <p className="legal-basis-text">{issue.legal_basis}</p>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Why It Matters - Explanation */}
-                                                <div className="legal-section explanation-section">
-                                                    <div className="section-icon explanation-icon">
-                                                        <Lightbulb size={18} />
-                                                    </div>
-                                                    <div className="section-body">
-                                                        <h4 className="section-label">{isRTL ? 'למה זה חשוב?' : 'Why It Matters'}</h4>
-                                                        <p className="explanation-text">{issue.explanation}</p>
-                                                    </div>
+                                                    <button className={`expand-trigger ${expandedIssue === index ? 'expanded' : ''}`}>
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                                        </svg>
+                                                    </button>
                                                 </div>
 
-                                                {/* Recommendation - Highlighted */}
-                                                {issue.suggested_fix && (
-                                                    <div className="legal-section recommendation-section">
-                                                        <div className="section-icon recommendation-icon">
-                                                            <CheckCircle size={18} />
-                                                        </div>
-                                                        <div className="section-body">
-                                                            <h4 className="section-label">{isRTL ? 'הנוסח המומלץ' : t('analysis.recommendation')}</h4>
-                                                            <div className="recommendation-box">
-                                                                <p className="recommendation-text">{issue.suggested_fix}</p>
-                                                                <button
-                                                                    className={`copy-button ${copiedIndex === index ? 'copied' : ''}`}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleCopy(issue.suggested_fix, index);
-                                                                    }}
-                                                                >
-                                                                    {copiedIndex === index ? (
-                                                                        <>
-                                                                            <Check size={16} />
-                                                                            <span>{t('analysis.copied')}</span>
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Copy size={16} />
-                                                                            <span>{t('analysis.copyFix')}</span>
-                                                                        </>
-                                                                    )}
-                                                                </button>
+                                                {/* Card Content */}
+                                                <div className={`legal-card-content ${expandedIssue === index ? 'expanded' : ''}`}>
+
+                                                    {/* Original Clause - Quote Style */}
+                                                    {issue.original_text && (
+                                                        <div className="legal-section quote-section">
+                                                            <div className="section-icon">
+                                                                <FileText size={18} />
+                                                            </div>
+                                                            <div className="section-body">
+                                                                <h4 className="section-label">{isRTL ? 'הסעיף המקורי' : t('analysis.original')}</h4>
+                                                                <blockquote className="original-quote">
+                                                                    "{issue.original_text}"
+                                                                </blockquote>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
 
-                                                {/* Negotiation Tip */}
-                                                {issue.negotiation_tip && (
-                                                    <div className="legal-section tip-section">
-                                                        <div className="section-icon tip-icon">
-                                                            <MessageCircle size={18} />
+                                                    {/* Legal Basis - Compact */}
+                                                    {issue.legal_basis && (
+                                                        <div className="legal-section compact-section">
+                                                            <div className="section-icon legal-icon">
+                                                                <Scale size={18} />
+                                                            </div>
+                                                            <div className="section-body">
+                                                                <h4 className="section-label">{isRTL ? 'בסיס משפטי' : 'Legal Basis'}</h4>
+                                                                <p className="legal-basis-text">{issue.legal_basis}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Why It Matters - Explanation */}
+                                                    <div className="legal-section explanation-section">
+                                                        <div className="section-icon explanation-icon">
+                                                            <Lightbulb size={18} />
                                                         </div>
                                                         <div className="section-body">
-                                                            <h4 className="section-label tip-label">💡 {isRTL ? 'טיפ למשא ומתן' : 'Negotiation Tip'}</h4>
-                                                            <p className="tip-text">{issue.negotiation_tip}</p>
+                                                            <h4 className="section-label">{isRTL ? 'למה זה חשוב?' : 'Why It Matters'}</h4>
+                                                            <p className="explanation-text">{issue.explanation}</p>
                                                         </div>
                                                     </div>
-                                                )}
+
+                                                    {/* Recommendation - Highlighted */}
+                                                    {issue.suggested_fix && (
+                                                        <div className="legal-section recommendation-section">
+                                                            <div className="section-icon recommendation-icon">
+                                                                <CheckCircle size={18} />
+                                                            </div>
+                                                            <div className="section-body">
+                                                                <h4 className="section-label">{isRTL ? 'הנוסח המומלץ' : t('analysis.recommendation')}</h4>
+                                                                <div className="recommendation-box">
+                                                                    <p className="recommendation-text">{issue.suggested_fix}</p>
+                                                                    <button
+                                                                        className={`copy-button ${copiedIndex === index ? 'copied' : ''}`}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleCopy(issue.suggested_fix, index);
+                                                                        }}
+                                                                    >
+                                                                        {copiedIndex === index ? (
+                                                                            <>
+                                                                                <Check size={16} />
+                                                                                <span>{t('analysis.copied')}</span>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Copy size={16} />
+                                                                                <span>{t('analysis.copyFix')}</span>
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Negotiation Tip */}
+                                                    {issue.negotiation_tip && (
+                                                        <div className="legal-section tip-section">
+                                                            <div className="section-icon tip-icon">
+                                                                <MessageCircle size={18} />
+                                                            </div>
+                                                            <div className="section-body">
+                                                                <h4 className="section-label tip-label">💡 {isRTL ? 'טיפ למשא ומתן' : 'Negotiation Tip'}</h4>
+                                                                <p className="tip-text">{issue.negotiation_tip}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-                    )}
-
-                    {activeTab === 'issues' && issues.length === 0 && (
-                        <Card variant="glass" padding="lg" className={`no-issues animate-slideUp ${result?.is_contract === false ? 'not-contract' : ''}`}>
-                            <div className="no-issues-content">
-                                {result?.is_contract === false ? (
-                                    <>
-                                        <span className="no-issues-icon warning">⚠️</span>
-                                        <h3>{isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}</h3>
-                                        <p>{isRTL ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. אנא העלו חוזה שכירות למגורים בפורמט PDF.' : 'The uploaded document does not appear to be a valid rental contract. Please upload a residential rental contract in PDF format.'}</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="no-issues-icon">✅</span>
-                                        <h3>{t('analysis.noIssues')}</h3>
-                                        <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
-                                    </>
-                                )}
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* Full Contract View Tab */}
-                    {activeTab === 'contract' && (
-                        <section className="contract-scroll-section" dir={isRTL ? 'rtl' : 'ltr'}>
-                            {result?.is_contract === false ? (
-                                <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '3rem 2rem',
-                                    textAlign: 'center'
-                                }}>
-                                    <span style={{ fontSize: '48px', marginBottom: '1rem' }}>⚠️</span>
-                                    <h3 style={{
-                                        fontSize: '1.5rem',
-                                        fontWeight: 'bold',
-                                        color: 'var(--warning-color)',
-                                        marginBottom: '0.75rem'
-                                    }}>
-                                        {isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}
-                                    </h3>
-                                    <p style={{
-                                        fontSize: '1rem',
-                                        color: 'var(--text-secondary)',
-                                        maxWidth: '450px',
-                                        lineHeight: '1.6'
-                                    }}>
-                                        {isRTL
-                                            ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. לא ניתן להציג את תוכן החוזה.'
-                                            : 'The uploaded document does not appear to be a valid rental contract. Cannot display contract content.'}
-                                    </p>
+                                        );
+                                    })}
                                 </div>
-                                </Card>
-                            ) : (
-                                <ContractView
-                                ref={contractViewRef}
-                                contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
-                                backendClauses={analysis?.clauses_list || analysis?.clauses || []}
-                                issues={issues}
-                                contractId={analysis?.contractId || contractId}
-                                onClauseChange={(clauseId, text, action) => {
-                                    setEditedClauses(prev => ({
-                                        ...prev,
-                                        [clauseId]: { text, action }
-                                    }));
-                                }}
-                                onExportEdited={async (editedClausesMap) => {
-                                    // Export edited contract to Word with Hebrew
-                                    const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
-                                    const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
-                                    await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
-                                }}
-                                onSaveToCloud={handleSaveToCloud}
-                                onEditStateChange={setContractEditState}
-                                />
-                            )}
-                        </section>
-                    )}
+                            </section>
+                        )}
 
-                    {/* Export Section - Always visible when contract tab is active */}
-                    {activeTab === 'contract' && result?.is_contract !== false && (
-                        <div className="contract-export-bar no-print">
-                            <div className="export-primary-action">
-                                <button className="export-btn-main" onClick={() => contractViewRef.current?.handleExport()}>
-                                    <span className="export-btn-label">{isRTL ? 'ייצוא כקובץ docx (Word)' : 'Export to Word (.docx)'}</span>
-                                </button>
+                        {activeTab === 'issues' && issues.length === 0 && (
+                            <Card variant="glass" padding="lg" className={`no-issues animate-slideUp ${result?.is_contract === false ? 'not-contract' : ''}`}>
+                                <div className="no-issues-content">
+                                    {result?.is_contract === false ? (
+                                        <>
+                                            <span className="no-issues-icon warning" aria-hidden="true">
+                                                <AlertTriangle size={40} strokeWidth={2} />
+                                            </span>
+                                            <h3>{isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}</h3>
+                                            <p>{isRTL ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. אנא העלו חוזה שכירות למגורים בפורמט PDF.' : 'The uploaded document does not appear to be a valid rental contract. Please upload a residential rental contract in PDF format.'}</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="no-issues-icon" aria-hidden="true">
+                                                <ShieldCheck size={40} strokeWidth={2} />
+                                            </span>
+                                            <h3>{t('analysis.noIssues')}</h3>
+                                            <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
+                                        </>
+                                    )}
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Full Contract View Tab */}
+                        {activeTab === 'contract' && (
+                            <section className="contract-scroll-section" dir={isRTL ? 'rtl' : 'ltr'}>
+                                {result?.is_contract === false ? (
+                                    <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '3rem 2rem',
+                                            textAlign: 'center'
+                                        }}>
+                                            <span style={{ fontSize: '48px', marginBottom: '1rem' }}>⚠️</span>
+                                            <h3 style={{
+                                                fontSize: '1.5rem',
+                                                fontWeight: 'bold',
+                                                color: 'var(--warning-color)',
+                                                marginBottom: '0.75rem'
+                                            }}>
+                                                {isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}
+                                            </h3>
+                                            <p style={{
+                                                fontSize: '1rem',
+                                                color: 'var(--text-secondary)',
+                                                maxWidth: '450px',
+                                                lineHeight: '1.6'
+                                            }}>
+                                                {isRTL
+                                                    ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. לא ניתן להציג את תוכן החוזה.'
+                                                    : 'The uploaded document does not appear to be a valid rental contract. Cannot display contract content.'}
+                                            </p>
+                                        </div>
+                                    </Card>
+                                ) : (
+                                    <ContractView
+                                        ref={contractViewRef}
+                                        contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
+                                        backendClauses={analysis?.clauses_list || analysis?.clauses || []}
+                                        issues={issues}
+                                        contractId={analysis?.contractId || contractId}
+                                        onClauseChange={(clauseId, text, action) => {
+                                            setEditedClauses(prev => ({
+                                                ...prev,
+                                                [clauseId]: { text, action }
+                                            }));
+                                        }}
+                                        onExportEdited={async (editedClausesMap) => {
+                                            // Export edited contract to Word with Hebrew
+                                            const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
+                                            const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
+                                            await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
+                                        }}
+                                        onSaveToCloud={handleSaveToCloud}
+                                        onEditStateChange={setContractEditState}
+                                    />
+                                )}
+                            </section>
+                        )}
+
+                        {/* Export Section - Always visible when contract tab is active */}
+                        {activeTab === 'contract' && result?.is_contract !== false && (
+                            <div className="contract-export-bar no-print">
+                                <div className="export-primary-action" style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                                    <button className="export-btn-main" onClick={() => contractViewRef.current?.handleExport()}>
+                                        <span className="export-btn-label">{isRTL ? 'ייצוא כקובץ docx (Word)' : 'Export to Word (.docx)'}</span>
+                                    </button>
+                                    <button
+                                        className="export-btn-main"
+                                        style={{ background: 'linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%)', boxShadow: '0 4px 12px rgba(14, 165, 233, 0.35)' }}
+                                        onClick={handleCopyShareLink}
+                                        disabled={isGeneratingShareLink}
+                                    >
+                                        <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
+                                        <span className="export-btn-label">
+                                            {isGeneratingShareLink
+                                                ? (isRTL ? 'יוצר קישור...' : 'Creating link...')
+                                                : (isRTL ? 'יצירת לינק שיתוף' : 'Create share link')}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {contractEditState.editedCount > 0 && (
+                                    <button
+                                        className="export-btn-secondary"
+                                        onClick={() => contractViewRef.current?.requestClearAll()}
+                                    >
+                                        <Trash2 size={14} aria-hidden="true" />
+                                        <span>{isRTL ? 'נקה עריכות' : 'Clear edits'} ({contractEditState.editedCount})</span>
+                                    </button>
+                                )}
+
+                                <div className="save-status-indicator">
+                                    {contractEditState.saveStatus === 'saving' && (
+                                        <span className="save-status saving">💾 {isRTL ? 'שומר שינויים...' : 'Saving...'}</span>
+                                    )}
+                                    {contractEditState.saveStatus === 'success' && (
+                                        <span className="save-status success">✅ {isRTL ? 'נשמר בהצלחה' : 'Saved'}</span>
+                                    )}
+                                    {contractEditState.saveStatus === 'error' && (
+                                        <span className="save-status error">⚠️ {isRTL ? 'שגיאה בשמירה' : 'Save error'}</span>
+                                    )}
+                                </div>
                             </div>
+                        )}
 
-                            {contractEditState.editedCount > 0 && (
-                                <button
-                                    className="export-btn-secondary"
-                                    onClick={() => contractViewRef.current?.requestClearAll()}
-                                >
-                                    <Trash2 size={14} aria-hidden="true" />
-                                    <span>{isRTL ? 'נקה עריכות' : 'Clear edits'} ({contractEditState.editedCount})</span>
-                                </button>
-                            )}
+                        {activeTab === 'contract' && result?.is_contract !== false && shareLink && (
+                            <div className="share-link-panel no-print">
+                                <div className="share-link-panel-header">
+                                    <div className="share-link-title">{isRTL ? 'קישור שיתוף מאובטח' : 'Secure share link'}</div>
+                                    <div className="share-link-expiry">{isRTL ? 'בתוקף ל-7 ימים' : 'Valid for 7 days'}</div>
+                                </div>
 
-                            <div className="save-status-indicator">
-                                {contractEditState.saveStatus === 'saving' && (
-                                    <span className="save-status saving">💾 {isRTL ? 'שומר שינויים...' : 'Saving...'}</span>
-                                )}
-                                {contractEditState.saveStatus === 'success' && (
-                                    <span className="save-status success">✅ {isRTL ? 'נשמר בהצלחה' : 'Saved'}</span>
-                                )}
-                                {contractEditState.saveStatus === 'error' && (
-                                    <span className="save-status error">⚠️ {isRTL ? 'שגיאה בשמירה' : 'Save error'}</span>
-                                )}
+                                <div className="share-link-input-wrap">
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={shareLink}
+                                        className="share-link-input"
+                                        onFocus={(e) => e.target.select()}
+                                        aria-label={isRTL ? 'קישור שיתוף' : 'Share link'}
+                                    />
+                                </div>
+
+                                <div className="share-link-actions">
+                                    <button className="share-link-btn primary" onClick={handleManualCopyShareLink}>
+                                        <Copy size={15} />
+                                        <span>{isRTL ? 'העתק קישור' : 'Copy link'}</span>
+                                    </button>
+                                    <button
+                                        className="share-link-btn"
+                                        onClick={handleShareLinkViaApps}
+                                        disabled={isSharingLink}
+                                    >
+                                        <Share2 size={15} />
+                                        <span>
+                                            {isSharingLink
+                                                ? (isRTL ? 'משתף...' : 'Sharing...')
+                                                : (isRTL ? 'שתף באפליקציות' : 'Share via apps')}
+                                        </span>
+                                    </button>
+                                    <a
+                                        className="share-link-btn"
+                                        href={shareLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        <ExternalLink size={15} />
+                                        <span>{isRTL ? 'פתח קישור' : 'Open link'}</span>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </main>
+                        )}
+                    </main>
+                </div>
             </div>
-        </div>
         </>
     );
 };

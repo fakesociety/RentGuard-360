@@ -31,7 +31,7 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 import { useAnimate, useAnimateBar, useDrawingArea } from '@mui/x-charts/hooks';
-import { interpolateObject } from '@mui/x-charts-vendor/d3-interpolate';
+import { interpolateObject } from 'd3-interpolate';
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {

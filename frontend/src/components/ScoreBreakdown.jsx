@@ -28,6 +28,7 @@
  * ============================================
  */
 import React from 'react';
+import { BadgeDollarSign, House, FileText, Wrench, Scale } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import './ScoreBreakdown.css';
 
@@ -45,16 +46,22 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
 
     const categories = { ...defaultBreakdown, ...breakdown };
 
-    // Category display names - bilingual with emojis
+    // Category display names with professional icons
     const getCategoryInfo = () => ({
-        financial_terms: { name: t('score.financialTerms'), icon: '💰', maxScore: 20 },
-        tenant_rights: { name: t('score.tenantRights'), icon: '🏠', maxScore: 20 },
-        termination_clauses: { name: t('score.terminationClauses'), icon: '🚪', maxScore: 20 },
-        liability_repairs: { name: t('score.liabilityRepairs'), icon: '🔧', maxScore: 20 },
-        legal_compliance: { name: t('score.legalCompliance'), icon: '⚖️', maxScore: 20 }
+        financial_terms: { name: t('score.financialTerms'), icon: BadgeDollarSign, maxScore: 20 },
+        tenant_rights: { name: t('score.tenantRights'), icon: House, maxScore: 20 },
+        termination_clauses: { name: t('score.terminationClauses'), icon: FileText, maxScore: 20 },
+        liability_repairs: { name: t('score.liabilityRepairs'), icon: Wrench, maxScore: 20 },
+        legal_compliance: { name: t('score.legalCompliance'), icon: Scale, maxScore: 20 }
     });
 
     const categoryInfo = getCategoryInfo();
+    const legendItems = [
+        { key: 'excellent', range: '86-100', label: t('score.lowRisk') },
+        { key: 'good', range: '71-85', label: t('score.lowMediumRisk') },
+        { key: 'warning', range: '51-70', label: t('score.mediumRisk') },
+        { key: 'danger', range: '0-50', label: t('score.highRisk') }
+    ];
 
     // Get color class based on score - matches legend thresholds
     const getScoreColor = (score, maxScore = 100) => {
@@ -114,11 +121,14 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
                 <div className="categories-list">
                     {Object.entries(categories).map(([key, data]) => {
                         const info = categoryInfo[key];
+                        const CategoryIcon = info.icon;
                         const categoryScore = data.score ?? 20;
 
                         return (
-                            <div key={key} className="category-item">
-                                <span className="category-icon">{info.icon}</span>
+                            <div key={key} className={`category-item category-${key}`}>
+                                <span className={`category-icon icon-${key}`} aria-hidden="true">
+                                    <CategoryIcon size={16} strokeWidth={2} />
+                                </span>
                                 <span className="category-name">{info.name}</span>
                                 <div className="category-bar">
                                     <div
@@ -137,10 +147,15 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
 
             {/* Score Legend */}
             <div className="score-legend">
-                <div className="legend-item excellent"><span className="dot"></span> 86-100: {t('score.lowRisk')}</div>
-                <div className="legend-item good"><span className="dot"></span> 71-85: {t('score.lowMediumRisk')}</div>
-                <div className="legend-item warning"><span className="dot"></span> 51-70: {t('score.mediumRisk')}</div>
-                <div className="legend-item danger"><span className="dot"></span> 0-50: {t('score.highRisk')}</div>
+                {legendItems.map((item) => (
+                    <div key={item.key} className={`legend-item ${item.key}`}>
+                        <div className="legend-item-main">
+                            <span className="dot"></span>
+                            <span className="legend-label">{item.label}</span>
+                        </div>
+                        <span className="legend-range">{item.range}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );

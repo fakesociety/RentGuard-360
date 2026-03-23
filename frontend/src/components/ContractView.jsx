@@ -32,7 +32,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { processContractClauses } from '../utils/contractTextProcessor';
 import { consultClause } from '../services/api';
-import { exportEditedContractWithSignatures } from '../services/ExportService';
+import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../services/ExportService';
 import RecommendationCard from './RecommendationCard';
 import './ContractView.css';
 
@@ -40,12 +40,15 @@ const ContractView = forwardRef(({
     contractText = '',
     backendClauses = [],
     issues = [],
+    readOnly = false,
+    initialEditedClauses = {},
     contractId = null,  // NEW: for localStorage persistence
     onClauseChange,
     onSaveToCloud,
     onEditStateChange,
 }, ref) => {
-    const [editedClauses, setEditedClauses] = useState({});
+    const [editedClauses, setEditedClauses] = useState(() => initialEditedClauses || {});
+    const editedClausesRef = useRef(initialEditedClauses || {});
     const [showOnlyIssues, setShowOnlyIssues] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null);
 
@@ -102,29 +105,44 @@ const ContractView = forwardRef(({
         });
     }, [contractText, backendClauses, issues, editedClauses]);
 
-    // Get current text for a clause (with clause number preserved)
-    const getClauseText = useCallback((clause) => {
-        const edit = editedClauses[clause.id];
+    const getClauseTextFromEdits = useCallback((clause, editsMap) => {
+        const edit = (editsMap || {})[clause.id];
         if (edit?.text) {
-            // Try to find original clause number from multiple sources
             let originalNumber = edit.originalNumber;
             if (!originalNumber) {
-                // Try from clause.text
                 originalNumber = clause.text?.match(/^(\d+\.)\s*/)?.[1];
             }
             if (!originalNumber && clause.issue?.original_text) {
-                // Try from issue's original_text
                 originalNumber = clause.issue.original_text?.match(/^(\d+\.)\s*/)?.[1];
             }
 
             if (originalNumber && !edit.text.match(/^\d+\.\s*/)) {
-                // Add the number only if the edit text doesn't already have one
                 return `${originalNumber} ${edit.text}`;
             }
             return edit.text;
         }
         return clause.text;
-    }, [editedClauses]);
+    }, []);
+
+    // Get current text for a clause (with clause number preserved)
+    const getClauseText = useCallback((clause) => {
+        return getClauseTextFromEdits(clause, editedClauses);
+    }, [editedClauses, getClauseTextFromEdits]);
+
+    const updateEditedClauses = useCallback((updater) => {
+        setEditedClauses(prev => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            editedClausesRef.current = next;
+            return next;
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!readOnly) return;
+        const normalized = initialEditedClauses || {};
+        editedClausesRef.current = normalized;
+        setEditedClauses(normalized);
+    }, [readOnly, initialEditedClauses]);
 
     // Scroll navigation state
     const containerRef = useRef(null);
@@ -141,12 +159,14 @@ const ContractView = forwardRef(({
 
     // Load saved edits from localStorage on mount
     useEffect(() => {
+        if (readOnly) return;
         if (!contractId) return;
         const storageKey = `rentguard_edits_${contractId}`;
         try {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
                 const parsed = JSON.parse(saved);
+                editedClausesRef.current = parsed;
                 setEditedClauses(parsed);
                 // Hydrated edits from localStorage should not immediately trigger cloud save.
                 skipNextCloudSaveRef.current = true;
@@ -155,10 +175,11 @@ const ContractView = forwardRef(({
         } catch (error) {
             console.warn('Failed to load saved edits:', error);
         }
-    }, [contractId]);
+    }, [contractId, readOnly]);
 
     // Auto-save edits to localStorage when changed
     useEffect(() => {
+        if (readOnly) return;
         if (!contractId || Object.keys(editedClauses).length === 0) return;
         const storageKey = `rentguard_edits_${contractId}`;
         try {
@@ -167,10 +188,11 @@ const ContractView = forwardRef(({
         } catch (error) {
             console.warn('Failed to save edits:', error);
         }
-    }, [contractId, editedClauses]);
+    }, [contractId, editedClauses, readOnly]);
 
     // Auto-save to Cloud (Debounced)
     useEffect(() => {
+        if (readOnly) return;
         if (!onSaveToCloud || !contractId) return;
 
         // Skip initial render to avoid saving on load
@@ -227,7 +249,7 @@ const ContractView = forwardRef(({
                 clearTimeout(saveTimeoutRef.current);
             }
         };
-    }, [editedClauses, contractId, onSaveToCloud, clauses, getClauseText]); // Dependencies include content
+    }, [editedClauses, contractId, onSaveToCloud, clauses, getClauseText, readOnly]); // Dependencies include content
 
     useEffect(() => {
         return () => {
@@ -275,6 +297,7 @@ const ContractView = forwardRef(({
 
     // Open popup editor
     const openEditor = (clause) => {
+        if (readOnly) return;
         setSelectedClause(clause);
         setEditingText(getClauseText(clause));
     };
@@ -302,7 +325,7 @@ const ContractView = forwardRef(({
         if (confirmRevertId) {
             const newEdited = { ...editedClauses };
             delete newEdited[confirmRevertId];
-            setEditedClauses(newEdited);
+            updateEditedClauses(newEdited);
 
             // Close editor if open for this clause
             if (selectedClause?.id === confirmRevertId) {
@@ -327,7 +350,7 @@ const ContractView = forwardRef(({
                 originalNumber = extractClauseNumber(selectedClause.issue.original_text);
             }
 
-            setEditedClauses(prev => ({
+            updateEditedClauses(prev => ({
                 ...prev,
                 [selectedClause.id]: {
                     text: editingText.trim(),
@@ -350,6 +373,7 @@ const ContractView = forwardRef(({
 
     // Consult AI for clause explanation
     const handleConsultClause = async (clause, e) => {
+        if (readOnly) return;
         e.stopPropagation();
 
         if (clauseExplanations[clause.id]) {
@@ -391,9 +415,27 @@ const ContractView = forwardRef(({
 
     // Export contract with signatures
     const handleExport = useCallback(async () => {
-        const clauseTexts = clauses.map(c => getClauseText(c));
-        await exportEditedContractWithSignatures(clauseTexts, editedClauses, 'חוזה_שכירות_ערוך');
-    }, [clauses, getClauseText, editedClauses]);
+        const currentEdits = editedClausesRef.current || {};
+        const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
+        await exportEditedContractWithSignatures(clauseTexts, currentEdits, 'חוזה_שכירות_ערוך');
+    }, [clauses, getClauseTextFromEdits]);
+
+    // Get contract as a blob for sharing
+    const handleGetDocxBlob = useCallback(async () => {
+        const currentEdits = editedClausesRef.current || {};
+        const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
+        return await exportEditedContractWithSignaturesBlob(clauseTexts, currentEdits, 'חוזה_שכירות_ערוך');
+    }, [clauses, getClauseTextFromEdits]);
+
+    // Return current edited payload for immediate cloud save before sharing.
+    const getCurrentEditedPayload = useCallback(() => {
+        const currentEdits = editedClausesRef.current || {};
+        const fullEditedText = clauses.map(c => getClauseTextFromEdits(c, currentEdits)).join('\n\n');
+        return {
+            editedClauses: currentEdits,
+            fullEditedText,
+        };
+    }, [clauses, getClauseTextFromEdits]);
 
     // Filter clauses
     const filteredClauses = showOnlyIssues
@@ -435,8 +477,10 @@ const ContractView = forwardRef(({
 
     useImperativeHandle(ref, () => ({
         handleExport,
+        handleGetDocxBlob,
+        getCurrentEditedPayload,
         requestClearAll: () => setShowClearAllConfirm(true),
-    }), [handleExport]);
+    }), [handleExport, handleGetDocxBlob, getCurrentEditedPayload]);
 
     return (
         <div
@@ -454,14 +498,16 @@ const ContractView = forwardRef(({
                 {/* Toolbar */}
                 <div className="contract-toolbar no-print">
                     <div className="toolbar-left">
-                        <label className="filter-toggle">
-                            <input
-                                type="checkbox"
-                                checked={showOnlyIssues}
-                                onChange={(e) => setShowOnlyIssues(e.target.checked)}
-                            />
-                            הצג רק סעיפים בעייתיים
-                        </label>
+                        {!readOnly && (
+                            <label className="filter-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={showOnlyIssues}
+                                    onChange={(e) => setShowOnlyIssues(e.target.checked)}
+                                />
+                                הצג רק סעיפים בעייתיים
+                            </label>
+                        )}
                     </div>
                     <div className="toolbar-stats">
                         <span className="stat-badge total">{stats.total} סעיפים</span>
@@ -495,15 +541,16 @@ const ContractView = forwardRef(({
 
                                 {/* Clause content */}
                                 <div
-                                    className={`clause-item ${clause.hasIssue ? 'has-issue' : ''} ${clause.isEdited ? 'is-edited' : ''}`}
-                                    onClick={() => openEditor(clause)}
+                                    className={`clause-item ${clause.hasIssue ? 'has-issue' : ''} ${clause.isEdited ? 'is-edited' : ''} ${readOnly ? 'read-only' : ''}`}
+                                    onClick={readOnly ? undefined : () => openEditor(clause)}
                                 >
                                     <div className="clause-view-mode">
                                         <p className="clause-text" dir="rtl" style={textStyle}>
                                             {getClauseText(clause)}
                                         </p>
 
-                                        <div className="clause-actions no-print">
+                                        {!readOnly && (
+                                            <div className="clause-actions no-print">
                                             {/* Consult AI Button - hide if already has answer */}
                                             {!clauseExplanations[clause.id] && (
                                                 <button
@@ -515,13 +562,16 @@ const ContractView = forwardRef(({
                                                     {consultingClauseId === clause.id ? '⏳' : '💡'}
                                                 </button>
                                             )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Edit Hint Overlay */}
-                                    <div className="clause-hover-hint no-print">
-                                        ✎ עריכה
-                                    </div>
+                                    {!readOnly && (
+                                        <div className="clause-hover-hint no-print">
+                                            ✎ עריכה
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* AI Explanation Box - Collapsible */}
@@ -545,16 +595,17 @@ const ContractView = forwardRef(({
                                 )}
 
                                 {/* Suggested Fix for issues - Modern Design */}
-                                {clause.hasIssue && clause.issue?.suggested_fix && (
+                                {!readOnly && clause.hasIssue && clause.issue?.suggested_fix && (
                                     <RecommendationCard
                                         title="הצעה לתיקון"
                                         suggestion={clause.issue.suggested_fix}
                                         isApplied={!!editedClauses[clause.id]}
                                         onApply={() => {
-                                            setEditedClauses(prev => ({
+                                            updateEditedClauses(prev => ({
                                                 ...prev,
                                                 [clause.id]: { text: clause.issue.suggested_fix, action: 'accepted' }
                                             }));
+                                            onClauseChange?.(clause.id, clause.issue.suggested_fix, 'accepted');
                                         }}
                                         onRevert={(e) => requestRevert(clause.id, e)}
                                     />
@@ -604,7 +655,7 @@ const ContractView = forwardRef(({
         </div>
 
             {/* ===== HEBREW POPUP EDITOR (Same Style as Contract) ===== */}
-            {selectedClause && (
+            {!readOnly && selectedClause && (
                 <div
                     className="clause-editor-modal"
                     onClick={closeEditor}
@@ -694,7 +745,7 @@ const ContractView = forwardRef(({
             )}
 
             {/* Error Toast */}
-            {consultError && (
+            {!readOnly && consultError && (
                 <div className="error-toast no-print">
                     {consultError}
                     <button onClick={() => setConsultError(null)}>✕</button>
@@ -702,7 +753,7 @@ const ContractView = forwardRef(({
             )}
 
             {/* Custom Revert Confirmation Modal */}
-            {confirmRevertId && (
+            {!readOnly && confirmRevertId && (
                 <div className="clause-editor-modal" onClick={cancelRevert}>
                     <div
                         className="clause-popup-content"
@@ -738,7 +789,7 @@ const ContractView = forwardRef(({
             )}
 
             {/* Clear All Edits Confirmation Modal */}
-            {showClearAllConfirm && (
+            {!readOnly && showClearAllConfirm && (
                 <div className="clause-editor-modal" onClick={() => setShowClearAllConfirm(false)}>
                     <div
                         className="clause-popup-content"
@@ -761,7 +812,7 @@ const ContractView = forwardRef(({
                             <button
                                 className="popup-revert-btn"
                                 onClick={() => {
-                                    setEditedClauses({});
+                                    updateEditedClauses({});
                                     if (contractId) {
                                         localStorage.removeItem(`rentguard_edits_${contractId}`);
                                     }

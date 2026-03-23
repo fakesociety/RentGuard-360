@@ -97,6 +97,7 @@ const ContractChatWidget = () => {
     const [isTipCollapsed, setIsTipCollapsed] = useState(true);
     const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
     const [footerOffset, setFooterOffset] = useState(24);
+    const lastAutoOpenedPathRef = useRef('');
     const inputRef = useRef(null);
     const userLabel = useMemo(() => {
         if (userAttributes?.name) return userAttributes.name;
@@ -128,6 +129,19 @@ const ContractChatWidget = () => {
     ]), [t]);
 
     const routeContractId = useMemo(() => getAnalysisContractIdFromPath(location.pathname), [location.pathname]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        if (!routeContractId) return;
+
+        const currentPath = location.pathname;
+        if (lastAutoOpenedPathRef.current === currentPath) {
+            return;
+        }
+
+        setOpen(true);
+        lastAutoOpenedPathRef.current = currentPath;
+    }, [isAuthenticated, routeContractId, location.pathname]);
 
     const trackChatEvent = (eventName, payload = {}) => {
         const detail = {
