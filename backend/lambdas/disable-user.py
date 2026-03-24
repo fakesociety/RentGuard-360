@@ -94,16 +94,44 @@ def send_disable_notification(sender_email, email, reason):
                 'Body': {
                     'Html': {
                         'Data': f'''
-                        <html>
-                        <body dir="rtl" style="font-family: Arial, sans-serif;">
-                            <h2>החשבון שלך הושעה</h2>
-                            <p>שלום,</p>
-                            <p>החשבון שלך ב-RentGuard 360 הושעה.</p>
-                            <p><strong>סיבה:</strong> {reason}</p>
-                            <p>אם אתה סבור שזו טעות, אנא פנה לתמיכה.</p>
-                            <p>בברכה,<br>צוות RentGuard 360</p>
-                        </body>
-                        </html>
+                                                <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
+                                                        <tr>
+                                                            <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
+                                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                                    <span style="display:inline-flex; width:22px; height:22px; line-height:0;">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                                                        </svg>
+                                                                    </span>
+                                                                    <span style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px;">RentGuard</span>
+                                                                    <span style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:26px 22px 12px; color:#0f172a;">
+                                                                <h2 style="margin:0 0 10px; font-size:24px; line-height:1.35; color:#b91c1c;">החשבון שלך הושעה</h2>
+                                                                <p style="margin:0; font-size:15px; line-height:1.7; color:#334155;">חשבון ה-RentGuard 360 שלך הושעה על ידי מנהל המערכת.</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:0 22px 16px;">
+                                                                <div style="border:1px solid #fecaca; border-radius:12px; background:#fff1f2; padding:14px; color:#7f1d1d; font-size:14px; line-height:1.7;">
+                                                                    <strong>סיבה:</strong> {reason}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:0 22px 12px; color:#334155; font-size:15px; line-height:1.7;">
+                                                                אם זו טעות, אפשר לפנות לתמיכה ונשמח לעזור.
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:14px 22px 18px; border-top:1px solid #e6edf4; font-size:12px; color:#64748b;">הודעה זו נשלחה אוטומטית ממערכת RentGuard 360.</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
                         ''',
                         'Charset': 'UTF-8'
                     }

@@ -328,28 +328,43 @@ export default AdminAnalytics;
 // --- Helper Components for Shiny Chart ---
 
 function BarShadedBackground(props) {
-    const { ownerState, ...other } = props;
+    const {
+        ownerState,
+        dataIndex: _dataIndex,
+        xOrigin: _xOrigin,
+        yOrigin: _yOrigin,
+        skipAnimation: _skipAnimation,
+        ...svgProps
+    } = props;
     const { isDark } = useTheme();
 
     const animatedProps = useAnimateBar(props);
+    const {
+        dataIndex: _animatedDataIndex,
+        xOrigin: _animatedXOrigin,
+        yOrigin: _animatedYOrigin,
+        skipAnimation: _animatedSkipAnimation,
+        ...safeAnimatedProps
+    } = animatedProps || {};
+
     const { width: drawingWidth } = useDrawingArea();
 
     return (
         <React.Fragment>
             <rect
-                {...other}
+                {...svgProps}
                 fill={isDark ? '#f8fafc' : '#1a1a2e'}
-                opacity={isDark ? 0.05 : 0.05}
-                x={other.x}
+                opacity={0.05}
+                x={svgProps.x}
                 width={drawingWidth}
                 style={{ rx: 4 }}
             />
             <rect
-                {...other}
-                filter={ownerState.isHighlighted ? 'brightness(120%)' : undefined}
-                opacity={ownerState.isFaded ? 0.3 : 1}
+                {...svgProps}
+                filter={ownerState?.isHighlighted ? 'brightness(120%)' : undefined}
+                opacity={ownerState?.isFaded ? 0.3 : 1}
                 style={{ rx: 4 }}
-                {...animatedProps}
+                {...safeAnimatedProps}
             />
         </React.Fragment>
     );
@@ -373,10 +388,11 @@ function BarLabelAtBase(props) {
         y,
         height,
         skipAnimation,
+        dataIndex: _dataIndex,
+        yOrigin: _yOrigin,
         ...otherProps
     } = props;
 
-    // Position label slightly inside the bar
     const animatedProps = useAnimate(
         { x: xOrigin + 8, y: y + height / 2 },
         {

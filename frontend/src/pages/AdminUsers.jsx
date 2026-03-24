@@ -33,6 +33,7 @@ import {
     Search,
     Ban,
     Check,
+    Copy,
     Trash2,
     Users,
     AlertTriangle,
@@ -50,6 +51,7 @@ const AdminUsers = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(null);
+    const [copiedUsername, setCopiedUsername] = useState(null);
 
     // Modal state
     const [modal, setModal] = useState({
@@ -187,6 +189,47 @@ const AdminUsers = () => {
             title: t('admin.confirmDeleteTitle') || 'Delete User',
             message: t('admin.confirmDelete'),
         });
+    };
+
+    const getLocalizedLabel = (key, fallbackEn, fallbackHe) => {
+        const translated = t(key);
+        if (translated && translated !== key) return translated;
+        return isRTL ? fallbackHe : fallbackEn;
+    };
+
+    const handleCopyEmail = async (email, username) => {
+        if (!email) return;
+
+        try {
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(email);
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = email;
+                textArea.setAttribute('readonly', '');
+                textArea.style.position = 'absolute';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+
+            setCopiedUsername(username);
+            window.setTimeout(() => setCopiedUsername(current => current === username ? null : current), 1500);
+        } catch (err) {
+            setModal({
+                isOpen: true,
+                type: 'error',
+                username: null,
+                title: t('common.error') || 'Error',
+                message: getLocalizedLabel(
+                    'admin.copyFailed',
+                    'Unable to copy email. Please select and copy manually.',
+                    'לא ניתן להעתיק אימייל. אפשר לסמן ולהעתיק ידנית.'
+                ),
+            });
+        }
     };
 
     const handleModalConfirm = async () => {
@@ -367,9 +410,25 @@ const AdminUsers = () => {
                                     ) : (
                                         users.map(user => {
                                             const statusPresentation = getUserStatusPresentation(user);
+                                            const copyLabel = copiedUsername === user.username
+                                                ? getLocalizedLabel('admin.copied', 'Copied', 'הועתק')
+                                                : getLocalizedLabel('admin.copyEmail', 'Copy Email', 'העתק אימייל');
                                             return (
                                             <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
-                                                <td>{user.email || '—'}</td>
+                                                <td className="email-cell" title={user.email || ''}>
+                                                    <div className="email-cell-content">
+                                                        <button
+                                                            className={`action-icon-btn copy email-copy-btn ${copiedUsername === user.username ? 'copied' : ''}`}
+                                                            onClick={() => handleCopyEmail(user.email, user.username)}
+                                                            disabled={!user.email}
+                                                            title={copyLabel}
+                                                            aria-label={copyLabel}
+                                                        >
+                                                            {copiedUsername === user.username ? <Check size={14} /> : <Copy size={14} />}
+                                                        </button>
+                                                        <span className="email-text">{user.email || '—'}</span>
+                                                    </div>
+                                                </td>
                                                 <td>{user.name || '—'}</td>
                                                 <td>
                                                     <span className={`status-badge ${statusPresentation.badgeClass}`}>
