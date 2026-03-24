@@ -102,27 +102,43 @@ def build_user_confirmation_email(ticket_id, category, message_content):
     Returns:
         str: HTML email body
     """
-    return f"""
-    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
-        <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🛡️ RentGuard 360</h1>
+        return f"""
+        <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
+                <tr>
+                    <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="display:inline-flex; width:22px; height:22px; line-height:0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                </svg>
+                            </span>
+                            <span style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px;">RentGuard</span>
+                            <span style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:26px 22px 8px; color:#0f172a;">
+                        <h2 style="margin:0 0 10px; font-size:24px; line-height:1.35; color:#0f172a;">הפנייה התקבלה בהצלחה</h2>
+                        <p style="margin:0; font-size:15px; line-height:1.7; color:#334155;">מספר הפנייה שלך הוא <strong>{ticket_id[:8]}</strong>. נחזור אליך בתוך 24 שעות.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:12px 22px 16px;">
+                        <div style="background:#f8fafc; border:1px solid #dbe4ee; border-radius:12px; padding:14px; text-align:right; color:#334155;">
+                            <p style="margin:0 0 8px;"><strong>קטגוריה:</strong> {category}</p>
+                            <p style="margin:0 0 6px;"><strong>תוכן הפנייה:</strong></p>
+                            <p style="margin:0; background:#ffffff; border:1px solid #e6edf4; border-radius:8px; padding:10px;">{message_content}</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:14px 22px 18px; border-top:1px solid #e6edf4; font-size:12px; color:#64748b;">הודעה זו נשלחה אוטומטית ממערכת RentGuard 360.</td>
+                </tr>
+            </table>
         </div>
-        <div style="padding: 30px; text-align: center;">
-            <h2 style="color: #10b981; margin: 0 0 10px 0; font-size: 24px;">היי, ההודעה התקבלה!</h2>
-            <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 14px;">מספר פנייה: {ticket_id[:8]}</p>
-            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 14px;">נחזור אליך תוך 24 שעות</p>
-            
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: right; margin-bottom: 20px;">
-                <p style="margin: 8px 0;"><strong>קטגוריה:</strong> {category}</p>
-                <p style="margin: 8px 0;"><strong>תוכן הפנייה:</strong></p>
-                <p style="background: #ffffff; padding: 12px; border-radius: 8px; border-right: 3px solid #10b981;">{message_content}</p>
-            </div>
-        </div>
-        <div style="text-align: center; padding: 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; margin: 0; font-size: 12px;">RentGuard Systems</p>
-        </div>
-    </div>
-    """
+        """
 
 # =============================================================================
 # MAIN HANDLER

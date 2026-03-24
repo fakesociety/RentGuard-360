@@ -46,7 +46,6 @@
     min-height: 100vh;
     padding: var(--space-xl) var(--space-md);
     padding-bottom: 0;
-    /* Remove bottom padding - let content extend to footer */
 }
 
 /* All direct children get centered with max-width */
@@ -111,8 +110,7 @@
 [data-theme="dark"] .section-icon,
 [data-theme="dark"] .section-icon.danger,
 [data-theme="dark"] .notification-icon,
-[data-theme="dark"] .tip-icon,
-[data-theme="dark"] .danger-icon {
+[data-theme="dark"] .tip-icon{
     color: var(--text-secondary);
     background: transparent;
     border-color: var(--glass-border);
@@ -471,7 +469,7 @@
 }
 
 /* ============================================
-   DAN DID IT - Delete Account Modal Styles
+   Delete Account Modal Styles
    ============================================ */
 
 .modal-backdrop {
@@ -520,7 +518,6 @@
     padding: var(--space-xs);
     transition: color var(--transition-fast);
     z-index: 1;
-    /* DAN DID IT - Keep close button above content */
 }
 
 .modal-close:hover {
@@ -536,28 +533,22 @@
     text-align: center;
     margin-bottom: var(--space-md);
     line-height: 1;
-    /* DAN DID IT - Fix icon centering */
     display: flex;
-    /* DAN DID IT - Use flexbox for better centering */
     align-items: center;
-    /* DAN DID IT - Vertically center icon */
     justify-content: center;
-    /* DAN DID IT - Horizontally center icon */
     height: 60px;
-    /* DAN DID IT - Fixed height for consistent centering */
 }
 
 .danger-icon {
     color: var(--accent-danger);
+    background: none;
 }
 
 .modal-content h2 {
     text-align: center;
     color: var(--text-primary);
     margin-bottom: var(--space-md);
-    /* DAN DID IT - Reduced spacing */
     font-size: var(--font-size-xl);
-    /* DAN DID IT - Slightly smaller heading */
 }
 
 .delete-warning {
@@ -565,29 +556,27 @@
     border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: var(--radius-md);
     padding: var(--space-sm) var(--space-md);
-    /* DAN DID IT - Reduced vertical padding */
     margin-bottom: var(--space-md);
-    /* DAN DID IT - Reduced spacing */
 }
 
 .delete-warning p {
     color: var(--text-secondary);
     margin: var(--space-xs) 0;
     line-height: 1.5;
-    /* DAN DID IT - Slightly tighter line height */
     font-size: var(--font-size-sm);
-    /* DAN DID IT - Smaller font for more compact look */
+}
+
+[data-theme="dark"] .delete-warning p {
+    color: var(--text-primary);
 }
 
 .warning-text {
     color: var(--accent-danger) !important;
-    font-weight: var(--font-weight-semibold) !important;
     margin-top: var(--space-sm) !important;
 }
 
 .delete-confirm-input {
     margin-bottom: var(--space-md);
-    /* DAN DID IT - Reduced spacing */
 }
 
 .delete-confirm-input label {
@@ -636,11 +625,9 @@
     flex: 1;
 }
 
-/* DAN DID IT - Improved responsive behavior for mobile */
 @media (max-width: 600px) {
     .modal-content {
         max-width: 95vw;
-        /* DAN DID IT - Use more screen width on mobile */
         padding: var(--space-md);
     }
 
@@ -658,20 +645,17 @@
 
     .delete-warning p {
         font-size: 0.85rem;
-        /* DAN DID IT - Even smaller text on mobile */
     }
 }
 
 @media (max-width: 480px) {
     .modal-backdrop {
         padding: var(--space-sm);
-        /* DAN DID IT - Less padding on very small screens */
     }
 
     .modal-content {
         padding: var(--space-sm) var(--space-md);
         max-height: 95vh;
-        /* DAN DID IT - Use more viewport height */
     }
 
     .modal-actions {

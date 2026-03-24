@@ -114,20 +114,52 @@ def build_notification_email(risk_score):
     color = _score_color(score)
     
     return f"""
-    <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-        <div style="background-color: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <h2 style="color: #333;">הניתוח הסתיים בהצלחה!</h2>
-            <p>מערכת RentGuard סיימה לנתח את הקובץ שהעלית.</p>
-            
-            <div style="text-align: center; margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
-                <h3>ציון הסיכון המשוקלל:</h3>
-                <h1 style="color: {color}; margin: 0; font-size: 40px;">{int(round(score))}/100</h1>
-            </div>
+    <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
+            <tr>
+                <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="display:inline-flex; width:22px; height:22px; line-height:0;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                                    </svg>
+                                                </span>
+                        <span style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px;">RentGuard</span>
+                        <span style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</span>
+                    </div>
+                </td>
+            </tr>
 
-            <p>הכנס לאתר כדי לראות את הפירוט המלא, ההסברים והטיפים למשא ומתן.</p>
-            <br>
-            <p style="font-size: 12px; color: gray;">הודעה זו נשלחה אוטומטית.</p>
-        </div>
+            <tr>
+                <td style="padding:26px 22px 18px; color:#0f172a;">
+                    <h2 style="margin:0 0 10px; font-size:24px; line-height:1.35; color:#0f172a;">הניתוח הסתיים בהצלחה</h2>
+                    <p style="margin:0; font-size:15px; line-height:1.7; color:#334155;">
+                        חוזה השכירות שלך נותח בהצלחה במערכת RentGuard 360.
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:0 22px 16px;">
+                    <div style="border:1px solid #dbe4ee; border-radius:12px; background:#f8fafc; text-align:center; padding:16px;">
+                        <div style="font-size:14px; color:#475569; margin-bottom:8px;">ציון הסיכון המשוקלל</div>
+                        <div style="font-size:40px; font-weight:800; line-height:1.1; color:{color};">{int(round(score))}/100</div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:0 22px 10px; color:#334155; font-size:15px; line-height:1.7;">
+                    היכנס לאתר כדי לראות את הפירוט המלא, ההסברים והטיפים למשא ומתן.
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:14px 22px 18px; border-top:1px solid #e6edf4; font-size:12px; color:#64748b;">
+                    הודעה זו נשלחה אוטומטית ממערכת RentGuard 360.
+                </td>
+            </tr>
+        </table>
     </div>
     """
 
