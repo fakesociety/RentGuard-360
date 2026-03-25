@@ -28,6 +28,7 @@ import { pollForAnalysis, uploadFile } from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import CameraScannerModal from '../features/scanner/components/CameraScannerModal';
 import './UploadPage.css';
 
 const UploadPage = () => {
@@ -53,6 +54,7 @@ const UploadPage = () => {
     const [customFileName, setCustomFileName] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showScannerModal, setShowScannerModal] = useState(false);
     const hasUploadEntitlement = isAdmin || hasSubscription;
     const hasScansAvailable = isAdmin || isUnlimited || scansRemaining > 0;
     const canChooseFile = hasUploadEntitlement && hasScansAvailable;
@@ -172,6 +174,11 @@ const UploadPage = () => {
         }
         const selectedFile = e.target.files[0];
         if (selectedFile) handleFileSelect(selectedFile);
+    };
+
+    const handleScannerComplete = (scannedPdfFile) => {
+        handleFileSelect(scannedPdfFile);
+        setShowScannerModal(false);
     };
 
     const handleUpload = async () => {
@@ -332,6 +339,20 @@ const UploadPage = () => {
                                     >
                                         {t('upload.selectFile')}
                                     </Button>
+                                    <Button
+                                        variant="ghost"
+                                        disabled={!canChooseFile}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!canChooseFile) {
+                                                setError(blockReason);
+                                                return;
+                                            }
+                                            setShowScannerModal(true);
+                                        }}
+                                    >
+                                        Scan With Camera
+                                    </Button>
                                     <p className="drop-hint">{t('upload.maxSize')}</p>
                                     {!canChooseFile && <p className="drop-locked-note">{blockReason}</p>}
                                 </div>
@@ -481,6 +502,13 @@ const UploadPage = () => {
                 </div>,
                 document.body
             )}
+
+            <CameraScannerModal
+                open={showScannerModal}
+                onClose={() => setShowScannerModal(false)}
+                onComplete={handleScannerComplete}
+                initialFileName={(customFileName || 'scanned-contract').trim()}
+            />
         </div>
     );
 };
