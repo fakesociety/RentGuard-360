@@ -141,8 +141,9 @@
 }
 
 [data-theme="dark"] .contact-textarea {
-    background: var(--bg-tertiary);
-    border-color: rgba(240, 246, 252, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
 }
 
 [data-theme="dark"] .contact-textarea:focus {

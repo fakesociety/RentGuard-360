@@ -1,28 +1,3 @@
-/**
- * ============================================
- *  SettingsPage
- *  User Account Settings & Preferences
- * ============================================
- * 
- * STRUCTURE:
- * - Profile section (name, email)
- * - Appearance section (dark mode toggle)
- * - Notifications section
- * - About section
- * - Danger zone (logout, delete account)
- * 
- * FEATURES:
- * - Theme toggle (light/dark)
- * - Account deletion with confirmation
- * - Deletes all user contracts before account
- * 
- * DEPENDENCIES:
- * - api.js: deleteAllUserContracts
- * - AuthContext: logout, deleteAccount
- * - ThemeContext: isDark, toggleTheme
- * 
- * ============================================
- */
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import {
@@ -31,26 +6,25 @@ import {
     BellRing,
     Info,
     ShieldAlert,
-    Mail,
     Lightbulb,
     AlertTriangle,
     X,
+    CreditCard,
+    LogOut,
+    Trash2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { deleteAllUserContracts } from '../services/api'; // DAN DID IT - Import for deleting contracts
-import Card from '../components/Card';
-import Button from '../components/Button';
+import { deleteAllUserContracts } from '../services/api';
 import Toggle from '../components/Toggle';
 import './SettingsPage.css';
 
 const SettingsPage = () => {
-    const { userAttributes, logout, deleteAccount, user } = useAuth(); // DAN DID IT - Added deleteAccount and user
+    const { userAttributes, logout, deleteAccount, user } = useAuth();
     const { isDark, toggleTheme } = useTheme();
     const { t, isRTL } = useLanguage();
 
-    // DAN DID IT - State for delete account confirmation
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
@@ -60,7 +34,6 @@ const SettingsPage = () => {
         await logout();
     };
 
-    // DAN DID IT - Handle account deletion with contract cleanup
     const handleDeleteAccount = async () => {
         if (deleteConfirmText !== 'DELETE') {
             setDeleteError(isRTL ? 'יש להקליד DELETE כדי לאשר' : 'Please type DELETE to confirm');
@@ -71,19 +44,14 @@ const SettingsPage = () => {
         setDeleteError('');
 
         try {
-            // Step 1: Delete all user's contracts
             const userId = user?.username || user?.userId;
             if (userId) {
                 await deleteAllUserContracts(userId);
             }
 
-            // Step 2: Delete the user's Cognito account
             const result = await deleteAccount();
 
-            if (result.success) {
-                // User is automatically logged out after deleteAccount
-                // Redirect happens via AuthContext
-            } else {
+            if (!result.success) {
                 setDeleteError(result.error || t('account.deleteAccountError'));
                 setIsDeleting(false);
             }
@@ -94,151 +62,153 @@ const SettingsPage = () => {
         }
     };
 
+    const userInitial = (userAttributes?.name || userAttributes?.email || 'U').charAt(0).toUpperCase();
+
     return (
-        <div className="settings-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-            <h1 className="settings-title animate-fadeIn">{isRTL ? 'הגדרות' : 'Settings'}</h1>
+        <div className="settings-container" dir={isRTL ? 'rtl' : 'ltr'}>
+            
+            {/* Header Section */}
+            <div className="settings-header">
+                <h1 className="settings-title">{isRTL ? 'מרכז בקרה' : 'Control Center'}</h1>
+                <p className="settings-subtitle">
+                    {isRTL 
+                        ? 'ניהול הפרופיל, הגדרות התצוגה והאבטחה של החשבון שלך במקום אחד מסודר.' 
+                        : 'Manage your profile, appearance, and security settings in one centralized hub.'}
+                </p>
+            </div>
 
-            {/* Profile Section */}
-            <section className="settings-section animate-slideUp">
-                <h2 className="section-title">
-                    <span className="section-icon" aria-hidden="true"><UserRound size={16} strokeWidth={2.4} /></span>
-                    <span>{isRTL ? 'פרופיל' : 'Profile'}</span>
-                </h2>
-                <Card variant="elevated" padding="lg">
-                    <div className="profile-info-grid">
-                        <div className="profile-avatar-large">
-                            {(userAttributes?.name || userAttributes?.email || 'U').charAt(0).toUpperCase()}
+            {/* Bento Box Grid */}
+            <div className="bento-grid">
+                
+                {/* 1. Profile Cube */}
+<div className="bento-card bento-col-4 profile-cube">
+    <div className="profile-avatar-wrapper">
+        <div className="profile-avatar-giant">{userInitial}</div>
+    </div>
+    <div className="profile-info-block">
+        <span className="premium-badge">{isRTL ? 'חשבון פעיל' : 'Active Account'}</span>
+        <h2>{userAttributes?.name || (isRTL ? 'משתמש/ת' : 'User')}</h2>
+        <p className="profile-email">{userAttributes?.email}</p>
+        
+        {/* ADDED LOGOUT HERE */}
+        <div className="profile-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'inherit' }}>
+            <button className="btn-secondary" onClick={handleLogout}>
+                <LogOut size={16} />
+                {t('nav.logout')}
+            </button>
+            <button className="btn-primary" onClick={() => alert(isRTL ? 'בקרוב...' : 'Coming soon...')}>
+                {isRTL ? 'עריכת פרופיל' : 'Edit Profile'}
+            </button>
+        </div>
+    </div>
+</div>
+
+                {/* 2. Appearance Cube */}
+                <div className="bento-card bento-col-2 flex-between">
+                    <div>
+                        <div className="cube-icon-wrapper icon-primary">
+                            <Palette size={24} />
                         </div>
-                        <div className="profile-details">
-                            <div className="info-row">
-                                <span className="info-label">{isRTL ? 'שם' : 'Name'}</span>
-                                <span className="info-value">{userAttributes?.name || (isRTL ? 'לא הוגדר' : 'Not set')}</span>
+                        <h3>{isRTL ? 'תצוגה' : 'Appearance'}</h3>
+                        <p className="cube-desc">{isRTL ? 'החלפה בין בהיר לכהה' : 'Toggle light/dark mode'}</p>
+                    </div>
+                    <div className="cube-action-row">
+                        <span className="status-text">{isDark ? (isRTL ? 'מצב כהה' : 'Dark Mode') : (isRTL ? 'מצב בהיר' : 'Light Mode')}</span>
+                        <Toggle checked={isDark} onChange={toggleTheme} />
+                    </div>
+                </div>
+
+                {/* 3. Billing Placeholder Cube */}
+                <div className="bento-card bento-col-2 flex-between">
+                    <div>
+                        <div className="cube-icon-wrapper icon-secondary">
+                            <CreditCard size={24} />
+                        </div>
+                        <h3>{isRTL ? 'חיובים ותשלומים' : 'Billing'}</h3>
+                        
+                        {/* Fake Credit Card visual for future logic */}
+                        <div className="fake-credit-card">
+                            <div className="card-dots">
+                                <div className="dot red"></div>
+                                <div className="dot orange"></div>
                             </div>
-                            <div className="info-row">
-                                <span className="info-label">{isRTL ? 'אימייל' : 'Email'}</span>
-                                <span className="info-value">{userAttributes?.email}</span>
+                            <span className="card-number">•••• 4421</span>
+                        </div>
+                    </div>
+                    <button className="cube-link-btn text-secondary" onClick={() => alert('Future Billing Logic Here')}>
+                        {isRTL ? 'היסטוריית חיובים' : 'Billing History'} &rarr;
+                    </button>
+                </div>
+
+                {/* 4. Notifications Cube */}
+                <div className="bento-card bento-col-2 flex-between">
+                    <div>
+                        <div className="cube-icon-wrapper icon-tertiary">
+                            <BellRing size={24} />
+                        </div>
+                        <h3>{isRTL ? 'התראות' : 'Alerts'}</h3>
+                        <p className="cube-desc">
+                            {isRTL 
+                                ? 'עדכונים נשלחים לכתובת האימייל המאומתת שלך.' 
+                                : 'Updates are sent to your verified email address.'}
+                        </p>
+                        
+                        <div className="notification-tip-box">
+                            <Lightbulb size={14} className="tip-icon" />
+                            <span>{isRTL ? 'בדוק ספאם אם חסר מייל' : 'Check spam if email missing'}</span>
+                        </div>
+                    </div>
+                    <div className="cube-tags">
+                        <span className="tag">EMAIL</span>
+                        <span className="tag active">SYSTEM</span>
+                    </div>
+                </div>
+
+                {/* 5. About Cube */}
+                <div className="bento-card bento-col-2 flex-between">
+                    <div>
+                        <div className="cube-icon-wrapper icon-primary">
+                            <Info size={24} />
+                        </div>
+                        <h3>{isRTL ? 'אודות המערכת' : 'System Info'}</h3>
+                        <div className="about-list">
+                            <div className="about-item">
+                                <span>{isRTL ? 'גרסה' : 'Version'}</span>
+                                <strong>1.0.0</strong>
+                            </div>
+                            <div className="about-item">
+                                <span>{isRTL ? 'צוות פיתוח' : 'Built by'}</span>
+                                <strong>Ron, Moty & Idan</strong>
                             </div>
                         </div>
                     </div>
-                </Card>
-            </section>
+                </div>
 
-            {/* Appearance Section */}
-            <section className="settings-section animate-slideUp" style={{ animationDelay: '100ms' }}>
-                <h2 className="section-title">
-                    <span className="section-icon" aria-hidden="true"><Palette size={16} strokeWidth={2.4} /></span>
-                    <span>{isRTL ? 'תצוגה' : 'Appearance'}</span>
-                </h2>
-                <Card variant="elevated" padding="lg">
-                    <div className="setting-row">
-                        <div className="setting-info">
-                            <h3>{isRTL ? 'מצב כהה' : 'Dark Mode'}</h3>
-                            <p>{isRTL ? 'החלפה בין ערכות נושא בהירה וכהה' : 'Switch between light and dark themes'}</p>
-                        </div>
-                        <Toggle
-                            checked={isDark}
-                            onChange={toggleTheme}
-                        />
-                    </div>
-                    <div className="theme-preview">
-                        <div className={`preview-card ${isDark ? 'dark' : 'light'}`}>
-                            <div className="preview-header"></div>
-                            <div className="preview-content">
-                                <div className="preview-line"></div>
-                                <div className="preview-line short"></div>
-                            </div>
-                        </div>
-                        <span className="preview-label">{isDark ? (isRTL ? 'מצב כהה' : 'Dark Mode') : (isRTL ? 'מצב בהיר' : 'Light Mode')}</span>
-                    </div>
-                </Card>
-            </section>
+                {/* 6. Danger Zone */}
+<div className="bento-card bento-col-6 danger-cube">
+    <div className="danger-info">
+        <div className="cube-icon-wrapper icon-danger">
+            <ShieldAlert size={32} />
+        </div>
+        <div>
+            <h3 className="danger-title">{isRTL ? 'מחיקת חשבון' : 'Delete Account'}</h3>
+            <p className="danger-desc">
+                {isRTL 
+                    ? 'פעולה זו תמחק לצמיתות את החשבון שלך ואת כל החוזים המקושרים אליו. לא ניתן לבטל פעולה זו.' 
+                    : 'This will permanently delete your account and all associated contracts. This cannot be undone.'}
+            </p>
+        </div>
+    </div>
+    <div className="danger-actions">
+        <button className="btn-danger" onClick={() => setShowDeleteModal(true)}>
+            <Trash2 size={16} />
+            {t('account.deleteAccount')}
+        </button>
+    </div>
+</div>
+            </div>
 
-            {/* Notifications Section */}
-            <section className="settings-section animate-slideUp" style={{ animationDelay: '200ms' }}>
-                <h2 className="section-title">
-                    <span className="section-icon" aria-hidden="true"><BellRing size={16} strokeWidth={2.4} /></span>
-                    <span>{isRTL ? 'התראות' : 'Notifications'}</span>
-                </h2>
-                <Card variant="elevated" padding="lg">
-                    <div className="notification-info-box">
-                        <div className="notification-icon" aria-hidden="true"><Mail size={22} strokeWidth={2.3} /></div>
-                        <div className="notification-content">
-                            <h3>{isRTL ? 'התראות אימייל' : 'Email Notifications'}</h3>
-                            <p className="notification-description">
-                                {isRTL
-                                    ? 'כדי לקבל עדכונים על ניתוח החוזים שלך, אשר את האימייל מ-Amazon SES שנשלח אליך בהרשמה.'
-                                    : 'To receive updates about your contract analysis, verify the email from Amazon SES sent during registration.'
-                                }
-                            </p>
-                            <div className="notification-tip">
-                                <span className="tip-icon" aria-hidden="true"><Lightbulb size={13} strokeWidth={2.5} /></span>
-                                <span className="tip-text">
-                                    {isRTL
-                                        ? 'בדוק גם בתיקיית הספאם אם לא קיבלת את המייל'
-                                        : 'Check your spam folder if you haven\'t received the email'
-                                    }
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-            </section>
-
-            {/* About Section */}
-            <section className="settings-section animate-slideUp" style={{ animationDelay: '300ms' }}>
-                <h2 className="section-title">
-                    <span className="section-icon" aria-hidden="true"><Info size={16} strokeWidth={2.4} /></span>
-                    <span>{isRTL ? 'אודות' : 'About'}</span>
-                </h2>
-                <Card variant="elevated" padding="lg">
-                    <div className="about-info">
-                        <div className="about-row">
-                            <span>{isRTL ? 'גרסה' : 'Version'}</span>
-                            <span className="about-value">1.0.0</span>
-                        </div>
-                        <div className="about-row">
-                            <span>{isRTL ? 'נבנה על ידי' : 'Built by'}</span>
-                            <span className="about-value">Ron, Moty & Idan</span>
-                        </div>
-                        <div className="about-row">
-                            <span>{isRTL ? 'פרויקט' : 'Project'}</span>
-                            <span className="about-value">{isRTL ? 'פרויקט גמר מחשוב ענן' : 'Cloud Computing Final Project'}</span>
-                        </div>
-                    </div>
-                </Card>
-            </section>
-
-            {/* Danger Zone */}
-            <section className="settings-section animate-slideUp" style={{ animationDelay: '400ms' }}>
-                <h2 className="section-title danger">
-                    <span className="section-icon danger" aria-hidden="true"><ShieldAlert size={16} strokeWidth={2.4} /></span>
-                    <span>{isRTL ? 'חשבון' : 'Account'}</span>
-                </h2>
-                <Card variant="elevated" padding="lg" className="danger-card">
-                    <div className="setting-row">
-                        <div className="setting-info">
-                            <h3>{t('nav.logout')}</h3>
-                            <p>{isRTL ? 'התנתקות מהחשבון שלך' : 'Sign out of your account'}</p>
-                        </div>
-                        <Button variant="danger" onClick={handleLogout}>
-                            {t('nav.logout')}
-                        </Button>
-                    </div>
-
-                    {/* DAN DID IT - Added Delete Account section */}
-                    <div className="setting-row" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                        <div className="setting-info">
-                            <h3>{t('account.deleteAccount')}</h3>
-                            <p>{t('account.deleteAccountDescription')}</p>
-                        </div>
-                        <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
-                            {t('account.deleteAccount')}
-                        </Button>
-                    </div>
-                </Card>
-            </section>
-
-            {/* Delete Account Confirmation Modal - rendered via Portal for full screen overlay */}
+            {/* Delete Account Modal */}
             {showDeleteModal && ReactDOM.createPortal(
                 <div className="modal-backdrop" onClick={() => !isDeleting && setShowDeleteModal(false)}>
                     <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -246,20 +216,15 @@ const SettingsPage = () => {
                             className="modal-close"
                             onClick={() => setShowDeleteModal(false)}
                             disabled={isDeleting}
-                            aria-label={isRTL ? 'סגירה' : 'Close'}
                         >
-                            <X size={18} strokeWidth={2.5} />
+                            <X size={20} strokeWidth={2.5} />
                         </button>
 
-                        <div className="modal-icon danger-icon" aria-hidden="true"><AlertTriangle size={24} strokeWidth={2.5} /></div>
-
+                        <div className="modal-icon danger-icon"><AlertTriangle size={28} /></div>
                         <h2>{t('account.deleteConfirmTitle')}</h2>
 
                         <div className="delete-warning">
                             <p><strong>{t('account.deleteConfirmMessage')}</strong></p>
-                            <p>{t('account.deleteConfirmItem1')}</p>
-                            <p>{t('account.deleteConfirmItem2')}</p>
-                            <p>{t('account.deleteConfirmItem3')}</p>
                             <p className="warning-text"><strong>{t('account.deleteConfirmWarning')}</strong></p>
                         </div>
 
@@ -275,26 +240,15 @@ const SettingsPage = () => {
                             />
                         </div>
 
-                        {deleteError && (
-                            <p className="error-message">{deleteError}</p>
-                        )}
+                        {deleteError && <p className="error-message">{deleteError}</p>}
 
                         <div className="modal-actions">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowDeleteModal(false)}
-                                disabled={isDeleting}
-                            >
+                            <button className="btn-secondary" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>
                                 {t('common.cancel')}
-                            </Button>
-                            <Button
-                                variant="danger"
-                                onClick={handleDeleteAccount}
-                                disabled={isDeleting || deleteConfirmText !== 'DELETE'}
-                                loading={isDeleting}
-                            >
+                            </button>
+                            <button className="btn-danger" onClick={handleDeleteAccount} disabled={isDeleting || deleteConfirmText !== 'DELETE'}>
                                 {isDeleting ? t('account.deletingAccount') : t('account.deleteAccount')}
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </div>,

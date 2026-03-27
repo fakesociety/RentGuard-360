@@ -549,12 +549,9 @@ const AnalysisPage = () => {
     return (
         <>
             <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+                
                 <div className="analysis-header animate-fadeIn no-print">
                     <h1>{t('analysis.title')}</h1>
-                    <Link to="/contracts" className="back-button-premium">
-                        {isRTL ? <span className="arrow">→</span> : <span className="arrow">←</span>}
-                        {t('analysis.backToContracts')}
-                    </Link>
                 </div>
 
                 <div className="analysis-layout">
@@ -1039,6 +1036,14 @@ const AnalysisPage = () => {
                             </div>
                         )}
                     </main>
+
+                    {/* 3. NEW: The 3rd Column just for the Back Button (Your Red Box) */}
+                    <aside className="analysis-side-actions no-print">
+                        <Link to="/contracts" className="back-button-premium">
+                            {isRTL ? <span className="arrow">→</span> : <span className="arrow">←</span>}
+                            {isRTL ? 'חזרה לחוזים' : 'Back to Contracts'}
+                        </Link>
+                    </aside>
                 </div>
             </div>
         </>
