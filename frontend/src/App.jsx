@@ -19,6 +19,7 @@ import { Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-r
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useSubscription } from './contexts/SubscriptionContext';
 import Navigation from './components/Navigation';
 import ContactPublic from './pages/ContactPublic';
 import PricingPublic from './pages/PricingPublic';
@@ -40,7 +41,6 @@ const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 const AdminStripeInsights = lazy(() => import('./pages/AdminStripeInsights'));
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
-import { SubscriptionProvider, useSubscription } from './contexts/SubscriptionContext';
 const ContractChatWidget = lazy(() => import('./components/ContractChatWidget'));
 import './styles/design-system.css';
 import './App.css';
@@ -63,22 +63,27 @@ const ProtectedRoute = ({ children }) => {
 
 const RequireActivePlanRoute = ({ children }) => {
   const { isAdmin } = useAuth();
-  const { hasSubscription, isLoading } = useSubscription();
+  const { hasSubscription, isLoading: isSubscriptionLoading, isEntitlementKnown } = useSubscription();
+  const location = useLocation();
 
   if (isAdmin) {
     return children;
   }
 
-  if (isLoading) {
+  if (isSubscriptionLoading || !isEntitlementKnown) {
     return (
       <div className="app-loading">
         <div className="loading-spinner"></div>
-        <p>Loading...</p>
+        <p>Checking your plan...</p>
       </div>
     );
   }
 
-  return hasSubscription ? children : <Navigate to="/pricing" replace />;
+  if (!hasSubscription) {
+    return <Navigate to="/pricing" replace state={{ from: location.pathname }} />;
+  }
+
+  return children;
 };
 
 
@@ -189,7 +194,7 @@ function App() {
               <Route path="stripe" element={<AdminStripeInsights />} />
             </Route>
 
-            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
+            <Route path="*" element={<Navigate to={isAuthenticated ? "/pricing" : "/"} replace />} />
           </Routes>
         </Suspense>
       </main>

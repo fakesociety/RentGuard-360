@@ -54,6 +54,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
   ];
 
   const navLinks = isAuthenticated ? authLinks : publicLinks;
+  const authenticatedHomePath = isAdmin || hasSubscription ? '/dashboard' : '/pricing';
 
   const getUserInitials = () => {
     const name = userAttributes?.name || userAttributes?.email || 'U';
@@ -84,7 +85,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
     <nav className="nav-container" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="nav-inner">
         {/* Logo - navigates to dashboard when authenticated, landing when public */}
-        <Link to={isAuthenticated ? '/dashboard' : '/'} className="nav-logo">
+        <Link to={isAuthenticated ? authenticatedHomePath : '/'} className="nav-logo">
           <Shield size={32} className="logo-icon" />
           <span className="logo-text">RentGuard 360</span>
         </Link>

@@ -67,7 +67,12 @@ const stripeApiCall = async (endpoint, options = {}, requiresAuth = false) => {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API error: ${response.status}`);
+        const message = errorData.error || `API error: ${response.status}`;
+        const error = new Error(message);
+        error.status = response.status;
+        error.code = errorData.code || null;
+        error.details = errorData;
+        throw error;
     }
 
     return response.json();

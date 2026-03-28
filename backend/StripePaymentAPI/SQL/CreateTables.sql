@@ -64,6 +64,19 @@ CREATE TABLE UserSubscriptions (
 );
 
 -- =============================================================================
+-- TABLE 4: PendingPackageSelections - Selected package before payment completes
+-- =============================================================================
+CREATE TABLE PendingPackageSelections (
+    Id              INT PRIMARY KEY IDENTITY(1,1),
+    UserId          NVARCHAR(128) NOT NULL UNIQUE,
+    PackageId       INT           NOT NULL,
+    PaymentIntentId NVARCHAR(255) NULL,
+    SelectedAt      DATETIME      DEFAULT GETDATE(),
+    UpdatedAt       DATETIME      DEFAULT GETDATE(),
+    CONSTRAINT FK_PendingSelections_Packages FOREIGN KEY (PackageId) REFERENCES Packages(Id)
+);
+
+-- =============================================================================
 -- SEED DATA: Insert the 3 subscription packages
 -- =============================================================================
 INSERT INTO Packages (Name, Price, ScanLimit, Description, IsActive) VALUES

@@ -88,6 +88,20 @@ def user_in_admin_group(raw_groups):
     return 'Admins' in parts
 
 
+def extract_authorizer_claims(event):
+    """Supports multiple API Gateway authorizer payload shapes."""
+    authorizer = (event or {}).get('requestContext', {}).get('authorizer', {}) or {}
+    claims = authorizer.get('claims')
+    if isinstance(claims, dict):
+        return claims
+
+    jwt_claims = (authorizer.get('jwt') or {}).get('claims')
+    if isinstance(jwt_claims, dict):
+        return jwt_claims
+
+    return {}
+
+
 def parse_auth_provider(user):
     identities_raw = get_attribute(user, 'identities')
     if identities_raw:
@@ -151,8 +165,57 @@ def fetch_social_group_users(user_pool_id):
     return results
 
 
+def fetch_admin_user_keys(user_pool_id):
+    """Returns admin usernames and admin subs for package override in admin grid."""
+    admin_usernames = set()
+    admin_subs = set()
+    next_token = None
+
+    try:
+        while True:
+            kwargs = {
+                'UserPoolId': user_pool_id,
+                'GroupName': 'Admins',
+                'Limit': 60,
+            }
+            if next_token:
+                kwargs['NextToken'] = next_token
+
+            page = cognito.list_users_in_group(**kwargs)
+            for user in page.get('Users', []):
+                username = str(user.get('Username') or '').strip()
+                if username:
+                    admin_usernames.add(username)
+
+                cognito_sub = str(get_attribute(user, 'sub') or '').strip()
+                if cognito_sub:
+                    admin_subs.add(cognito_sub)
+
+            next_token = page.get('NextToken')
+            if not next_token:
+                break
+    except cognito.exceptions.ResourceNotFoundException:
+        print("Warning: 'Admins' group does not exist in this user pool")
+    except Exception as e:
+        print(f"Warning: failed to fetch Admins group users: {e}")
+
+    return admin_usernames, admin_subs
+
+
 def fetch_subscriptions_map(user_ids):
-    if not user_ids or not STRIPE_API_URL or not PAYMENT_INTERNAL_API_KEY:
+    if not user_ids:
+        return {}
+
+    if not STRIPE_API_URL or not PAYMENT_INTERNAL_API_KEY:
+        print(
+            "subscriptions-internal skipped: missing STRIPE_API_URL or PAYMENT_INTERNAL_API_KEY "
+            f"(url_set={bool(STRIPE_API_URL)}, key_set={bool(PAYMENT_INTERNAL_API_KEY)})"
+        )
+        return {}
+
+    # Keep payload compact and deterministic.
+    user_ids = list(dict.fromkeys([str(u).strip() for u in user_ids if str(u).strip()]))
+    if not user_ids:
         return {}
 
     endpoint = f"{STRIPE_API_URL}/api/payments/subscriptions-internal"
@@ -174,6 +237,10 @@ def fetch_subscriptions_map(user_ids):
                 key = str(item.get('userId') or '').strip()
                 if key:
                     out[key] = item
+            print(
+                f"subscriptions-internal ok: requested={len(user_ids)} returned={len(out)} "
+                f"endpoint={endpoint}"
+            )
             return out
     except HTTPError as e:
         print(f"subscriptions-internal HTTPError: {e.code}")
@@ -214,7 +281,7 @@ def lambda_handler(event, context):
             }
 
         # 1. Verify admin group membership
-        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
+        claims = extract_authorizer_claims(event)
         groups = claims.get('cognito:groups', '')
 
         if not user_in_admin_group(groups):
@@ -228,6 +295,9 @@ def lambda_handler(event, context):
         params = event.get('queryStringParameters') or {}
         search_query = params.get('search', '').lower()
         limit = int(params.get('limit', 50))
+
+        # Preload Admin-group identities so admin users are always shown as unlimited.
+        admin_usernames, admin_subs = fetch_admin_user_keys(user_pool_id)
         
         # 3. List users from Cognito with pagination
         users = []
@@ -252,6 +322,10 @@ def lambda_handler(event, context):
                     'name': get_attribute(user, 'name'),
                     'emailVerified': email_verified,
                     'authProvider': provider,
+                    'isAdmin': (
+                        username in admin_usernames
+                        or (bool(cognito_sub) and cognito_sub in admin_subs)
+                    ),
                     'status': user['UserStatus'],
                     'enabled': user['Enabled'],
                     'createdAt': user['UserCreateDate'].isoformat() if user.get('UserCreateDate') else None
@@ -295,6 +369,10 @@ def lambda_handler(event, context):
                     'name': get_attribute(user, 'name'),
                     'emailVerified': email_verified,
                     'authProvider': provider,
+                    'isAdmin': (
+                        username in admin_usernames
+                        or (bool(cognito_sub) and cognito_sub in admin_subs)
+                    ),
                     'status': user.get('UserStatus'),
                     'enabled': user.get('Enabled'),
                     'createdAt': user['UserCreateDate'].isoformat() if user.get('UserCreateDate') else None
@@ -318,6 +396,15 @@ def lambda_handler(event, context):
         # 4. Enrich users with package/subscription status when subscription service is configured
         subscriptions_map = fetch_subscriptions_map(cognito_keys)
         for user_data in users:
+            if user_data.get('isAdmin'):
+                user_data['packageId'] = 0
+                user_data['packageName'] = 'Admin'
+                user_data['scansRemaining'] = -1
+                user_data['isUnlimited'] = True
+                user_data['packageExpired'] = False
+                user_data['packagePending'] = False
+                continue
+
             lookup_keys = [str(user_data.get('sub') or ''), str(user_data.get('username') or '')]
             subscription = None
             for key in lookup_keys:
@@ -331,12 +418,14 @@ def lambda_handler(event, context):
                 user_data['scansRemaining'] = subscription.get('scansRemaining')
                 user_data['isUnlimited'] = bool(subscription.get('isUnlimited'))
                 user_data['packageExpired'] = bool(subscription.get('isExpired'))
+                user_data['packagePending'] = bool(subscription.get('isPending'))
             else:
                 user_data['packageId'] = None
                 user_data['packageName'] = None
                 user_data['scansRemaining'] = None
                 user_data['isUnlimited'] = False
                 user_data['packageExpired'] = False
+                user_data['packagePending'] = False
         
         # 5. Return users list
         return {

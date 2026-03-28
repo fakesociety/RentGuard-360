@@ -31,6 +31,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ThemeToggle } from '../components/Toggle';
 import LanguageToggle from '../components/LanguageToggle';
@@ -382,8 +383,8 @@ const ContractViewerMockup = ({ isRTL, onScoreClick }) => (
 // ===== MAIN LANDING PAGE =====
 
 const LandingPage = () => {
-    // DAN DID IT - Added forgotPassword and resetUserPassword from useAuth for forgot password feature
     const { login, socialLogin, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword, checkUserStatus } = useAuth();
+    const { hasSubscription, isLoading: isSubscriptionLoading, isEntitlementKnown } = useSubscription();
     const { t, isRTL } = useLanguage();
 
     const getPendingVerificationEmail = () => {
@@ -406,12 +407,10 @@ const LandingPage = () => {
     const [tempEmail, setTempEmail] = useState(() => getPendingVerificationEmail());
     const dropdownRef = useRef(null);
 
-    // DAN DID IT - Added state variables for forgot password flow
     // Forgot password state
     const [resetCode, setResetCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
 
-    // DAN DID IT - State for verification success modal
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
     const [showSocialConflictModal, setShowSocialConflictModal] = useState(false);
 
@@ -519,10 +518,12 @@ const LandingPage = () => {
 
     if (isAuthenticated) {
         localStorage.removeItem('rentguard_pending_verification');
-        return <Navigate to="/dashboard" replace />;
+        if (isSubscriptionLoading || !isEntitlementKnown) {
+            return null;
+        }
+        return <Navigate to={hasSubscription ? '/dashboard' : '/pricing'} replace />;
     }
 
-    // DAN DID IT - Helper function to translate AWS Cognito errors to Hebrew
     const translateError = (errorMessage) => {
         if (!isRTL) return errorMessage; // Return English as-is
 
@@ -860,7 +861,6 @@ const LandingPage = () => {
                                     onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password}
                                     onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
-                                {/* DAN DID IT - Added "Forgot Password?" button to login form */}
                                 <button
                                     type="button"
                                     onClick={() => setAuthModal('forgotPassword')}
@@ -975,7 +975,6 @@ const LandingPage = () => {
                                 </p>
                             </form>
                         )}
-                        {/* DAN DID IT - Added forgot password modal where user enters email to receive reset code */}
                         {authModal === 'forgotPassword' && (
                             <form onSubmit={handleForgotPassword} className="auth-form">
                                 <h3>{t('auth.forgotPasswordTitle')}</h3>
@@ -993,7 +992,6 @@ const LandingPage = () => {
                                 </p>
                             </form>
                         )}
-                        {/* DAN DID IT - Added reset password modal where user enters code and new password */}
                         {authModal === 'resetPassword' && (
                             <form onSubmit={handleResetPassword} className="auth-form">
                                 <h3>{t('auth.resetPasswordTitle')}</h3>
@@ -1230,7 +1228,6 @@ const LandingPage = () => {
                 isRTL={isRTL}
             />
 
-            {/* DAN DID IT - Verification Success Modal */}
             {showVerificationSuccess && (
                 <div className="auth-backdrop">
                     <div className="auth-modal" dir={isRTL ? 'rtl' : 'ltr'} style={{ textAlign: 'center', maxWidth: '420px' }}>

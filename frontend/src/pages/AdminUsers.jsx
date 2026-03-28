@@ -370,11 +370,16 @@ const AdminUsers = () => {
     };
 
     const getPackageDisplay = (user) => {
-        const noneLabel = getLocalizedLabel('admin.none', 'null', 'ללא');
+        const noneLabel = getLocalizedLabel('admin.none', 'No package', 'ללא');
         const expiredLabel = getLocalizedLabel('admin.expired', 'expired', 'פג תוקף');
+        const pendingLabel = getLocalizedLabel('admin.pending', 'pending', 'ממתין');
 
         if (!user?.packageName) {
             return noneLabel;
+        }
+
+        if (user?.packagePending) {
+            return `${user.packageName} (${pendingLabel})`;
         }
 
         return user.packageExpired

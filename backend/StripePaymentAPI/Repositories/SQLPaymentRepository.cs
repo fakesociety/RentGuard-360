@@ -299,5 +299,73 @@ namespace StripePaymentAPI.Repositories
                 return affectedRows > 0;
             }
         }
+
+        /// <summary>
+        /// SQL UPSERT via stored procedure - persists selected package before payment completion.
+        /// </summary>
+        public void UpsertPendingPackageSelection(string userId, int packageId, string paymentIntentId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand("sp_UpsertPendingPackageSelection", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@PackageId", packageId);
+                command.Parameters.AddWithValue("@PaymentIntentId", (object)paymentIntentId ?? DBNull.Value);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// SQL DELETE via stored procedure - removes pending selected package state.
+        /// </summary>
+        public void DeletePendingPackageSelection(string userId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand("sp_DeletePendingPackageSelection", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// SQL SELECT via stored procedure - retrieves pending selected package state for one user.
+        /// </summary>
+        public PendingPackageSelection GetPendingPackageSelectionByUserId(string userId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                SqlCommand command = new SqlCommand("sp_GetPendingPackageSelectionByUserId", connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new PendingPackageSelection
+                    {
+                        Id = (int)reader["Id"],
+                        UserId = (string)reader["UserId"],
+                        PackageId = (int)reader["PackageId"],
+                        PaymentIntentId = reader["PaymentIntentId"] as string,
+                        SelectedAt = (DateTime)reader["SelectedAt"],
+                        UpdatedAt = (DateTime)reader["UpdatedAt"]
+                    };
+                }
+            }
+
+            return null;
+        }
     }
 }

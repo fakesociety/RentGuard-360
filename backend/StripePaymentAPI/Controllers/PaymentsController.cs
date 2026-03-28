@@ -168,6 +168,7 @@ namespace StripePaymentAPI.Controllers
                                 };
                                 try { _repository.AddTransaction(transaction); } catch { /* Ignore */ }
                                 _repository.UpsertSubscription(uId, pId, confPackage.ScanLimit);
+                                _repository.DeletePendingPackageSelection(uId);
                                 return Ok(new { success = true, isConfirm = true });
                             }
                         }
@@ -206,6 +207,7 @@ namespace StripePaymentAPI.Controllers
 
                     // Directly assign the free package to the user
                     _repository.UpsertSubscription(request.UserId, package.Id, package.ScanLimit);
+                    _repository.DeletePendingPackageSelection(request.UserId);
 
                     return Ok(new
                     {
@@ -237,6 +239,7 @@ namespace StripePaymentAPI.Controllers
 
                 var service = new PaymentIntentService();
                 PaymentIntent paymentIntent = service.Create(options);
+                _repository.UpsertPendingPackageSelection(request.UserId, package.Id, paymentIntent.Id);
 
                 return Ok(new
                 {
@@ -316,6 +319,7 @@ namespace StripePaymentAPI.Controllers
 
                         // Update the user's subscription (UPSERT)
                         _repository.UpsertSubscription(userId, packageId, package.ScanLimit);
+                        _repository.DeletePendingPackageSelection(userId);
                     }
                 }
                 else if (stripeEvent.Type == Events.PaymentIntentPaymentFailed)
@@ -598,6 +602,7 @@ namespace StripePaymentAPI.Controllers
                 }
 
                 List<object> subscriptions = new List<object>();
+                HashSet<string> usersWithActiveSubscription = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 using (SqlConnection connection = new SqlConnection(connStr))
                 {
                     connection.Open();
@@ -632,9 +637,74 @@ WHERE s.UserId IN ({inParams});";
                                     scansRemaining,
                                     isUnlimited,
                                     isExpired,
+                                    isPending = false,
                                     updatedAt = Convert.ToDateTime(reader["UpdatedAt"]).ToString("o")
                                 });
+
+                                string activeUserId = Convert.ToString(reader["UserId"]);
+                                if (!string.IsNullOrWhiteSpace(activeUserId))
+                                {
+                                    usersWithActiveSubscription.Add(activeUserId);
+                                }
                             }
+                        }
+                    }
+                }
+
+                // Best-effort fallback: include pending package selections for users
+                // who don't currently have an active subscription row.
+                if (subscriptions.Count < userIds.Count)
+                {
+                    List<string> missingUsers = userIds
+                        .Where(u => !usersWithActiveSubscription.Contains(u))
+                        .ToList();
+
+                    if (missingUsers.Count > 0)
+                    {
+                        try
+                        {
+                            using (SqlConnection connection = new SqlConnection(connStr))
+                            {
+                                connection.Open();
+                                string inPending = string.Join(",", missingUsers.Select((_, i) => $"@p{i}"));
+                                string pendingSql = $@"
+SELECT ps.UserId, ps.PackageId, ps.PaymentIntentId, ps.SelectedAt, ps.UpdatedAt, p.Name AS PackageName
+FROM PendingPackageSelections ps
+LEFT JOIN Packages p ON p.Id = ps.PackageId
+WHERE ps.UserId IN ({inPending});";
+
+                                using (SqlCommand cmd = new SqlCommand(pendingSql, connection))
+                                {
+                                    for (int i = 0; i < missingUsers.Count; i++)
+                                    {
+                                        cmd.Parameters.AddWithValue($"@p{i}", missingUsers[i]);
+                                    }
+
+                                    using (SqlDataReader reader = cmd.ExecuteReader())
+                                    {
+                                        while (reader.Read())
+                                        {
+                                            subscriptions.Add(new
+                                            {
+                                                userId = Convert.ToString(reader["UserId"]),
+                                                packageId = Convert.ToInt32(reader["PackageId"]),
+                                                packageName = Convert.ToString(reader["PackageName"]),
+                                                scansRemaining = (int?)null,
+                                                isUnlimited = false,
+                                                isExpired = false,
+                                                isPending = true,
+                                                paymentIntentId = Convert.ToString(reader["PaymentIntentId"]),
+                                                selectedAt = Convert.ToDateTime(reader["SelectedAt"]).ToString("o"),
+                                                updatedAt = Convert.ToDateTime(reader["UpdatedAt"]).ToString("o")
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (SqlException)
+                        {
+                            // Pending table may not exist yet in older environments.
                         }
                     }
                 }

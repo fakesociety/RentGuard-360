@@ -17,6 +17,7 @@
  */
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { useAuth } from './AuthContext';
 import { getSubscription, deductScan as apiDeductScan } from '../services/stripeApi';
 
@@ -31,48 +32,87 @@ export const useSubscription = () => {
 };
 
 export const SubscriptionProvider = ({ children }) => {
-    const { user, isAuthenticated, isAdmin } = useAuth();
+    const { user, userAttributes, isAuthenticated, isAdmin } = useAuth();
     const [subscription, setSubscription] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isEntitlementKnown, setIsEntitlementKnown] = useState(false);
 
-    const getUserId = useCallback(() => {
-        return user?.userId || user?.username || null;
-    }, [user]);
+    const getUserId = useCallback(async () => {
+        // Backend authorization expects Cognito "sub" as the canonical user id.
+        if (userAttributes?.sub) {
+            return userAttributes.sub;
+        }
+
+        try {
+            const session = await fetchAuthSession();
+            const tokenSub = session?.tokens?.idToken?.payload?.sub;
+            if (tokenSub) return tokenSub;
+        } catch {
+            // Ignore and fall back to user object fields.
+        }
+
+        return user?.userId || user?.sub || user?.username || null;
+    }, [user, userAttributes]);
+
+    const isNoSubscriptionError = useCallback((error) => {
+        const status = Number(error?.status || 0);
+        const message = String(error?.message || '').toLowerCase();
+        return status === 404 || message.includes('no subscription');
+    }, []);
 
     const refreshSubscription = useCallback(async () => {
-        const userId = getUserId();
-        if (!userId) return;
+        if (!isAuthenticated) {
+            setSubscription(null);
+            setIsLoading(false);
+            setIsEntitlementKnown(true);
+            return;
+        }
+
+        // Critical: set these BEFORE the first await to avoid a one-render redirect race.
+        setIsLoading(true);
+        setIsEntitlementKnown(false);
+
+        let hasDefinitiveEntitlement = false;
+
+        const userId = await getUserId();
+
+        if (!userId) {
+            // On hard refresh, auth may be resolved before full user payload is ready.
+            // Keep loading here to avoid false redirects until user id is available.
+            return;
+        }
 
         // Admin users always have unlimited access and do not require a bundle.
         if (isAdmin) {
-            setSubscription({
+            const adminSubscription = {
                 userId,
                 packageName: 'Admin',
                 scansRemaining: -1,
                 isUnlimited: true,
                 updatedAt: new Date().toISOString(),
-            });
+            };
+            setSubscription(adminSubscription);
+            hasDefinitiveEntitlement = true;
             return;
         }
 
-        setIsLoading(true);
         try {
             const data = await getSubscription(userId);
             setSubscription(data);
+            hasDefinitiveEntitlement = true;
         } catch (err) {
-            // Gracefully handle: no subscription yet, SQL Server down, or any backend issue.
-            // The app should still work — user just won't see subscription data.
-            const msg = err.message || '';
-            const isExpected = msg.includes('404') || msg.includes('No subscription')
-                || msg.includes('SQL Server') || msg.includes('400');
-            if (!isExpected) {
+            if (isNoSubscriptionError(err)) {
+                setSubscription(null);
+                hasDefinitiveEntitlement = true;
+            } else {
+                // Keep entitlement unknown on transient/backend failures.
                 console.error('Failed to fetch subscription:', err);
             }
-            setSubscription(null);
         } finally {
+            setIsEntitlementKnown(hasDefinitiveEntitlement);
             setIsLoading(false);
         }
-    }, [getUserId, isAdmin]);
+    }, [getUserId, isAdmin, isAuthenticated, isNoSubscriptionError]);
 
     // Fetch subscription on login
     useEffect(() => {
@@ -80,11 +120,13 @@ export const SubscriptionProvider = ({ children }) => {
             refreshSubscription();
         } else {
             setSubscription(null);
+            setIsLoading(false);
+            setIsEntitlementKnown(true);
         }
     }, [isAuthenticated, refreshSubscription]);
 
     const deductScan = async () => {
-        const userId = getUserId();
+        const userId = await getUserId();
         if (!userId) return { success: false, error: 'Not authenticated' };
 
         try {
@@ -113,6 +155,7 @@ export const SubscriptionProvider = ({ children }) => {
             packageName,
             hasSubscription,
             isLoading,
+            isEntitlementKnown,
             refreshSubscription,
             deductScan,
         }}>

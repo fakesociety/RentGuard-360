@@ -13,7 +13,6 @@
  * - Responsive 3-column layout
  * - Theme-aware styling
  * - Bilingual content (Hebrew/English)
- * 
  * ============================================
  */
 import React from 'react';
@@ -56,15 +55,33 @@ const Footer = () => {
 
                 {/* Bottom Copyright & Credits Row */}
                 <div className="footer-copyright">
-                    <p>
-                        {isRTL ? 'נבנה ע"י ' : 'Built by '}
-                        <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
-                        {', '}
-                        <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
-                        {isRTL ? ' ו' : ' & '}
-                        <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
-                        {' | © 2026 RentGuard 360'}
-                    </p>
+                    {isRTL ? (
+                        <p className="footer-credit-line footer-credit-line-rtl">
+                            <span className="footer-credit-rtl-label">נבנה ע"י</span>
+                            <span className="footer-credit-names" dir="ltr">
+                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                                <span>, </span>
+                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                                <span> &amp; </span>
+                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
+                            </span>
+                            <span className="footer-credit-separator" aria-hidden="true">|</span>
+                            <span className="footer-credit-copy" dir="ltr">© 2026 RentGuard 360</span>
+                        </p>
+                    ) : (
+                        <p className="footer-credit-line footer-credit-line-ltr">
+                            <span className="footer-credit-ltr-label">Built by</span>
+                            <span className="footer-credit-names" dir="ltr">
+                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                                <span>, </span>
+                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                                <span> &amp; </span>
+                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
+                            </span>
+                            <span className="footer-credit-separator" aria-hidden="true">|</span>
+                            <span className="footer-credit-copy" dir="ltr">© 2026 RentGuard 360</span>
+                        </p>
+                    )}
                 </div>
             </div>
         </footer>

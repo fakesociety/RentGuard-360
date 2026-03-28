@@ -70,5 +70,20 @@ namespace StripePaymentAPI.Repositories
         /// Returns true when a row was deleted, false when no subscription existed.
         /// </summary>
         bool DeleteSubscriptionByUserId(string userId);
+
+        /// <summary>
+        /// Creates or updates the user's pending package selection before payment is completed.
+        /// </summary>
+        void UpsertPendingPackageSelection(string userId, int packageId, string paymentIntentId);
+
+        /// <summary>
+        /// Removes the user's pending package selection after successful activation/payment.
+        /// </summary>
+        void DeletePendingPackageSelection(string userId);
+
+        /// <summary>
+        /// Retrieves the user's pending package selection (if any).
+        /// </summary>
+        PendingPackageSelection GetPendingPackageSelectionByUserId(string userId);
     }
 }

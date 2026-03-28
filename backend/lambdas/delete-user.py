@@ -32,6 +32,7 @@ import boto3
 import os
 import socket
 import traceback
+from botocore.config import Config
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -39,7 +40,14 @@ from urllib.parse import quote
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-cognito = boto3.client('cognito-idp')
+cognito = boto3.client(
+    'cognito-idp',
+    config=Config(
+        read_timeout=8,
+        connect_timeout=3,
+        retries={'max_attempts': 2, 'mode': 'standard'}
+    )
+)
 STRIPE_API_URL = (os.environ.get('STRIPE_API_URL') or '').rstrip('/')
 PAYMENT_INTERNAL_API_KEY = os.environ.get('PAYMENT_INTERNAL_API_KEY', '')
 
@@ -80,6 +88,20 @@ def get_attribute(user_attributes, attr_name):
         if attr.get('Name') == attr_name:
             return attr.get('Value')
     return None
+
+
+def is_timeout_error(error):
+    if isinstance(error, (TimeoutError, socket.timeout)):
+        return True
+    return 'timed out' in str(error).lower() or 'timeout' in str(error).lower()
+
+
+def user_exists_in_cognito(user_pool_id, username):
+    try:
+        cognito.admin_get_user(UserPoolId=user_pool_id, Username=username)
+        return True
+    except cognito.exceptions.UserNotFoundException:
+        return False
 
 
 def delete_sql_subscription(user_id):
@@ -222,16 +244,38 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"Warning: Failed to resolve Cognito sub for {username}: {e}")
         
-        # 5. Delete user from Cognito
+        # 5. Delete user from Cognito (idempotent)
         print(f"Attempting to delete user: {username}")
         print(f"Using USER_POOL_ID: {user_pool_id}")
-        
-        cognito.admin_delete_user(
-            UserPoolId=user_pool_id,
-            Username=username
-        )
-        
-        print(f"SUCCESS: User {username} deleted successfully")
+
+        delete_outcome = 'deleted'
+        try:
+            cognito.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=username
+            )
+            print(f"SUCCESS: User {username} deleted successfully")
+        except cognito.exceptions.UserNotFoundException:
+            delete_outcome = 'already_deleted'
+            print(f"INFO: User {username} already absent (idempotent delete)")
+        except Exception as delete_error:
+            if not is_timeout_error(delete_error):
+                raise
+
+            print(f"WARN: Timeout during delete for {username}: {delete_error}")
+            # Verify final state before failing. If user no longer exists, treat as success.
+            try:
+                still_exists = user_exists_in_cognito(user_pool_id, username)
+            except Exception as verify_error:
+                print(f"WARN: Could not verify user after timeout for {username}: {verify_error}")
+                raise delete_error
+
+            if still_exists:
+                print(f"ERROR: Delete timed out and user still exists: {username}")
+                raise delete_error
+
+            delete_outcome = 'deleted_after_timeout'
+            print(f"SUCCESS: User {username} confirmed deleted after timeout")
 
         # 6. Best-effort cleanup of SQL subscription state
         sql_cleanup = delete_sql_subscription(cognito_sub)
@@ -245,16 +289,21 @@ def lambda_handler(event, context):
                 'message': f'User {username} deleted successfully',
                 'username': username,
                 'cognitoSub': cognito_sub,
+                'deleteOutcome': delete_outcome,
                 'sqlCleanup': sql_cleanup
             })
         }
         
     except cognito.exceptions.UserNotFoundException:
-        print(f"ERROR: User {username} not found in Cognito")
+        print(f"INFO: User {username} not found in Cognito (idempotent delete)")
         return {
-            'statusCode': 404,
+            'statusCode': 200,
             'headers': CORS_HEADERS,
-            'body': json.dumps({'error': 'User not found'})
+            'body': json.dumps({
+                'message': f'User {username} is already deleted',
+                'username': username,
+                'deleteOutcome': 'already_deleted'
+            })
         }
     except Exception as e:
         print(f"ERROR deleting user: {str(e)}")

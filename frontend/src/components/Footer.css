@@ -119,6 +119,41 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+.footer-credit-line {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    line-height: 1.35;
+}
+
+.footer-credit-line-rtl {
+    direction: rtl;
+}
+
+.footer-credit-line-ltr {
+    direction: ltr;
+}
+
+.footer-credit-rtl-label,
+.footer-credit-ltr-label,
+.footer-credit-copy,
+.footer-credit-names {
+    unicode-bidi: isolate;
+}
+
+.footer-credit-names {
+    display: inline-flex;
+    align-items: center;
+}
+
+.footer-credit-separator {
+    opacity: 0.8;
+    padding-inline: 0.15rem;
+}
+
 @media (min-width: 768px) {
     .footer-copyright {
         justify-content: flex-end;
