@@ -210,8 +210,14 @@ const ContractChatWidget = () => {
         };
     }, []);
 
-useEffect(() => {
+    useEffect(() => {
         const updatePaletteBySection = () => {
+            const isDashboardRoute = location.pathname === '/dashboard';
+            if (!isDashboardRoute) {
+                setUseWhyPalette(false);
+                return;
+            }
+
             const whySectionNode = document.querySelector('.why-rentguard-section');
             const footerNode = document.querySelector('.app-footer');
 
@@ -234,8 +240,8 @@ useEffect(() => {
                     intersects = true;
                 }
             }
-            
-            // Check if the specific target touches the Dark Green Footer
+
+            // Keep the dashboard contrast palette while the widget touches the footer zone.
             if (footerNode) {
                 const footerRect = footerNode.getBoundingClientRect();
                 if (targetRect.bottom >= footerRect.top && targetRect.top <= footerRect.bottom) {

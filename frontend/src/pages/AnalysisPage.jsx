@@ -45,6 +45,7 @@ import {
     Check,
     MessageCircle,
     Share2,
+    Eraser,
     Trash2,
     ExternalLink,
     MapPin,
@@ -90,6 +91,7 @@ const AnalysisPage = () => {
     // ContractView ref and edit state (for the export section)
     const contractViewRef = useRef(null);
     const sharePanelRef = useRef(null);
+    const prevSaveStatusRef = useRef(null);
     const [contractEditState, setContractEditState] = useState({ editedCount: 0, saveStatus: null });
 
     const focusSharePanel = useCallback(() => {
@@ -152,6 +154,26 @@ const AnalysisPage = () => {
             },
         }));
     }, []);
+
+    useEffect(() => {
+        const status = contractEditState.saveStatus || null;
+        if (status === prevSaveStatusRef.current) return;
+        prevSaveStatusRef.current = status;
+
+        if (status === 'success') {
+            showAppToast(
+                isRTL ? 'השינויים נשמרו' : 'Edits saved',
+                isRTL ? 'השינויים נשמרו אוטומטית בענן.' : 'Your edits were autosaved to the cloud.'
+            );
+        }
+
+        if (status === 'error') {
+            showAppToast(
+                isRTL ? 'שמירה נכשלה' : 'Save failed',
+                isRTL ? 'לא הצלחנו לשמור את העריכות. נסה שוב בעוד רגע.' : 'Could not save your edits. Please try again in a moment.'
+            );
+        }
+    }, [contractEditState.saveStatus, isRTL, showAppToast]);
 
     const copyTextToClipboard = useCallback(async (text) => {
         if (!text) return false;
@@ -955,24 +977,14 @@ const AnalysisPage = () => {
                                 {contractEditState.editedCount > 0 && (
                                     <button
                                         className="export-btn-secondary"
+                                        title={isRTL ? 'איפוס כל העריכות שביצעת' : 'Reset all edited clauses'}
                                         onClick={() => contractViewRef.current?.requestClearAll()}
                                     >
-                                        <Trash2 size={14} aria-hidden="true" />
-                                        <span>{isRTL ? 'נקה עריכות' : 'Clear edits'} ({contractEditState.editedCount})</span>
+                                        <Eraser size={15} aria-hidden="true" />
+                                        <span>{isRTL ? 'איפוס עריכות' : 'Reset edits'}</span>
+                                        <span className="export-btn-counter">{contractEditState.editedCount}</span>
                                     </button>
                                 )}
-
-                                <div className="save-status-indicator">
-                                    {contractEditState.saveStatus === 'saving' && (
-                                        <span className="save-status saving">💾 {isRTL ? 'שומר שינויים...' : 'Saving...'}</span>
-                                    )}
-                                    {contractEditState.saveStatus === 'success' && (
-                                        <span className="save-status success">✅ {isRTL ? 'נשמר בהצלחה' : 'Saved'}</span>
-                                    )}
-                                    {contractEditState.saveStatus === 'error' && (
-                                        <span className="save-status error">⚠️ {isRTL ? 'שגיאה בשמירה' : 'Save error'}</span>
-                                    )}
-                                </div>
                             </div>
                         )}
 

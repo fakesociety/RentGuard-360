@@ -525,8 +525,9 @@
    ============================================ */
 .contract-export-bar {
     flex-shrink: 0;
-    display: grid;
-    grid-template-columns: minmax(320px, 1fr) auto minmax(160px, 190px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     gap: 16px;
     width: 100%;
@@ -537,6 +538,43 @@
     background: var(--glass-bg);
     box-shadow: var(--shadow-sm);
     box-sizing: border-box;
+}
+
+.contract-export-bar > .export-primary-action-inline {
+    flex: 1 1 440px;
+    min-width: min(100%, 320px);
+}
+
+.contract-export-bar > .export-btn-secondary {
+    flex: 0 0 auto;
+    max-width: 100%;
+}
+
+.contract-export-bar .export-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.contract-export-bar .export-btn-secondary svg {
+    flex-shrink: 0;
+}
+
+.export-btn-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(159, 18, 57, 0.25);
+    background: rgba(255, 255, 255, 0.8);
+    color: #9f1239;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .share-link-panel {
