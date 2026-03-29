@@ -347,8 +347,6 @@
   box-shadow: 0 22px 36px rgba(0, 0, 0, 0.52);
 }
 
-
-
 .profile-header {
   display: flex;
   align-items: center;
@@ -546,26 +544,50 @@
 }
 
 /* ============================================
-    8. MEDIA QUERIES
+   PUBLIC PAGE FIX (Auth & CTA Buttons)
    ============================================ */
 
-/* Tablet breakpoint (iPad Pro, etc.) */
-@media (max-width: 1024px) {
-  .profile-dropdown {
-    width: 260px;
-  }
-
-  .nav-inner {
-    padding: 0.35rem 0.75rem;
-    min-height: 70px;
-  }
-
-  .nav-link {
-    font-size: 0.78rem;
-  }
+.auth-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* Medium screens - switch to mobile nav earlier (900px) */
+[data-theme="dark"] .auth-btn {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.public-cta-btn {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mobile-auth-btn {
+  width: 100%;
+  background: var(--bg-inset);
+  border: 1px solid var(--glass-border);
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ============================================
+    8. MEDIA QUERIES
+   ============================================ */
+/* Medium screens*/
 @media (max-width: 1050px) {
   .nav-container {
     border-radius: 0 0 1.55rem 1.55rem;
@@ -599,6 +621,26 @@
 
   .scan-badge {
     display: none;
+  }
+
+  .auth-btn.desktop-only {
+    display: none;
+  }
+}
+
+/* Tablet breakpoint (iPad Pro, etc.) */
+@media (max-width: 1024px) {
+  .profile-dropdown {
+    width: 260px;
+  }
+
+  .nav-inner {
+    padding: 0.35rem 0.75rem;
+    min-height: 70px;
+  }
+
+  .nav-link {
+    font-size: 0.78rem;
   }
 }
 
@@ -706,6 +748,17 @@
     align-self: center;
     justify-self: stretch;
     margin: 0.5rem 1rem;
+  }
+
+  .nav-right .public-cta-btn {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    justify-self: stretch;
+    margin: 0.5rem 1rem;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-full);
   }
 
   .profile-button {

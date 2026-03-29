@@ -11,12 +11,6 @@
     background: var(--bg-page);
 }
 
-/* Keep first section flush behind sticky navbar */
-.pricing-page .section-band:first-child {
-    margin-top: calc(-1 * var(--space-xl));
-    padding-top: calc(var(--space-2xl) + var(--space-xl));
-}
-
 /* Loading & Error States */
 .pricing-loading,
 .pricing-error {

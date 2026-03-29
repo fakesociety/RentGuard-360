@@ -182,7 +182,7 @@ const PricingPage = () => {
     return (
         <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
             {/* Hero Section */}
-            <div className="section-band">
+            <div>
                 <section className="pricing-hero animate-fadeIn">
                     <h1 className="pricing-title">{t('pricing.title')}</h1>
                     <p className="pricing-subtitle">{t('pricing.subtitle')}</p>
@@ -200,7 +200,7 @@ const PricingPage = () => {
             </div>
 
             {/* Pricing Cards */}
-            <div className="section-band-alt">
+            <div className="pricing-cards-container">
                 <section className="pricing-cards-section">
                     <div className="pricing-cards-grid">
                         {(() => {
@@ -289,7 +289,7 @@ const PricingPage = () => {
                                                 </Button>
                                             ) : (
                                                 <Button
-                                                    variant={isPopular ? 'primary' : 'secondary'}
+                                                    variant={isPopular ? 'primary' : 'ghost'}
                                                     fullWidth
                                                     onClick={() => handleSelectPackage(pkg)}
                                                 >

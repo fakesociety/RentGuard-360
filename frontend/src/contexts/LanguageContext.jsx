@@ -33,6 +33,11 @@ const translations = {
         // Navigation
         nav: {
             home: 'דף הבית',
+            brand: 'RentGuard 360',
+            openMenu: 'פתח תפריט',
+            closeMenu: 'סגור תפריט',
+            openProfile: 'פתח פרופיל',
+            closeProfile: 'סגור פרופיל',
             dashboard: 'לוח בקרה',
             upload: 'העלאה',
             contracts: 'חוזים',
@@ -797,6 +802,11 @@ const translations = {
         // Navigation
         nav: {
             home: 'Home',
+            brand: 'RentGuard 360',
+            openMenu: 'Open menu',
+            closeMenu: 'Close menu',
+            openProfile: 'Open profile',
+            closeProfile: 'Close profile',
             dashboard: 'Dashboard',
             upload: 'Upload',
             contracts: 'Contracts',

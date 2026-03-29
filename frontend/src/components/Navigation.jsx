@@ -87,7 +87,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
         {/* Logo - navigates to dashboard when authenticated, landing when public */}
         <Link to={isAuthenticated ? authenticatedHomePath : '/'} className="nav-logo">
           <Shield size={32} className="logo-icon" />
-          <span className="logo-text">RentGuard 360</span>
+          <span className="logo-text">{t('nav.brand')}</span>
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -121,9 +121,12 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
                     setShowMobileMenu(false); // Close mobile menu when opening profile
                     setShowProfileMenu(!showProfileMenu);
                   }}
+                  aria-haspopup="true"
+                  aria-expanded={showProfileMenu}
+                  aria-label={showProfileMenu ? t('nav.closeProfile') : t('nav.openProfile')}
                 >
                   <div className="profile-avatar">{getUserInitials()}</div>
-                  <span className="profile-chevron">{showProfileMenu ? '▲' : '▼'}</span>
+                  <span className="profile-chevron" aria-hidden="true">{showProfileMenu ? '▲' : '▼'}</span>
                 </button>
 
                 {showProfileMenu && (
@@ -170,8 +173,9 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
                   setShowProfileMenu(false); // Close profile when opening mobile menu
                   setShowMobileMenu(!showMobileMenu);
                 }}
+                aria-label={showMobileMenu ? t('nav.closeMenu') : t('nav.openMenu')}
               >
-                {showMobileMenu ? '✕' : '☰'}
+                <span aria-hidden="true">{showMobileMenu ? '✕' : '☰'}</span>
               </button>
             </>
           ) : (
@@ -180,11 +184,11 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
               <ThemeToggle />
               {showAuthControls && (
                 <>
-                  <button className="auth-btn" onClick={() => onAuthClick('login')}>
+                  <button className="auth-btn desktop-only" onClick={() => onAuthClick('login')}>
                     {t('auth.login')}
                   </button>
-                  <button className="cta-btn" onClick={() => onAuthClick('register')}>
-                    {isRTL ? 'התחל חינם' : 'Start Free'}
+                  <button className="cta-btn public-cta-btn" onClick={() => onAuthClick('register')}>
+                    {t('pricing.getStarted')}
                   </button>
                 </>
               )}
@@ -192,8 +196,9 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
               <button
                 className="mobile-menu-button"
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
+                aria-label={showMobileMenu ? t('nav.closeMenu') : t('nav.openMenu')}
               >
-                {showMobileMenu ? '✕' : '☰'}
+                <span aria-hidden="true">{showMobileMenu ? '✕' : '☰'}</span>
               </button>
             </>
           )}
@@ -208,6 +213,16 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
               <ScanBadge />
             </div>
           )}
+          
+          {!isAuthenticated && showAuthControls && (
+            <div className="mobile-menu-auth-controls">
+              <button className="mobile-auth-btn" onClick={() => { onAuthClick('login'); setShowMobileMenu(false); }}>
+                {t('auth.login')}
+              </button>
+              <div className="mobile-menu-divider"></div>
+            </div>
+          )}
+
           {navLinks.map(link => (
             <Link
               key={link.path}

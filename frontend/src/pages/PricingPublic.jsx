@@ -1,175 +1,233 @@
+/**
+ * ============================================
+ *  PricingPublic
+ *  Public-facing Pricing Page (unauthenticated)
+ * ============================================
+ *
+ * STRUCTURE:
+ * - Hero section with page title
+ * - 3 pricing cards (Free / Basic / Pro)
+ * - Popular badge on Basic
+ * - CTA buttons redirect to /?auth=register
+ *
+ * DEPENDENCIES:
+ * - stripeApi.js: getPackages
+ * - LanguageContext: translations
+ *
+ * ============================================
+ */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getPackages } from '../services/stripeApi';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { getPackages } from '../services/stripeApi';
 import './PricingPage.css';
-import { useNavigate } from 'react-router-dom';
-import { BadgeDollarSign } from 'lucide-react';
-
-const FALLBACK_PACKAGES = [
-  { id: 'free', name: 'Free', price: 0, scanLimit: 1, desc: 'Try basic analysis for free' },
-  { id: 'basic', name: 'Basic', price: 39, scanLimit: 5, desc: 'Small plan for individuals' },
-  { id: 'pro', name: 'Pro', price: 79, scanLimit: 15, desc: 'For power users and teams' },
-];
-
-const normalizePlanName = (value) => String(value || '').trim().toLowerCase();
-
-const getPackageIcon = (name) => {
-  switch (name) {
-    case 'Free':
-      return (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg>
-      );
-    case 'Basic':
-      return (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg>
-      );
-    case 'Pro':
-      return (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-};
-
-const getFeatures = (pkgName, t) => {
-  const featuresByPlan = {
-    free: t('pricing.featuresFree', { returnObjects: true }),
-    basic: t('pricing.featuresBasic', { returnObjects: true }),
-    pro: t('pricing.featuresPro', { returnObjects: true }),
-  };
-  return featuresByPlan[normalizePlanName(pkgName)] || [];
-};
 
 const PricingPublic = () => {
-  const { t, isRTL } = useLanguage();
-  const [packages, setPackages] = useState(FALLBACK_PACKAGES);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+    const { t, isRTL } = useLanguage();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getPackages();
-        if (data && Array.isArray(data) && data.length) {
-          // Only show Free / Basic / Pro on public pricing
-          const allowed = new Set(['free', 'basic', 'pro']);
-          const filtered = data.filter((pkg) => {
-            const name = (pkg.name || pkg.displayName || pkg.PackageName || String(pkg.id)).toString().toLowerCase();
-            return allowed.has(name);
-          });
-          setPackages(filtered.length ? filtered : FALLBACK_PACKAGES);
-        } else {
-          setPackages(FALLBACK_PACKAGES);
-        }
-      } catch (err) {
-        console.warn('PricingPublic: using fallback packages', err.message);
-        setPackages(FALLBACK_PACKAGES);
-      } finally {
-        setIsLoading(false);
-      }
+    const [packages, setPackages] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Hardcoded fallback packages when backend (SQL Server) is unavailable.
+    const FALLBACK_PACKAGES = [
+        { id: 'free', name: 'Free', price: 0, scanLimit: 1 },
+        { id: 'basic', name: 'Basic', price: 39, scanLimit: 5 },
+        { id: 'pro', name: 'Pro', price: 79, scanLimit: 15 },
+    ];
+
+    // Fetch packages on mount — only show Free / Basic / Pro for public page
+    useEffect(() => {
+        const fetchPackages = async () => {
+            try {
+                setIsLoading(true);
+                const data = await getPackages();
+                if (data && Array.isArray(data) && data.length) {
+                    const allowed = new Set(['free', 'basic', 'pro']);
+                    const filtered = data.filter((pkg) => {
+                        const name = (pkg.name || '').toLowerCase();
+                        return allowed.has(name);
+                    });
+                    setPackages(filtered.length ? filtered : FALLBACK_PACKAGES);
+                } else {
+                    setPackages(FALLBACK_PACKAGES);
+                }
+            } catch (err) {
+                console.warn('PricingPublic: using fallback packages', err.message);
+                setPackages(FALLBACK_PACKAGES);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPackages();
+    }, []);
+
+    const handleSelectPackage = () => {
+        navigate('/?auth=register');
     };
-    fetchPackages();
-  }, []);
 
-  const handleRegister = () => {
-    navigate('/?auth=register');
-  };
+    const getPackageIcon = (name) => {
+        switch (name) {
+            case 'Free':
+                return (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                    </svg>
+                );
+            case 'Basic':
+                return (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                );
+            case 'Pro':
+                return (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                    </svg>
+                );
+            default:
+                return null;
+        }
+    };
 
-  const getDisplayPlanName = (pkgName) => {
-    const normalized = normalizePlanName(pkgName);
-    if (normalized === 'free' || normalized === 'basic' || normalized === 'pro') {
-      return t(`pricing.${normalized}`);
+    const getFeatures = (pkg) => {
+        const features = {
+            Free: t('pricing.featuresFree', { returnObjects: true }),
+            Basic: t('pricing.featuresBasic', { returnObjects: true }),
+            Pro: t('pricing.featuresPro', { returnObjects: true }),
+        };
+        return features[pkg.name] || [];
+    };
+
+    const getDisplayPriceAndCurrency = (basePrice) => {
+        if (basePrice <= 0) return { price: 0, currency: '' };
+        if (isRTL) {
+            return { price: basePrice, currency: '₪' };
+        }
+        // Conversion rate roughly 3.7
+        return { price: Math.round(basePrice / 3.7), currency: '$' };
+    };
+
+    const normalizePlanName = (value) => String(value || '').trim().toLowerCase();
+
+    if (isLoading) {
+        return (
+            <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className="pricing-loading">
+                    <div className="pricing-spinner" />
+                    <p>{t('common.loading')}</p>
+                </div>
+            </div>
+        );
     }
-    return pkgName;
-  };
 
-  const getDisplayPlanDesc = (pkgName, fallbackDesc) => {
-    const normalized = normalizePlanName(pkgName);
-    if (normalized === 'free' || normalized === 'basic' || normalized === 'pro') {
-      return t(`pricing.${normalized}Desc`);
+    if (error) {
+        return (
+            <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className="pricing-error">
+                    <p>{t('common.error')}: {error}</p>
+                </div>
+            </div>
+        );
     }
-    return fallbackDesc || '';
-  };
 
-  return (
-    <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="section-band">
-        <section className="pricing-hero animate-fadeIn">
-          <h1 className="pricing-title">
-            <span>{t('pricing.title')}</span>
-          </h1>
-          <p className="pricing-subtitle">{t('pricing.subtitle')}</p>
-        </section>
-      </div>
+    return (
+        <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+            {/* Hero Section */}
+            <div>
+                <section className="pricing-hero animate-fadeIn">
+                    <h1 className="pricing-title">{t('pricing.title')}</h1>
+                    <p className="pricing-subtitle">{t('pricing.subtitle')}</p>
+                </section>
+            </div>
 
-      <div className="section-band-alt">
-        <section className="pricing-cards-section">
-          <div className="pricing-cards-grid">
-            {packages.map((pkg, index) => (
-              <div key={pkg.id} className={`pricing-card-wrapper animate-slideUp`} style={{ animationDelay: `${index * 120}ms` }}>
-                <Card variant="elevated" padding="lg" className="pricing-card">
-                  <div className="pricing-card-header">
-                    <div className={`pricing-icon ${normalizePlanName(pkg.name)}`}>
-                      {getPackageIcon(pkg.name)}
+            {/* Pricing Cards */}
+            <div className="pricing-cards-container">
+                <section className="pricing-cards-section">
+                    <div className="pricing-cards-grid">
+                        {packages
+                            .sort((a, b) => a.price - b.price)
+                            .map((pkg, index) => {
+                                const isPopular = pkg.name === 'Basic';
+
+                                return (
+                                    <div
+                                        key={pkg.id}
+                                        className={`pricing-card-wrapper animate-slideUp ${isPopular ? 'popular' : ''}`}
+                                        style={{ animationDelay: `${index * 150}ms` }}
+                                    >
+                                        {isPopular && (
+                                            <div className="popular-badge">
+                                                {t('pricing.mostPopular')}
+                                            </div>
+                                        )}
+
+                                        <Card variant="elevated" padding="lg" className="pricing-card">
+                                            <div className="pricing-card-header">
+                                                <div className={`pricing-icon ${normalizePlanName(pkg.name)}`}>
+                                                    {getPackageIcon(pkg.name)}
+                                                </div>
+                                                <h3 className="pricing-card-name">{t(`pricing.${normalizePlanName(pkg.name)}`)}</h3>
+                                                <p className="pricing-card-desc">{t(`pricing.${normalizePlanName(pkg.name)}Desc`)}</p>
+                                            </div>
+
+                                            <div className="pricing-card-price">
+                                                {pkg.price <= 0 ? (
+                                                    <span className="price-amount free">{t('pricing.free')}</span>
+                                                ) : (() => {
+                                                    const displayInfo = getDisplayPriceAndCurrency(pkg.price);
+                                                    return (
+                                                        <>
+                                                            <span className="price-currency">{displayInfo.currency}</span>
+                                                            <span className="price-amount">{displayInfo.price}</span>
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            <div className="pricing-card-scans">
+                                                <span className={`scan-limit ${pkg.scanLimit === -1 ? 'unlimited' : ''}`}>
+                                                    {pkg.scanLimit === -1
+                                                        ? t('subscription.unlimited')
+                                                        : `${pkg.scanLimit} ${t('pricing.scans')}`}
+                                                </span>
+                                            </div>
+
+                                            <ul className="pricing-features">
+                                                {getFeatures(pkg).map((feature, i) => (
+                                                    <li key={i} className="pricing-feature">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" strokeWidth="2.5">
+                                                            <polyline points="20,6 9,17 4,12" />
+                                                        </svg>
+                                                        <span>{feature}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+
+                                            <div className="pricing-card-cta">
+                                                <Button
+                                                    variant={isPopular ? 'primary' : 'ghost'}
+                                                    fullWidth
+                                                    onClick={handleSelectPackage}
+                                                >
+                                                    {pkg.price <= 0 ? t('pricing.getStarted') : t('pricing.subscribe')}
+                                                </Button>
+                                            </div>
+                                        </Card>
+                                    </div>
+                                );
+                            })}
                     </div>
-                    <h3 className="pricing-card-name">{getDisplayPlanName(pkg.name)}</h3>
-                    <p className="pricing-card-desc">{getDisplayPlanDesc(pkg.name, pkg.desc)}</p>
-                  </div>
-
-                  <div className="pricing-card-price">
-                    {pkg.price <= 0 ? (
-                      <span className="price-amount free">{t('pricing.free')}</span>
-                    ) : (
-                      <>
-                        <span className="price-currency">{isRTL ? '₪' : '$'}</span>
-                        <span className="price-amount">{pkg.price}</span>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="pricing-card-scans">
-                    <span className={`scan-limit ${pkg.scanLimit === -1 ? 'unlimited' : ''}`}>
-                      {pkg.scanLimit === -1 ? t('subscription.unlimited') : `${pkg.scanLimit} ${t('pricing.scans')}`}
-                    </span>
-                  </div>
-
-                  <ul className="pricing-features">
-                    {getFeatures(pkg.name, t).map((feature, i) => (
-                      <li key={i} className="pricing-feature">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" strokeWidth="2.5">
-                          <polyline points="20,6 9,17 4,12" />
-                        </svg>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="pricing-card-cta">
-                    <Button variant="primary" fullWidth onClick={handleRegister}>
-                      {pkg.price <= 0 ? t('pricing.getStarted') : (isRTL ? 'הירשמו לרכישה' : 'Register to purchase')}
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+                </section>
+            </div>
+        </div>
+    );
 };
 
 export default PricingPublic;
