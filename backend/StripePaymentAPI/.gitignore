@@ -1,0 +1,10 @@
+﻿bin/
+obj/
+out/
+out_verify/
+out_clean/
+publish/
+publish_lambda/
+publish_stripezip/
+
+*.zip

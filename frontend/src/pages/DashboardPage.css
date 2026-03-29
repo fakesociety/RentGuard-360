@@ -769,3 +769,6 @@
 [dir="rtl"] .action-large-icon {
   display: inline-block;
 }
+[data-theme="dark"] .view-effect { background-color: rgba(16, 185, 129, 0.25); }
+[data-theme="dark"] .upload-effect { background-color: rgba(255, 255, 255, 0.25); }
+[data-theme="dark"] .sub-effect { background-color: rgba(59, 130, 246, 0.25); }

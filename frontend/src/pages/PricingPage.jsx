@@ -47,23 +47,42 @@ const PricingPage = () => {
 
     // Fetch packages on mount
     useEffect(() => {
+        let isMounted = true;
+
         const fetchPackages = async () => {
             try {
-                setIsLoading(true);
-                const data = await getPackages();
-                setPackages(data);
+                if (isMounted) {
+                    setIsLoading(true);
+                }
+
+                const timeoutPromise = new Promise((_, reject) => {
+                    window.setTimeout(() => reject(new Error('Packages request timeout')), 12000);
+                });
+
+                const data = await Promise.race([getPackages(), timeoutPromise]);
+                if (isMounted) {
+                    setPackages(data);
+                }
             } catch (err) {
                 // If SQL Server is down or any backend error, use fallback packages
                 // so the pricing page still renders.
                 console.warn('Using fallback packages (backend unavailable):', err.message);
-                setPackages(FALLBACK_PACKAGES);
+                if (isMounted) {
+                    setPackages(FALLBACK_PACKAGES);
+                }
                 // Don't set error — show the page with fallback data instead.
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         };
 
         fetchPackages();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const handleSelectPackage = (pkg) => {

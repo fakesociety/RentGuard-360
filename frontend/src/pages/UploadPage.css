@@ -555,6 +555,17 @@
     justify-content: center;
 }
 
+/* Camera Scan Button - visible only on iPad-max and below */
+.mobile-only-scan-btn {
+    display: none !important;
+}
+
+@media (max-width: 1024px) {
+    .mobile-only-scan-btn {
+        display: inline-flex !important;
+    }
+}
+
 /* Upload Button */
 .upload-button {
     margin-top: var(--space-md);

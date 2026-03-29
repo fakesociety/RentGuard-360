@@ -19,6 +19,7 @@ import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
+import { Github } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
@@ -59,11 +60,11 @@ const Footer = () => {
                         <p className="footer-credit-line footer-credit-line-rtl">
                             <span className="footer-credit-rtl-label">נבנה ע"י</span>
                             <span className="footer-credit-names" dir="ltr">
-                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron <Github size={12} className="footer-github-icon" /></a>
                                 <span>, </span>
-                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty <Github size={12} className="footer-github-icon" /></a>
                                 <span> &amp; </span>
-                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
+                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan <Github size={12} className="footer-github-icon" /></a>
                             </span>
                             <span className="footer-credit-separator" aria-hidden="true">|</span>
                             <span className="footer-credit-copy" dir="ltr">© 2026 RentGuard 360</span>
@@ -72,11 +73,11 @@ const Footer = () => {
                         <p className="footer-credit-line footer-credit-line-ltr">
                             <span className="footer-credit-ltr-label">Built by</span>
                             <span className="footer-credit-names" dir="ltr">
-                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron</a>
+                                <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron <Github size={12} className="footer-github-icon" /></a>
                                 <span>, </span>
-                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty</a>
+                                <a href="https://github.com/fakesociety" target="_blank" rel="noopener noreferrer">Moty <Github size={12} className="footer-github-icon" /></a>
                                 <span> &amp; </span>
-                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan</a>
+                                <a href="https://github.com/idan0508" target="_blank" rel="noopener noreferrer">Idan <Github size={12} className="footer-github-icon" /></a>
                             </span>
                             <span className="footer-credit-separator" aria-hidden="true">|</span>
                             <span className="footer-credit-copy" dir="ltr">© 2026 RentGuard 360</span>

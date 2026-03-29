@@ -18,7 +18,7 @@
  * 
  * ============================================
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -182,13 +182,16 @@ const CheckoutPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const userId = user?.userId || user?.username;
+    const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
     const userEmail = userAttributes?.email;
     const userName = userAttributes?.name;
+    const initRef = useRef(false);
 
     // Fetch package + create PaymentIntent on mount
     useEffect(() => {
         const initCheckout = async () => {
+            if (initRef.current) return;
+            initRef.current = true;
             try {
                 setIsLoading(true);
 
