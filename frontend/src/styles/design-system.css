@@ -34,6 +34,10 @@
     --accent-danger: #EF4444;
     --accent-info: #3B82F6;
 
+    /* Selection Colors (Light Mode) */
+    --selection-bg: rgba(5, 150, 105, 0.2);
+    --selection-text: #022c22;
+
     /* Gradient Accents */
     --gradient-primary: linear-gradient(135deg, #059669 0%, #0891B2 100%);
     --gradient-subtle: linear-gradient(135deg, #F0FDF4 0%, #ECFEFF 100%);
@@ -141,6 +145,12 @@
     --accent-warning: #F59E0B;
     --accent-danger: #EF4444;
     --accent-info: #3B82F6;
+
+    /* Selection Colors (Dark Mode) */
+    --selection-bg: rgba(16, 185, 129, 0.3);
+    /* קצת יותר בולט בחשכה */
+    --selection-text: #ffffff;
+    /* טקסט לבן בתוך הסימון הכהה */
 
     /* Gradient Accents - Subtle */
     --gradient-primary: linear-gradient(135deg, #10B981 0%, #14b8a6 100%);

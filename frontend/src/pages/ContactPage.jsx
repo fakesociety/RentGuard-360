@@ -79,12 +79,14 @@ const ContactPage = () => {
 
             {/* Header Section */}
             <div className="contact-header animate-fadeIn">
-                <h1 className="headline-font">
-                    {t('contact.title')}
-                </h1>
-                <p>
-                    {t('contact.subtitle')}
-                </p>
+                <div className="page-header-content">
+                    <h1 className="headline-font">
+                        {t('contact.title')}
+                    </h1>
+                    <p>
+                        {t('contact.subtitle')}
+                    </p>
+                </div>
             </div>
 
             {/* Main Layout Grid */}
@@ -166,7 +168,7 @@ const ContactPage = () => {
                                     <span>{isSubmitting ? t('contact.sending') : t('contact.sendMessage')}</span>
                                     {!isSubmitting && <Send size={18} className={isRTL ? 'icon-rtl' : 'icon-ltr'} />}
                                 </Button>
-                                
+
                                 <div className="trust-bar">
                                     <div className="trust-item">
                                         <Shield size={18} className="trust-icon" />
