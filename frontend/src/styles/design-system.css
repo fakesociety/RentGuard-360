@@ -107,7 +107,13 @@
     --risk-medium: #F59E0B;
     --risk-low: #10B981;
     --risk-neutral: #64748B;
+
+    /* Selection Colors*/
+    --selection-bg: rgba(5, 150, 105, 0.2);
+    --selection-text: #022c22;
 }
+
+
 
 /* ============================================
    DARK MODE VARIABLES - Premium 3-Level Contrast
@@ -169,6 +175,11 @@
 
     /* Glow - Minimal, professional */
     --glow-primary: 0 0 16px rgba(16, 185, 129, 0.1);
+
+    /* Selection Colors (Dark Mode) */
+    --selection-bg: rgba(16, 185, 129, 0.3);
+    --selection-text: #ffffff;
+
 }
 
 /* ============================================
@@ -213,6 +224,17 @@ body {
 
 #root {
     min-height: 100vh;
+}
+
+/* Premium Selection Colors */
+::selection {
+    background-color: var(--selection-bg);
+    color: var(--selection-text);
+}
+
+::-moz-selection {
+    background-color: var(--selection-bg);
+    color: var(--selection-text);
 }
 
 /* ============================================

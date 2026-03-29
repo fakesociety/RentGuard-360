@@ -26,16 +26,15 @@ main:has(.settings-container) {
 }
 
 .settings-title {
-    font-family: 'Calibri', 'Plus Jakarta Sans', var(--font-sans);
-    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-sm, 1rem);
     letter-spacing: -0.02em;
 }
 
 .settings-subtitle {
-    font-size: 1.125rem;
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
     color: var(--text-secondary);
     max-width: 42rem;
     line-height: 1.6;

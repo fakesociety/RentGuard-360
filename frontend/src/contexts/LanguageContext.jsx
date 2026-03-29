@@ -301,6 +301,11 @@ const translations = {
             errorMessage: 'שליחת ההודעה נכשלה. נסו שוב.',
             secureCommunication: 'תקשורת מאובטחת',
             fastResponse: 'מענה תוך 24 שעות',
+            notCustomerYet: 'עדיין לא מנויים?',
+            registerNowFree: 'הירשמו עכשיו בחינם',
+            registerFreePlan: 'הרשמה לקבלת גרסה חינמית',
+            orOption: 'או',
+            toStartAnalyzing: 'כדי להתחיל לנתח חוזים',
         },
         methodology: {
             title: 'איך מחושב הציון?',
@@ -1060,6 +1065,11 @@ const translations = {
             errorMessage: 'Failed to send message. Please try again.',
             secureCommunication: 'Secure Communication',
             fastResponse: 'Response within 24 hours',
+            notCustomerYet: 'Not a customer yet?',
+            registerNowFree: 'Register now for free',
+            registerFreePlan: 'Register to get the free plan',
+            orOption: 'Or',
+            toStartAnalyzing: 'to start analyzing contracts',
         },
         methodology: {
             title: 'How is the score calculated?',

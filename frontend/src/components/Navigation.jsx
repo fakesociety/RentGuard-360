@@ -106,7 +106,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
         </div>
 
         {/* Right Side - Scan Badge, Language Toggle, Theme Toggle & Profile */}
-        <div className="nav-right">
+        <div className="nav-right" dir="ltr">
           {isAuthenticated ? (
             <>
               <ScanBadge />
@@ -203,6 +203,11 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {} }) => {
       {/* Mobile Menu */}
       {showMobileMenu && (
         <div className="mobile-menu">
+          {isAuthenticated && (
+            <div className="mobile-menu-badge-wrapper">
+              <ScanBadge />
+            </div>
+          )}
           {navLinks.map(link => (
             <Link
               key={link.path}

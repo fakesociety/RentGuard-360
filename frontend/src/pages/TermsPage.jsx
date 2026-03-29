@@ -56,9 +56,25 @@ const TermsPage = () => {
 
     return (
         <div className="terms-page-wrapper mesh-gradient" dir={isRTL ? 'rtl' : 'ltr'}>
+            
+            {/* 1. הכותרת צריכה להיות מחוץ לגריד של שתי העמודות, כדי לתפוס 100% רוחב! */}
+            <header className="terms-global-header">
+                <div className="terms-header-content">
+                    <h1 className="terms-main-title">{title}</h1>
+                    <div className="terms-meta">
+                        <span className="meta-updated">
+                            <Calendar size={16} /> {updated}
+                        </span>
+                        <span className="meta-dot"></span>
+                        <span className="meta-badge">מסמך משפטי</span>
+                    </div>
+                </div>
+            </header>
+
+            {/* 2. המכולה המרכזית המחלקת את המסך לשתי עמודות */}
             <div className="terms-layout">
 
-                {/* ---------------- Sidebar (TOC) ---------------- */}
+                {/* Sidebar (TOC) */}
                 <aside className="terms-sidebar">
                     <div className="sidebar-card">
                         <div className="sidebar-header">
@@ -85,62 +101,51 @@ const TermsPage = () => {
                     </div>
                 </aside>
 
-                {/* ---------------- Main Content ---------------- */}
+                {/* Main Content Area */}
                 <main className="terms-main-content">
 
-                    {/* Header */}
-                    <header className="terms-header-section">
-                        <h1 className="terms-main-title">{title}</h1>
-                        <div className="terms-meta">
-                            <span className="meta-updated">
-                                <Calendar size={16} /> {updated}
-                            </span>
-                            <span className="meta-dot"></span>
-                            <span className="meta-badge">מסמך משפטי</span>
-                        </div>
-                        <div className="title-underline"></div>
-                    </header>
-
-                    {/* Accordions */}
-                    <div className="terms-accordions">
-                        {sections.map((section, idx) => {
-                            const isActive = activeSection === section.id;
-                            return (
-                                <div key={section.id} id={section.id} className={`accordion-card ${isActive ? 'active' : ''}`}>
-                                    <button className="accordion-trigger" onClick={() => handleToggle(section.id)}>
-                                        <div className="accordion-trigger-left">
-                                            <div className="accordion-icon-box">
-                                                {getIconForIndex(idx)}
+                    {/* 3. העטיפה הלבנה הענקית (Paper) שכל האקורדיונים צריכים להיות בתוכה! */}
+                    <div className="content-paper">
+                        <div className="terms-accordions">
+                            {sections.map((section, idx) => {
+                                const isActive = activeSection === section.id;
+                                return (
+                                    <div key={section.id} id={section.id} className={`accordion-card ${isActive ? 'active' : ''}`}>
+                                        <button className="accordion-trigger" onClick={() => handleToggle(section.id)}>
+                                            <div className="accordion-trigger-left">
+                                                <div className="accordion-icon-box">
+                                                    {getIconForIndex(idx)}
+                                                </div>
+                                                <h2 className="accordion-title">
+                                                    {idx + 1}. {section.title.replace(/^\d+\.\s*/, '')}
+                                                </h2>
                                             </div>
-                                            <h2 className="accordion-title">
-                                                {idx + 1}. {section.title.replace(/^\d+\.\s*/, '')}
-                                            </h2>
-                                        </div>
-                                        <ChevronDown className={`chevron ${isActive ? 'rotated' : ''}`} />
-                                    </button>
+                                            <ChevronDown className={`chevron ${isActive ? 'rotated' : ''}`} />
+                                        </button>
 
-                                    <div className="accordion-body">
-                                        <div className="accordion-content-inner">
-                                            <p className="section-content-text">{section.content}</p>
+                                        <div className="accordion-body">
+                                            <div className="accordion-content-inner">
+                                                <p className="section-content-text">{section.content}</p>
 
-                                            {section.list && (
-                                                <ul className="terms-list">
-                                                    {section.list.map((item, i) => (
-                                                        <li key={i}>
-                                                            <span className="list-check">✓</span>
-                                                            <span>{item}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
+                                                {section.list && (
+                                                    <ul className="terms-list">
+                                                        {section.list.map((item, i) => (
+                                                            <li key={i}>
+                                                                <span className="list-check">✓</span>
+                                                                <span>{item}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    </div> {/* End of content-paper */}
 
-                    {/* ---------------- Contact Help Card ---------------- */}
+                    {/* Contact Help Card */}
                     <div className="terms-help-card">
                         <div className="help-card-inner">
                             <div className="help-text">

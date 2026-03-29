@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    2. NAVIGATION (DESKTOP)
    ============================================ */
 
@@ -62,9 +62,7 @@
   order: 3;
 }
 
-[dir="rtl"] .nav-right {
-  flex-direction: row-reverse;
-}
+/* Removed flex-direction: row-reverse to keep internal icons fixed */
 
 /* Logo */
 .nav-logo {
@@ -72,6 +70,7 @@
   align-items: center;
   gap: 0.45rem;
   text-decoration: none;
+  direction: ltr;
 }
 
 .logo-icon {
@@ -455,23 +454,51 @@
   color: #d8e8e5;
 }
 
+/* 1. הקופסה של התפריט - תמיד מקובעת ימינה מתחת להמבורגר */
 .mobile-menu {
   display: none;
   flex-direction: column;
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 320px;
+  margin-top: var(--space-sm);
+  right: 1.5rem;
+  /* מקבע את התפריט לימין */
+  left: auto;
+  width: 280px;
+  max-width: calc(100vw - 32px);
   background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   padding: var(--space-sm);
-  margin-top: var(--space-sm);
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
+}
+
+/* דואג שגם בעברית זה נשאר מקובע לימין בדיוק כמו באנגלית */
+[dir="rtl"] .mobile-menu {
+  right: 1rem !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+[dir="ltr"] .mobile-menu {
+  direction: ltr;
+  /* מיישר את הטקסט לשמאל (מתקן את האנגלית!) */
+}
+
+/* 2. עטיפת כפתור האינסוף בתפריט */
+.mobile-menu-badge-wrapper {
+  display: flex;
+  justify-content: center !important;
+  /* חזר למרכז! */
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.mobile-menu-badge-wrapper .scan-badge {
+  display: inline-flex !important;
 }
 
 [data-theme="dark"] .mobile-menu {
@@ -479,10 +506,11 @@
   border-color: rgba(117, 170, 164, 0.3);
 }
 
+/* הלינקים עצמם */
 .mobile-menu-link {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center !important;
   gap: var(--space-md);
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
@@ -538,7 +566,7 @@
 }
 
 /* Medium screens - switch to mobile nav earlier (900px) */
-@media (max-width: 900px) {
+@media (max-width: 1050px) {
   .nav-container {
     border-radius: 0 0 1.55rem 1.55rem;
     padding: 0.5rem 0.7rem 0.7rem;
@@ -607,6 +635,7 @@
 
   .nav-logo {
     gap: var(--space-xs);
+    order: -1 !important;
   }
 
   .logo-text {
@@ -707,13 +736,13 @@
   /* Mobile menu dropdown positioning */
   .mobile-menu {
     display: flex;
-    position: fixed;
-    top: auto;
-    left: 16px;
-    right: 16px;
-    transform: none;
-    width: auto;
-    max-width: none;
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 380px;
   }
 }
 
