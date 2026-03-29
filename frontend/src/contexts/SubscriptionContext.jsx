@@ -88,8 +88,9 @@ export const SubscriptionProvider = ({ children }) => {
         const userId = await getUserId();
 
         if (!userId) {
-            // On hard refresh, auth may be resolved before full user payload is ready.
-            // Keep loading here to avoid false redirects until user id is available.
+            // Never keep the app stuck on loading when user id is temporarily unavailable.
+            setSubscription(null);
+            hasDefinitiveEntitlement = true;
             return;
         }
 
@@ -116,7 +117,9 @@ export const SubscriptionProvider = ({ children }) => {
                 setSubscription(null);
                 hasDefinitiveEntitlement = true;
             } else {
-                // Keep entitlement unknown on transient/backend failures.
+                // Fallback to no subscription to avoid endless loading when backend is unavailable.
+                setSubscription(null);
+                hasDefinitiveEntitlement = true;
                 console.error('Failed to fetch subscription:', err);
             }
         } finally {

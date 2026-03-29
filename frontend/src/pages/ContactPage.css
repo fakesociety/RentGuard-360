@@ -71,7 +71,7 @@
     color: var(--text-secondary);
     font-size: clamp(1rem, 2vw, 1.25rem);
     max-width: 600px;
-    margin: 0 auto;
+    margin-top: 0.5rem;
     line-height: 1.6;
 }
 
@@ -103,7 +103,6 @@
    ============================================ */
 
 .contact-form-card {
-    height: 100%;
     background: var(--bg-surface, #ffffff);
     border-radius: var(--radius-xl, 1rem);
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);

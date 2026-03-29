@@ -335,6 +335,7 @@ const UploadPage = () => {
                                     </Button>
                                     <Button
                                         variant="ghost"
+                                        className="mobile-only-scan-btn"
                                         disabled={!canChooseFile}
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -345,7 +346,7 @@ const UploadPage = () => {
                                             setShowScannerModal(true);
                                         }}
                                     >
-                                        Scan With Camera
+                                        {isRTL ? 'סריקה עם מצלמה' : 'Scan With Camera'}
                                     </Button>
                                     <p className="drop-hint">{t('upload.maxSize')}</p>
                                     {!canChooseFile && <p className="drop-locked-note">{blockReason}</p>}

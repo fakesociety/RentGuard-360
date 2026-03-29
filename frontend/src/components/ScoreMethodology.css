@@ -71,7 +71,8 @@
  * ============================================ */
 .score-methodology .methodology-content-wrapper {
     position: absolute;
-    bottom: calc(100% + 12px); 
+    top: calc(100% + 12px); 
+    bottom: auto;
     left: 0;
     right: 0;
     z-index: 999; 
@@ -80,8 +81,8 @@
     border: 1px solid var(--glass-border); 
     border-radius: var(--radius-lg);
     
-    /* צל עמוק ויוקרתי (רך יותר כי אין מסגרת צבעונית) */
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.1); 
+    /* צל עמוק ויוקרתי */
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1); 
     
     overflow: hidden; 
     

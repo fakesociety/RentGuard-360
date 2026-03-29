@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    2. NAVIGATION (DESKTOP)
    ============================================ */
 
@@ -19,9 +19,9 @@
 }
 
 [data-theme="dark"] .nav-container {
-  background: rgba(2, 69, 56, 0.58) !important;
-  border-color: rgba(6, 78, 59, 0.2);
-  box-shadow: none;
+  background: #073b30 !important;
+  border-color: rgba(6, 78, 59, 0.4);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 }
 
 .app-container>.app-main.with-nav {
@@ -66,12 +66,13 @@
   flex-direction: row-reverse;
 }
 
-/* Logo */
+/* Logo - Shield icon always stays to the right of "RentGuard 360" */
 .nav-logo {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   text-decoration: none;
+  flex-direction: row-reverse;
 }
 
 .logo-icon {
@@ -178,6 +179,7 @@
   height: 36px;
   box-sizing: border-box;
   padding: 0 16px;
+  gap: 6px;
   background: #008A6D;
   border: none;
   border-radius: 999px;
@@ -185,6 +187,8 @@
   font-size: var(--font-size-base);
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
+  /* Keep icon always to the LEFT of the number regardless of RTL/LTR */
+  direction: ltr;
 }
 
 .scan-badge:hover {

@@ -215,15 +215,34 @@ const ContractView = forwardRef(({
         if (readOnly) return;
         if (!onSaveToCloud || !contractId) return;
 
+        // Skip the very first render cycle (component mount).
         if (isFirstRender.current) {
             isFirstRender.current = false;
+            // Seed the save signature with the current state so that subsequent
+            // runs only trigger a save when actual edits happen.
+            const initialText = clauses.map(c => getClauseText(c)).join('\n\n');
+            lastCloudSaveSignatureRef.current = JSON.stringify({
+                contractId,
+                editedClauses,
+                fullEditedText: initialText,
+            });
             return;
         }
 
         if (skipNextCloudSaveRef.current) {
             skipNextCloudSaveRef.current = false;
+            // Also update the signature so the next run won't see a delta.
+            const skippedText = clauses.map(c => getClauseText(c)).join('\n\n');
+            lastCloudSaveSignatureRef.current = JSON.stringify({
+                contractId,
+                editedClauses,
+                fullEditedText: skippedText,
+            });
             return;
         }
+
+        // Nothing to save when there are no edits.
+        if (Object.keys(editedClauses).length === 0) return;
 
         const fullEditedText = clauses.map(c => getClauseText(c)).join('\n\n');
         const saveSignature = JSON.stringify({

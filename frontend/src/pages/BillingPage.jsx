@@ -41,7 +41,7 @@ const BillingPage = () => {
     const [transactionsFilter, setTransactionsFilter] = useState('last5');
     const filterMenuRef = useRef(null);
 
-    const userId = user?.username || user?.userId;
+    const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
     const userEmail = userAttributes?.email;
     const userName = userAttributes?.name || '';
 
@@ -126,8 +126,15 @@ const BillingPage = () => {
     }, [transactions, transactionsFilter]);
 
     const formatAmount = (amount, currency) => {
-        const numericAmount = Number(amount || 0);
+        let numericAmount = Number(amount || 0);
         const safeCurrency = (currency || 'ILS').toUpperCase();
+
+        // Stripe sends amounts in the smallest currency unit (cents / agorot).
+        // Convert to major units only when the value looks like minor units
+        // (i.e., an integer >= 100, which would be at least 1.00 in major units).
+        if (numericAmount !== 0 && Number.isInteger(numericAmount) && Math.abs(numericAmount) >= 100) {
+            numericAmount = numericAmount / 100;
+        }
 
         try {
             return new Intl.NumberFormat(isRTL ? 'he-IL' : 'en-US', {

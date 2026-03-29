@@ -71,6 +71,10 @@
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.billing-card.transactions-card {
+    overflow: visible;
+}
+
 [data-theme="dark"] .billing-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -89,22 +93,25 @@
 }
 
 /* Glass sheen for dark */
-[data-theme="dark"] .billing-card::before {
+[data-theme="dark"] .billing-card:not(.transactions-card)::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -150%;
-    width: 50%;
+    left: -100%;
+    width: 60%;
     height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.06), transparent);
-    transform: skewX(-25deg);
-    transition: left 0.6s ease;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
+    transform: translateX(0) skewX(-25deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
+    pointer-events: none;
+    border-radius: var(--radius-xl);
 }
 
-[data-theme="dark"] .billing-card:hover::before {
-    left: 200%;
+[data-theme="dark"] .billing-card:not(.transactions-card):hover::before {
+    transform: translateX(400%) skewX(-25deg);
 }
+
 
 .billing-card > * {
     position: relative;
@@ -346,12 +353,17 @@
     top: calc(100% + 8px);
     left: 0;
     width: 100%;
-    z-index: 100;
+    z-index: 99999 !important;
     background: var(--bg-card, #ffffff);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
     padding: 6px;
+}
+
+[data-theme="dark"] .billing-transactions-filter-dropdown {
+    background: var(--bg-card, #151A23) !important;
+    border-color: rgba(255,255,255,0.1);
 }
 
 [dir="rtl"] .billing-transactions-filter-dropdown {
@@ -498,6 +510,7 @@
     flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    z-index: 10 !important; /* Ensure dropdown is above table */
 }
 
 .transactions-header h3 {
