@@ -22,6 +22,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -135,8 +136,12 @@ const CheckoutForm = ({ pkg, clientSecret, onSuccess }) => {
                     />
                     <span className="checkout-terms-text">
                         {t('checkout.termsLabel')}
-                        <Link to="/terms" target="_blank" className="checkout-terms-link">
-                            {t('checkout.termsLinkText')}
+                        <Link to="/terms" target="_blank" rel="noopener noreferrer" className="checkout-terms-link">
+                            {t('checkout.termsLinkTerms')}
+                        </Link>
+                        {t('checkout.termsJoin')}
+                        <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="checkout-terms-link">
+                            {t('checkout.termsLinkPrivacy')}
                         </Link>
                         {t('checkout.termsDisclaimer')}
                     </span>
@@ -279,19 +284,14 @@ const CheckoutPage = () => {
 
     return (
         <div className="checkout-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="section-band">
                 <section className="checkout-header animate-fadeIn">
-                    <button className="checkout-back" onClick={() => navigate('/pricing')}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points={isRTL ? "9,18 15,12 9,6" : "15,18 9,12 15,6"} />
-                        </svg>
-                        {t('checkout.backToPricing')}
-                    </button>
                     <h1 className="checkout-title">{t('checkout.title')}</h1>
+                    <Link to="/pricing" className="checkout-back back-button-premium">
+                        <span>{t('checkout.backToPricing')}</span>
+                        {isRTL ? <ArrowLeft className="arrow" size={20} /> : <ArrowRight className="arrow" size={20} />}
+                    </Link>
                 </section>
-            </div>
 
-            <div className="section-band-alt">
                 <section className="checkout-content animate-slideUp">
                     <div className="checkout-grid">
                         {/* Order Summary */}
@@ -367,7 +367,6 @@ const CheckoutPage = () => {
                         </Card>
                     </div>
                 </section>
-            </div>
         </div>
     );
 };

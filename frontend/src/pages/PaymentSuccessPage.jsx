@@ -35,10 +35,10 @@ const PaymentSuccessPage = () => {
     const { packageName, amount, currency, isFree } = location.state;
 
     return (
-        <div className="payment-success-page page-container" dir={isRTL ? 'rtl' : 'ltr'} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="section-band-alt" style={{ padding: 0, background: 'transparent', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                <section className="success-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '32px', width: '100%', maxWidth: '600px' }}>
-                    <Card variant="elevated" padding="lg" className="success-card animate-scaleIn" style={{ width: '100%', margin: '0 auto' }}>
+        <div className="payment-success-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="section-band-alt success-band">
+                <section className="success-content success-content-shell">
+                    <Card variant="elevated" padding="lg" className="success-card animate-scaleIn">
                         {/* Success Icon */}
                         <div className="success-icon-wrapper">
                             <div className="success-icon-circle">
@@ -49,19 +49,18 @@ const PaymentSuccessPage = () => {
                         </div>
 
                         <h1 className="success-title">{t('paymentSuccess.title')}</h1>
-                        <p className="success-message" style={{ marginBottom: '24px' }}>
+                        <p className="success-message">
                             {isFree ? t('paymentSuccess.freeActivated') : t('paymentSuccess.paymentCompleted')}
                         </p>
 
-                        {/* Order Details - Forced visible */}
-                        <div className="success-details" style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--bg-inset, #F0F2F5)', padding: '24px', borderRadius: '12px', marginBottom: '24px', opacity: 1, visibility: 'visible', width: '100%' }}>
-                            <div className="success-detail-item" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                        <div className="success-details">
+                            <div className="success-detail-item">
                                 <span className="detail-label">{t('paymentSuccess.plan') || 'Bundle'}</span>
                                 <span className="detail-value">{packageName || (isFree ? 'Free' : 'Premium')}</span>
                             </div>
                             
                             {(!isFree || amount !== undefined) && (
-                                <div className="success-detail-item" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <div className="success-detail-item">
                                     <span className="detail-label">{t('paymentSuccess.amount') || 'Amount'}</span>
                                     <span className="detail-value">
                                         {isFree ? 'Free' : `${currency === 'ILS' ? '₪' : '$'}${amount || 0}`}
@@ -70,16 +69,15 @@ const PaymentSuccessPage = () => {
                             )}
                         </div>
 
-                        <p className="success-hint" style={{ marginBottom: '32px', color: 'var(--text-tertiary, #64748B)' }}>
+                        <p className="success-hint">
                             {t('paymentSuccess.hint')}
                         </p>
 
-                        {/* Navigation Buttons - Forced visible */}
-                        <div className="success-actions" style={{ display: 'flex', gap: '16px', justifyContent: 'center', opacity: 1, visibility: 'visible' }}>
-                            <Button variant="primary" onClick={() => navigate('/dashboard')} style={{ minWidth: '150px' }}>
+                        <div className="success-actions">
+                            <Button variant="primary" onClick={() => navigate('/dashboard')} className="success-action-btn">
                                 {t('paymentSuccess.goToDashboard') || 'Go to Dashboard'}
                             </Button>
-                            <Button variant="secondary" onClick={() => navigate('/upload')} style={{ minWidth: '150px' }}>
+                            <Button variant="ghost" onClick={() => navigate('/upload')} className="success-action-btn">
                                 {t('paymentSuccess.uploadContract') || 'Upload Contract'}
                             </Button>
                         </div>
