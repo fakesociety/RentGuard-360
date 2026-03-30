@@ -23,7 +23,7 @@ import { Github } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
-    const { isRTL } = useLanguage();
+    const { t, isRTL } = useLanguage();
     const { theme } = useTheme();
 
     return (
@@ -35,20 +35,20 @@ const Footer = () => {
                     <div className="footer-brand-col">
                         <span className="footer-brand-name">RentGuard 360</span>
                         <p className="footer-tagline">
-                            {isRTL ? 'הגנה משפטית חכמה לכל חוזה שכירות.' : 'Smart legal protection for every rental agreement.'}
+                            {t('footer.legalTagline')}
                         </p>
                     </div>
 
                     {/* Center Links Column */}
                     <div className="footer-links-col">
                         <Link to="/terms" className="footer-link">
-                            {isRTL ? 'תנאי שימוש' : 'Terms of Service'}
+                            {t('footer.termsLink')}
                         </Link>
                         <Link to="/privacy" className="footer-link">
-                            {isRTL ? 'מדיניות פרטיות' : 'Privacy Policy'}
+                            {t('footer.privacyLink')}
                         </Link>
                         <Link to="/contact" className="footer-link">
-                            {isRTL ? 'צור קשר' : 'Contact Us'}
+                            {t('footer.contactLink')}
                         </Link>
                     </div>
 
@@ -58,7 +58,7 @@ const Footer = () => {
                 <div className="footer-copyright">
                     {isRTL ? (
                         <p className="footer-credit-line footer-credit-line-rtl">
-                            <span className="footer-credit-rtl-label">נבנה ע"י</span>
+                            <span className="footer-credit-rtl-label">{t('footer.builtBy')}</span>
                             <span className="footer-credit-names" dir="ltr">
                                 <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron <Github size={12} className="footer-github-icon" /></a>
                                 <span>, </span>
@@ -71,7 +71,7 @@ const Footer = () => {
                         </p>
                     ) : (
                         <p className="footer-credit-line footer-credit-line-ltr">
-                            <span className="footer-credit-ltr-label">Built by</span>
+                            <span className="footer-credit-ltr-label">{t('footer.builtBy')}</span>
                             <span className="footer-credit-names" dir="ltr">
                                 <a href="https://github.com/RonPiece" target="_blank" rel="noopener noreferrer">Ron <Github size={12} className="footer-github-icon" /></a>
                                 <span>, </span>

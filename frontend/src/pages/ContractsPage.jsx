@@ -99,7 +99,7 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                         <FileText size={20} />
                     </div>
                     <div className="card-header-content">
-                        <h3 className="card-title">{contract.fileName || (isRTL ? 'חוזה ללא שם' : 'Untitled Contract')}</h3>
+                        <h3 className="card-title">{contract.fileName || t('contracts.untitledContract')}</h3>
                         <span className="card-date">{formatDate(contract.uploadDate)}</span>
                     </div>
                 </div>
@@ -128,14 +128,14 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                     ) : isFailed ? (
                         <span className="status-chip error">
                             {isTimedOut
-                                ? (isRTL ? 'תם הזמן - נסה שוב' : 'Timed Out - Retry')
-                                : (isRTL ? 'שגיאה בניתוח' : 'Analysis Failed')}
+                                ? t('contracts.statusTimedOutRetry')
+                                : t('contracts.statusAnalysisFailed')}
                         </span>
                     ) : (
                         <span className="status-chip pending">{t('contracts.pendingAnalysis')}...</span>
                     )}
                     {contract.analyzedDate && (
-                        <span className="analyzed-date">{isRTL ? 'נותח:' : 'Analyzed:'} {formatDate(contract.analyzedDate)}</span>
+                        <span className="analyzed-date">{t('contracts.analyzedPrefix')} {formatDate(contract.analyzedDate)}</span>
                     )}
                 </div>
 
@@ -162,7 +162,7 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                     </Link>
                 ) : (
                     <span className="view-btn disabled">
-                        {isFailed ? (isRTL ? 'ניתוח נכשל' : 'Analysis Failed') : (isRTL ? 'ממתין...' : 'Pending...')}
+                        {isFailed ? t('contracts.statusFailedShort') : t('contracts.statusPendingShort')}
                     </span>
                 )}
                 <div className="action-buttons">
@@ -173,19 +173,19 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                         onClose={() => setActiveMenu(null)}
                         containerClassName="dropdown-container"
                         triggerClassName="icon-btn"
-                        triggerTitle="ייצוא"
+                        triggerTitle={t('contracts.menuExportTrigger')}
                         triggerContent={<Download size={16} />}
                         panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
                     >
-                        <div className="dropdown-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
-                        <div className="dropdown-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
+                        <div className="dropdown-menu-title">{t('contracts.menuExportTitle')}</div>
+                        <div className="dropdown-group-title">{t('contracts.menuDownloadTitle')}</div>
                         <button className="menu-option" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}</span>
-                            <span className="menu-option-note">{isRTL ? 'ייצוא כקובץ docx (Word), עריך ומומלץ לעברית' : '.docx editable, best Hebrew support'}</span>
+                            <span className="menu-option-title">{t('contracts.menuExportWordTitle')}</span>
+                            <span className="menu-option-note">{t('contracts.menuExportWordNote')}</span>
                         </button>
                         <button className="menu-option" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'PDF - דוח ניתוח' : 'PDF - Analysis Report'}</span>
-                            <span className="menu-option-note">{isRTL ? 'סיכום מהיר, אנגלית בלבד' : 'quick summary, English only'}</span>
+                            <span className="menu-option-title">{t('contracts.menuExportPdfTitle')}</span>
+                            <span className="menu-option-note">{t('contracts.menuExportPdfNote')}</span>
                         </button>
                     </ActionMenu>
 
@@ -195,20 +195,20 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                         onClose={() => setActiveMenu(null)}
                         containerClassName="dropdown-container"
                         triggerClassName="icon-btn"
-                        triggerTitle={isRTL ? 'שיתוף' : 'Share'}
+                        triggerTitle={t('contracts.menuShareTrigger')}
                         triggerContent={<Share2 size={16} />}
                         panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
                     >
-                        <div className="dropdown-menu-title">{isRTL ? 'שיתוף דוח הניתוח' : 'Share Analysis Report'}</div>
+                        <div className="dropdown-menu-title">{t('contracts.menuShareTitle')}</div>
                         <button className="menu-option" onClick={() => { onShare(contract); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'שיתוף קובץ PDF' : 'Share PDF File'}</span>
-                            <span className="menu-option-note">{isRTL ? 'מצרף את הדוח כקובץ לשיתוף' : 'attach the report as a file'}</span>
+                            <span className="menu-option-title">{t('contracts.menuSharePdfTitle')}</span>
+                            <span className="menu-option-note">{t('contracts.menuSharePdfNote')}</span>
                         </button>
                     </ActionMenu>
-                    <button className="icon-btn" onClick={(e) => onEdit(contract, e)} title="עריכה">
+                    <button className="icon-btn" onClick={(e) => onEdit(contract, e)} title={t('contracts.editButtonTitle')}>
                         <Pencil size={16} />
                     </button>
-                    <button className="icon-btn danger" onClick={(e) => onDelete(contract.contractId, e)} title="מחיקה">
+                    <button className="icon-btn danger" onClick={(e) => onDelete(contract.contractId, e)} title={t('contracts.deleteButtonTitle')}>
                         <Trash2 size={16} />
                     </button>
                 </div>
@@ -336,7 +336,7 @@ const ContractsPage = () => {
             setContracts(contracts.filter(c => c.contractId !== deleteConfirm));
             setDeleteConfirm(null);
         } catch {
-            alert('מחיקה נכשלה');
+            alert(t('contracts.deleteFailed'));
         } finally {
             setIsDeleting(false);
         }
@@ -372,7 +372,7 @@ const ContractsPage = () => {
             ));
             setEditModal(null);
         } catch {
-            alert('שמירה נכשלה');
+            alert(t('contracts.saveFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -383,13 +383,13 @@ const ContractsPage = () => {
             const analysis = await getAnalysis(contract.contractId);
             if (type === 'pdf') {
                 await exportToPDF(analysis, contract.fileName || 'Report');
-                showActionNotice(isRTL ? 'קובץ PDF ירד למחשב (סיכום באנגלית)' : 'PDF download started (English summary)');
+                showActionNotice(t('contracts.exportPdfStarted'));
             } else {
                 await exportToWord(analysis, contract.fileName || 'Report');
-                showActionNotice(isRTL ? 'קובץ docx (Word) ירד למחשב (עריך)' : 'Word (.docx) download started');
+                showActionNotice(t('contracts.exportWordStarted'));
             }
         } catch {
-            alert('ייצוא נכשל');
+            alert(t('contracts.exportFailed'));
         }
     };
 
@@ -399,10 +399,10 @@ const ContractsPage = () => {
             const baseFileName = `${(contract.fileName || 'Report').replace(/\.(pdf|docx)$/i, '')}`;
             const blob = await exportToPDFBlob(analysis, baseFileName);
             await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
-            showActionNotice(isRTL ? 'חלון השיתוף נפתח עבור PDF' : 'Share sheet opened for PDF');
+            showActionNotice(t('contracts.shareSheetOpened'));
         } catch (err) {
             console.error('Share failed:', err);
-            alert(isRTL ? 'השיתוף נכשל' : 'Share failed');
+            alert(t('contracts.shareFailed'));
         }
     };
 
@@ -460,7 +460,7 @@ const ContractsPage = () => {
             {isRefreshing && (
                 <div className="refresh-toast">
                     <RefreshCw size={18} className="spinning" />
-                    <span>{isRTL ? 'מרענן...' : 'Refreshing...'}</span>
+                    <span>{t('contracts.refreshing')}</span>
                 </div>
             )}
             {actionNotice && (
@@ -497,31 +497,31 @@ const ContractsPage = () => {
                                 type="text"
                                 value={editModal.fileName}
                                 onChange={e => setEditModal({ ...editModal, fileName: e.target.value })}
-                                placeholder="שם הקובץ"
+                                placeholder={t('contracts.fileNamePlaceholder')}
                             />
                         </div>
                         <div className="form-group">
-                            <label>כתובת הנכס</label>
+                            <label>{t('contracts.propertyAddress')}</label>
                             <input
                                 type="text"
                                 value={editModal.propertyAddress}
                                 onChange={e => setEditModal({ ...editModal, propertyAddress: e.target.value })}
-                                placeholder="כתובת"
+                                placeholder={t('contracts.propertyAddressPlaceholder')}
                             />
                         </div>
                         <div className="form-group">
-                            <label>שם המשכיר</label>
+                            <label>{t('contracts.landlordName')}</label>
                             <input
                                 type="text"
                                 value={editModal.landlordName}
                                 onChange={e => setEditModal({ ...editModal, landlordName: e.target.value })}
-                                placeholder="משכיר"
+                                placeholder={t('contracts.landlordNamePlaceholder')}
                             />
                         </div>
                         <div className="modal-buttons">
-                            <button className="btn-secondary" onClick={() => setEditModal(null)}>ביטול</button>
+                            <button className="btn-secondary" onClick={() => setEditModal(null)}>{t('contracts.cancel')}</button>
                             <button className="btn-primary" onClick={saveEdit} disabled={isSaving}>
-                                {isSaving ? 'שומר...' : 'שמירה'}
+                                {isSaving ? t('contracts.saving') : t('contracts.save')}
                             </button>
                         </div>
                     </div>
@@ -620,7 +620,7 @@ const ContractsPage = () => {
                         {isRTL ? '→' : '←'}
                     </button>
                     <span className="pagination-info">
-                        {isRTL ? `עמוד ${currentPage} מתוך ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                        {t('contracts.pageOf').replace('{current}', String(currentPage)).replace('{total}', String(totalPages))}
                     </span>
                     <button
                         className="pagination-btn"

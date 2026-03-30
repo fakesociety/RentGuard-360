@@ -37,12 +37,9 @@ const ScoreMethodology = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const popupRef = useRef(null);
     const containerRef = useRef(null);
-    const [popupStyle, setPopupStyle] = useState({});
 
-// מנגנון סגירה בלחיצה בחוץ (מעודכן ל-Portal)
     useEffect(() => {
         function handleClickOutside(event) {
-            // בודקים אם הלחיצה לא בתוך הכפתור ולא בתוך הפופאפ המרחף
             if (
                 containerRef.current && !containerRef.current.contains(event.target) &&
                 popupRef.current && !popupRef.current.contains(event.target)
@@ -58,22 +55,6 @@ const ScoreMethodology = () => {
         }
     }, [isExpanded]);
 
-    // חישוב המיקום ברגע הפתיחה
-    useEffect(() => {
-        if (isExpanded && containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            // ממקמים את הפופאפ בדיוק מעל הכפתור
-            setPopupStyle({
-                position: 'fixed',
-                bottom: window.innerHeight - rect.top + 12, // 12px מעל הכפתור
-                left: rect.left,
-                width: rect.width,
-                zIndex: 9999 // מעל הכל!
-            });
-        }
-    }, [isExpanded]);
-
-    // גלילה חכמה למעלה אם חסר מקום
     useEffect(() => {
         if (isExpanded && popupRef.current) {
             setTimeout(() => {

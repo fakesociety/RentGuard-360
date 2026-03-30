@@ -20,15 +20,19 @@
  */
 import React from 'react';
 import { Lightbulb, Check, RotateCcw } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import './RecommendationCard.css';
 
 const RecommendationCard = ({
-    title = 'הצעה לתיקון',
+    title,
     suggestion,
     onApply,
     onRevert,
     isApplied = false
 }) => {
+    const { t, isRTL } = useLanguage();
+    const cardTitle = title || t('recommendationCard.defaultTitle');
+
     if (!suggestion) return null;
 
     return (
@@ -39,11 +43,11 @@ const RecommendationCard = ({
                 {/* Header with icon and title */}
                 <div className="recommendation-header">
                     <Lightbulb className="recommendation-icon" size={18} />
-                    <span className="recommendation-title">{title}</span>
+                    <span className="recommendation-title">{cardTitle}</span>
                 </div>
 
                 {/* Suggestion text */}
-                <p className="recommendation-card-text" dir="rtl">
+                <p className="recommendation-card-text" dir={isRTL ? 'rtl' : 'ltr'}>
                     {suggestion}
                 </p>
 
@@ -53,15 +57,15 @@ const RecommendationCard = ({
                         <div className="applied-state">
                             <span className="applied-badge">
                                 <Check size={14} />
-                                הוחל
+                                {t('recommendationCard.applied')}
                             </span>
                             <button
                                 className="recommendation-revert-btn"
                                 onClick={onRevert}
-                                title="בטל שינויים וחזור למקור"
+                                title={t('recommendationCard.revertTitle')}
                             >
                                 <RotateCcw size={14} />
-                                <span>בטל</span>
+                                <span>{t('recommendationCard.revert')}</span>
                             </button>
                         </div>
                     ) : (
@@ -70,7 +74,7 @@ const RecommendationCard = ({
                             onClick={onApply}
                         >
                             <Check size={16} />
-                            <span>החל תיקון</span>
+                            <span>{t('recommendationCard.applyFix')}</span>
                         </button>
                     )}
                 </div>

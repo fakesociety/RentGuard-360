@@ -135,16 +135,16 @@ const AnalysisPage = () => {
 
     const getShareButtonLabel = useCallback(() => {
         if (isGeneratingShareLink) {
-            return isRTL ? 'יוצר קישור...' : 'Creating link...';
+            return t('analysis.shareButtonCreating');
         }
         if (shareLink && isSharePanelVisible) {
-            return isRTL ? 'הסתר קישור שיתוף' : 'Hide shared link';
+            return t('analysis.shareButtonHide');
         }
         if (shareLink && !isSharePanelVisible) {
-            return isRTL ? 'הצג קישור שיתוף פעיל' : 'Show shared link';
+            return t('analysis.shareButtonShow');
         }
-        return isRTL ? 'יצירת לינק שיתוף' : 'Create share link';
-    }, [isGeneratingShareLink, isRTL, isSharePanelVisible, shareLink]);
+        return t('analysis.shareButtonCreate');
+    }, [isGeneratingShareLink, isSharePanelVisible, shareLink, t]);
 
     const showExportNotice = useCallback((message) => {
         setExportNotice(message);
@@ -179,8 +179,8 @@ const AnalysisPage = () => {
             // Avoid flooding toasts on very frequent autosave cycles.
             if (now - lastSavingToastAtRef.current > 1500) {
                 showAppToast(
-                    isRTL ? 'שומר שינויים' : 'Saving changes',
-                    isRTL ? 'המערכת שומרת את העריכות שלך כעת.' : 'Your edits are being saved now.',
+                    t('analysis.toastSavingTitle'),
+                    t('analysis.toastSavingMessage'),
                     { ttlMs: 1500, type: 'info', icon: '⟳' }
                 );
                 lastSavingToastAtRef.current = now;
@@ -189,20 +189,20 @@ const AnalysisPage = () => {
 
         if (status === 'success') {
             showAppToast(
-                isRTL ? 'השינויים נשמרו' : 'Edits saved',
-                isRTL ? 'השינויים נשמרו אוטומטית בענן.' : 'Your edits were autosaved to the cloud.',
+                t('analysis.toastSavedTitle'),
+                t('analysis.toastSavedMessage'),
                 { type: 'success', icon: '✓' }
             );
         }
 
         if (status === 'error') {
             showAppToast(
-                isRTL ? 'שמירה נכשלה' : 'Save failed',
-                isRTL ? 'לא הצלחנו לשמור את העריכות. נסה שוב בעוד רגע.' : 'Could not save your edits. Please try again in a moment.',
+                t('analysis.toastSaveFailedTitle'),
+                t('analysis.toastSaveFailedMessage'),
                 { type: 'error', icon: '⚠' }
             );
         }
-    }, [contractEditState.saveStatus, isRTL, showAppToast]);
+    }, [contractEditState.saveStatus, showAppToast, t]);
 
     const copyTextToClipboard = useCallback(async (text) => {
         if (!text) return false;
@@ -227,39 +227,39 @@ const AnalysisPage = () => {
     const handleExportWord = useCallback(async () => {
         setIsExporting(true);
         try {
-            await exportToWord(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
-            showExportNotice(isRTL ? 'קובץ docx (Word) ירד למחשב' : 'Word (.docx) download started');
+            await exportToWord(analysis, analysis?.fileName || t('analysis.defaultReportName'));
+            showExportNotice(t('analysis.exportWordStarted'));
         } finally {
             setIsExporting(false);
             setShowExportMenu(false);
         }
-    }, [analysis, isRTL, showExportNotice]);
+    }, [analysis, showExportNotice, t]);
 
     const handleExportPdf = useCallback(async () => {
         setIsExporting(true);
         try {
-            await exportToPDF(analysis, analysis?.fileName || (isRTL ? 'דוח_ניתוח' : 'Analysis_Report'));
-            showExportNotice(isRTL ? 'קובץ PDF ירד למחשב' : 'PDF file download started');
+            await exportToPDF(analysis, analysis?.fileName || t('analysis.defaultReportName'));
+            showExportNotice(t('analysis.exportPdfStarted'));
         } finally {
             setIsExporting(false);
             setShowExportMenu(false);
         }
-    }, [analysis, isRTL, showExportNotice]);
+    }, [analysis, showExportNotice, t]);
 
     const handleCopyShareLink = useCallback(async () => {
         const shareContractId = analysis?.contractId || contractId;
         if (!shareContractId) {
-            showExportNotice(isRTL ? 'לא נמצא מזהה חוזה לשיתוף' : 'Missing contract id for sharing');
+            showExportNotice(t('analysis.missingShareContractId'));
             return;
         }
 
         if (shareLink) {
             if (isSharePanelVisible) {
                 setIsSharePanelVisible(false);
-                showExportNotice(isRTL ? 'פאנל השיתוף הוסתר' : 'Share panel hidden');
+                showExportNotice(t('analysis.sharePanelHidden'));
             } else {
                 focusSharePanel();
-                showExportNotice(isRTL ? 'קישור שיתוף פעיל מוצג' : 'Active share link is shown');
+                showExportNotice(t('analysis.sharePanelShown'));
             }
             setShowExportMenu(false);
             return;
@@ -289,15 +289,15 @@ const AnalysisPage = () => {
             setIsSharePanelVisible(true);
             persistShareLink(shareContractId, url, shareResult?.expiresAt || null);
             focusSharePanel();
-            showExportNotice(isRTL ? 'קישור שיתוף נוצר. אפשר להעתיק או לשתף מהפאנל.' : 'Share link created. Copy or share it from the panel.');
+            showExportNotice(t('analysis.shareCreated'));
         } catch (err) {
             console.error('Failed to create share link', err);
-            showExportNotice(isRTL ? 'שגיאה ביצירת קישור שיתוף' : 'Failed to create share link');
+            showExportNotice(t('analysis.shareCreateFailed'));
         } finally {
             setIsGeneratingShareLink(false);
             setShowExportMenu(false);
         }
-    }, [analysis?.contractId, contractId, focusSharePanel, isRTL, isSharePanelVisible, persistShareLink, shareLink, showExportNotice, userAttributes?.sub]);
+    }, [analysis?.contractId, contractId, focusSharePanel, isSharePanelVisible, persistShareLink, shareLink, showExportNotice, t, userAttributes?.sub]);
 
     const handleManualCopyShareLink = useCallback(async () => {
         if (!shareLink) return;
@@ -305,14 +305,14 @@ const AnalysisPage = () => {
         try {
             await copyTextToClipboard(shareLink);
             showAppToast(
-                isRTL ? 'הקישור הועתק בהצלחה' : 'Link copied successfully',
-                isRTL ? 'אפשר להדביק ולשתף בכל אפליקציה.' : 'You can now paste and share it anywhere.'
+                t('analysis.shareCopiedTitle'),
+                t('analysis.shareCopiedMessage')
             );
         } catch (err) {
             console.error('Failed to copy share link', err);
-            showExportNotice(isRTL ? 'שגיאה בהעתקת הקישור' : 'Failed to copy link');
+            showExportNotice(t('analysis.shareCopyFailed'));
         }
-    }, [copyTextToClipboard, isRTL, shareLink, showAppToast, showExportNotice]);
+    }, [copyTextToClipboard, shareLink, showAppToast, showExportNotice, t]);
 
     const handleShareLinkViaApps = useCallback(async () => {
         if (!shareLink) return;
@@ -325,24 +325,24 @@ const AnalysisPage = () => {
         setIsSharingLink(true);
         try {
             await navigator.share({
-                title: isRTL ? 'חוזה משותף מ-RentGuard 360' : 'Shared contract from RentGuard 360',
-                text: isRTL ? 'צפייה בחוזה (קריאה בלבד):' : 'View the contract (read-only):',
+                title: t('analysis.shareNativeTitle'),
+                text: t('analysis.shareNativeText'),
                 url: shareLink,
             });
         } catch (err) {
             if (err?.name !== 'AbortError') {
                 console.error('Failed to share link via apps', err);
-                showExportNotice(isRTL ? 'שגיאה בשיתוף הקישור' : 'Failed to share link');
+                showExportNotice(t('analysis.shareFailed'));
             }
         } finally {
             setIsSharingLink(false);
         }
-    }, [handleManualCopyShareLink, isRTL, shareLink, showExportNotice]);
+    }, [handleManualCopyShareLink, shareLink, showExportNotice, t]);
 
     const handleRevokeShareLink = useCallback(async () => {
         const shareContractId = analysis?.contractId || contractId;
         if (!shareContractId) {
-            showExportNotice(isRTL ? 'לא נמצא מזהה חוזה לשיתוף' : 'Missing contract id for sharing');
+            showExportNotice(t('analysis.missingShareContractId'));
             return;
         }
 
@@ -354,16 +354,16 @@ const AnalysisPage = () => {
             setIsSharePanelVisible(false);
             clearShareLinkCache(shareContractId);
             showAppToast(
-                isRTL ? 'קישור השיתוף בוטל' : 'Share link revoked',
-                isRTL ? 'הקישור הישן כבר לא פעיל.' : 'The old link is no longer active.'
+                t('analysis.shareRevokedTitle'),
+                t('analysis.shareRevokedMessage')
             );
         } catch (err) {
             console.error('Failed to revoke share link', err);
-            showExportNotice(isRTL ? 'שגיאה בביטול קישור שיתוף' : 'Failed to revoke share link');
+            showExportNotice(t('analysis.shareRevokeFailed'));
         } finally {
             setIsRevokingShareLink(false);
         }
-    }, [analysis?.contractId, clearShareLinkCache, contractId, isRTL, showAppToast, showExportNotice]);
+    }, [analysis?.contractId, clearShareLinkCache, contractId, showAppToast, showExportNotice, t]);
 
     const handleSaveToCloud = useCallback(async (clauses, fullEditedText) => {
         const userId = userAttributes?.sub || 'unknown-user';
@@ -395,27 +395,27 @@ const AnalysisPage = () => {
 
             if (errorMsg.includes('404')) {
                 setError({
-                    title: 'Analysis Not Ready',
-                    message: `Your contract is still being processed. Auto-checking... (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`,
+                    title: t('analysis.errors.notReadyTitle'),
+                    message: `${t('analysis.errors.notReadyMessage')} (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`,
                     type: 'processing'
                 });
             } else if (errorMsg.includes('FAILED') || errorMsg.includes('ValidationException')) {
                 setError({
-                    title: 'Analysis Failed',
-                    message: 'There was an error analyzing your contract. Our team has been notified. Please try uploading again.',
+                    title: t('analysis.errors.failedTitle'),
+                    message: t('analysis.errors.failedMessage'),
                     type: 'failed',
                     details: errorMsg
                 });
             } else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
                 setError({
-                    title: 'Analysis Timed Out',
-                    message: 'The analysis is taking longer than expected. Please check back in a few minutes.',
+                    title: t('analysis.errors.timeoutTitle'),
+                    message: t('analysis.errors.timeoutMessage'),
                     type: 'timeout'
                 });
             } else {
                 setError({
-                    title: 'Something Went Wrong',
-                    message: 'Failed to load analysis results. Please try again.',
+                    title: t('analysis.errors.genericTitle'),
+                    message: t('analysis.errors.genericMessage'),
                     type: 'error',
                     details: errorMsg
                 });
@@ -423,7 +423,7 @@ const AnalysisPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [contractId, pollCount]);
+    }, [contractId, pollCount, t]);
 
     useEffect(() => {
         fetchAnalysis();
@@ -517,20 +517,23 @@ const AnalysisPage = () => {
 
     const getShareExpiryLabel = useCallback(() => {
         if (!shareLinkExpiresAt) {
-            return isRTL ? 'בתוקף ל-7 ימים' : 'Valid for 7 days';
+            return t('analysis.shareExpiryDefault');
         }
 
         const secondsLeft = Math.floor(shareLinkExpiresAt - (Date.now() / 1000));
         if (secondsLeft <= 0) {
-            return isRTL ? 'פג תוקף' : 'Expired';
+            return t('analysis.shareExpiryExpired');
         }
 
         const daysLeft = Math.ceil(secondsLeft / 86400);
         if (isRTL) {
-            return `בתוקף לעוד ${daysLeft} ימים`;
+            return t('analysis.shareExpiryDays').replace('{days}', String(daysLeft));
         }
-        return `Valid for ${daysLeft} more day${daysLeft === 1 ? '' : 's'}`;
-    }, [isRTL, shareLinkExpiresAt]);
+        if (daysLeft === 1) {
+            return t('analysis.shareExpiryDaysOne');
+        }
+        return t('analysis.shareExpiryDaysMany').replace('{days}', String(daysLeft));
+    }, [isRTL, shareLinkExpiresAt, t]);
 
     const getRiskLabel = (level) => {
         const labels = { High: 'high', Medium: 'medium', Low: 'low' };
@@ -573,12 +576,12 @@ const AnalysisPage = () => {
                     <p>{error.message}</p>
                     {error.details && (
                         <details className="error-details">
-                            <summary>{isRTL ? 'פרטים טכניים' : 'Technical Details'}</summary>
+                            <summary>{t('analysis.technicalDetails')}</summary>
                             <pre>{error.details}</pre>
                         </details>
                     )}
                     <div className="error-actions">
-                        <Button variant="primary" onClick={fetchAnalysis}>{isRTL ? 'נסה שוב' : 'Try Again'}</Button>
+                        <Button variant="primary" onClick={fetchAnalysis}>{t('analysis.tryAgain')}</Button>
                         <Link to="/contracts">
                             <Button variant="secondary">{t('analysis.backToContracts')}</Button>
                         </Link>
@@ -601,7 +604,7 @@ const AnalysisPage = () => {
                 <div className="analysis-header animate-fadeIn no-print">
                     <h1>{t('analysis.title')}</h1>
                     <Link to="/contracts" className="back-button-premium">
-                        {isRTL ? 'חזרה לחוזים' : 'Back to Contracts'}
+                        {t('analysis.backToContracts')}
                         {isRTL ? <ArrowLeft className="arrow" size={20} /> : <ArrowRight className="arrow" size={20} />}
                     </Link>
                 </div>
@@ -618,7 +621,7 @@ const AnalysisPage = () => {
                                         <div className="icon-glow"></div>
                                     </div>
                                     <h3 className="contract-hero-title">
-                                        {analysis?.fileName || (isRTL ? 'מסמך חוזה' : 'Contract Document')}
+                                        {analysis?.fileName || t('analysis.contractDocument')}
                                     </h3>
                                 </div>
 
@@ -665,7 +668,7 @@ const AnalysisPage = () => {
                                     <ScrollText size={16} strokeWidth={2} />
                                     <span>{t('analysis.summary')}</span>
                                 </h4>
-                                <p>{result?.summary || (isRTL ? 'הניתוח הושלם.' : 'Analysis complete.')}</p>
+                                <p>{result?.summary || t('analysis.analysisComplete')}</p>
                                 {result?.is_contract === false && (
                                     <div className="not-contract-warning">
                                         <AlertTriangle size={15} strokeWidth={2} />
@@ -702,17 +705,17 @@ const AnalysisPage = () => {
                                     triggerContent={`${t('analysis.export')} ${showExportMenu ? '▲' : '▼'}`}
                                     panelClassName="export-menu-sidebar"
                                 >
-                                    <div className="export-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
-                                    <div className="export-menu-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
+                                    <div className="export-menu-title">{t('analysis.exportMenuTitle')}</div>
+                                    <div className="export-menu-group-title">{t('analysis.exportMenuDownload')}</div>
                                     <button onClick={handleExportWord} disabled={isExporting}>
-                                        {isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}
-                                        <span className="export-note">{isRTL ? '(ייצוא כקובץ docx (Word), ניתן לעריכה מלאה)' : '(.docx editable, best Hebrew support)'}</span>
+                                        {t('analysis.exportMenuWordTitle')}
+                                        <span className="export-note">{t('analysis.exportMenuWordNote')}</span>
                                     </button>
                                     <button onClick={handleExportPdf} disabled={isExporting}>
-                                        {isRTL ? 'הורדה PDF - דוח ניתוח' : 'Download PDF - Analysis Report'}
-                                        <span className="export-note">{isRTL ? '(תצוגה ושיתוף מהיר, אנגלית בלבד)' : '(best for quick viewing/sharing, English only)'}</span>
+                                        {t('analysis.exportMenuPdfTitle')}
+                                        <span className="export-note">{t('analysis.exportMenuPdfNote')}</span>
                                     </button>
-                                    <div className="export-menu-group-title">{isRTL ? 'שיתוף' : 'Share'}</div>
+                                    <div className="export-menu-group-title">{t('analysis.exportMenuShare')}</div>
                                     <button onClick={handleCopyShareLink} disabled={isGeneratingShareLink}>
                                         <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
                                         {getShareButtonLabel()}
@@ -742,7 +745,7 @@ const AnalysisPage = () => {
                                 className={`tab-btn ${activeTab === 'contract' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('contract')}
                             >
-                                {isRTL ? 'החוזה המלא' : 'Full Contract'}
+                                {t('analysis.fullContractTab')}
                             </button>
                         </div>
 
@@ -792,7 +795,7 @@ const AnalysisPage = () => {
                                                             </span>
                                                             {issue.penalty_points && (
                                                                 <span className="points-badge">
-                                                                    -{issue.penalty_points} {isRTL ? 'נקודות' : 'points'}
+                                                                    -{issue.penalty_points} {t('analysis.points')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -812,7 +815,7 @@ const AnalysisPage = () => {
                                                                 <FileText size={18} />
                                                             </div>
                                                             <div className="section-body">
-                                                                <h4 className="section-label">{isRTL ? 'הסעיף המקורי' : t('analysis.original')}</h4>
+                                                                <h4 className="section-label">{t('analysis.originalClause')}</h4>
                                                                 <blockquote className="original-quote">
                                                                     "{issue.original_text}"
                                                                 </blockquote>
@@ -827,7 +830,7 @@ const AnalysisPage = () => {
                                                                 <Scale size={18} />
                                                             </div>
                                                             <div className="section-body">
-                                                                <h4 className="section-label">{isRTL ? 'בסיס משפטי' : 'Legal Basis'}</h4>
+                                                                <h4 className="section-label">{t('analysis.legalBasis')}</h4>
                                                                 <p className="legal-basis-text">{issue.legal_basis}</p>
                                                             </div>
                                                         </div>
@@ -839,7 +842,7 @@ const AnalysisPage = () => {
                                                             <Lightbulb size={18} />
                                                         </div>
                                                         <div className="section-body">
-                                                            <h4 className="section-label">{isRTL ? 'למה זה חשוב?' : 'Why It Matters'}</h4>
+                                                            <h4 className="section-label">{t('analysis.whyItMatters')}</h4>
                                                             <p className="explanation-text">{issue.explanation}</p>
                                                         </div>
                                                     </div>
@@ -851,7 +854,7 @@ const AnalysisPage = () => {
                                                                 <CheckCircle size={18} />
                                                             </div>
                                                             <div className="section-body">
-                                                                <h4 className="section-label">{isRTL ? 'הנוסח המומלץ' : t('analysis.recommendation')}</h4>
+                                                                <h4 className="section-label">{t('analysis.recommendedClause')}</h4>
                                                                 <div className="recommendation-box">
                                                                     <p className="recommendation-text">{issue.suggested_fix}</p>
                                                                     <button
@@ -885,7 +888,7 @@ const AnalysisPage = () => {
                                                                 <MessageCircle size={18} />
                                                             </div>
                                                             <div className="section-body">
-                                                                <h4 className="section-label tip-label">{isRTL ? 'טיפ למשא ומתן' : 'Negotiation Tip'}</h4>
+                                                                <h4 className="section-label tip-label">{t('analysis.negotiationTip')}</h4>
                                                                 <p className="tip-text">{issue.negotiation_tip}</p>
                                                             </div>
                                                         </div>
@@ -906,8 +909,8 @@ const AnalysisPage = () => {
                                             <span className="no-issues-icon warning" aria-hidden="true">
                                                 <AlertTriangle size={40} strokeWidth={2} />
                                             </span>
-                                            <h3>{isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}</h3>
-                                            <p>{isRTL ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. אנא העלו חוזה שכירות למגורים בפורמט PDF.' : 'The uploaded document does not appear to be a valid rental contract. Please upload a residential rental contract in PDF format.'}</p>
+                                            <h3>{t('analysis.notRentalTitle')}</h3>
+                                            <p>{t('analysis.notRentalDescription')}</p>
                                         </>
                                     ) : (
                                         <>
@@ -915,7 +918,7 @@ const AnalysisPage = () => {
                                                 <ShieldCheck size={40} strokeWidth={2} />
                                             </span>
                                             <h3>{t('analysis.noIssues')}</h3>
-                                            <p>{isRTL ? 'חוזה זה נראה תקין ללא דגלים אדומים משמעותיים.' : 'This contract appears to be in good standing with no significant red flags.'}</p>
+                                            <p>{t('analysis.noIssuesDescription')}</p>
                                         </>
                                     )}
                                 </div>
@@ -942,7 +945,7 @@ const AnalysisPage = () => {
                                                 color: 'var(--warning-color)',
                                                 marginBottom: '0.75rem'
                                             }}>
-                                                {isRTL ? 'זה לא חוזה שכירות' : 'Not a Rental Contract'}
+                                                {t('analysis.notRentalTitle')}
                                             </h3>
                                             <p style={{
                                                 fontSize: '1rem',
@@ -950,9 +953,7 @@ const AnalysisPage = () => {
                                                 maxWidth: '450px',
                                                 lineHeight: '1.6'
                                             }}>
-                                                {isRTL
-                                                    ? 'המסמך שהועלה אינו נראה כחוזה שכירות תקין. לא ניתן להציג את תוכן החוזה.'
-                                                    : 'The uploaded document does not appear to be a valid rental contract. Cannot display contract content.'}
+                                                {t('analysis.notRentalContentDescription')}
                                             </p>
                                         </div>
                                     </Card>
@@ -986,7 +987,7 @@ const AnalysisPage = () => {
                             <div className="contract-export-bar no-print">
                                 <div className="export-actions-row">
                                     <button className="export-btn-main" onClick={() => contractViewRef.current?.handleExport()}>
-                                        <span className="export-btn-label">{isRTL ? 'ייצוא כקובץ docx (Word)' : 'Export to Word (.docx)'}</span>
+                                        <span className="export-btn-label">{t('analysis.exportEditedWord')}</span>
                                     </button>
                                     <button
                                         className="export-btn-main"
@@ -1003,11 +1004,11 @@ const AnalysisPage = () => {
                                     <div className={`reset-btn-wrapper ${contractEditState.editedCount > 0 ? 'show' : ''}`}>
                                         <button
                                             className="export-btn-secondary"
-                                            title={isRTL ? 'איפוס כל העריכות שביצעת' : 'Reset all edited clauses'}
+                                            title={t('analysis.resetEditsTitle')}
                                             onClick={() => contractViewRef.current?.requestClearAll()}
                                         >
                                             <Eraser size={15} aria-hidden="true" />
-                                            <span>{isRTL ? 'איפוס עריכות' : 'Reset edits'}</span>
+                                            <span>{t('analysis.resetEdits')}</span>
                                             <span className="export-btn-counter">{contractEditState.editedCount}</span>
                                         </button>
                                     </div>
@@ -1019,7 +1020,7 @@ const AnalysisPage = () => {
                         {activeTab === 'contract' && result?.is_contract !== false && shareLink && isSharePanelVisible && (
                             <div ref={sharePanelRef} className="share-link-panel no-print">
                                 <div className="share-link-panel-header">
-                                    <div className="share-link-title">{isRTL ? 'קישור שיתוף מאובטח' : 'Secure share link'}</div>
+                                    <div className="share-link-title">{t('analysis.secureShareLink')}</div>
                                     <div className="share-link-expiry">{getShareExpiryLabel()}</div>
                                 </div>
 
@@ -1030,14 +1031,14 @@ const AnalysisPage = () => {
                                         value={shareLink}
                                         className="share-link-input"
                                         onFocus={(e) => e.target.select()}
-                                        aria-label={isRTL ? 'קישור שיתוף' : 'Share link'}
+                                        aria-label={t('analysis.shareLinkAria')}
                                     />
                                 </div>
 
                                 <div className="share-link-actions">
                                     <button className="share-link-btn primary" onClick={handleManualCopyShareLink}>
                                         <Copy size={15} />
-                                        <span>{isRTL ? 'העתק קישור' : 'Copy link'}</span>
+                                        <span>{t('analysis.copyLink')}</span>
                                     </button>
                                     <button
                                         className="share-link-btn"
@@ -1047,8 +1048,8 @@ const AnalysisPage = () => {
                                         <Share2 size={15} />
                                         <span>
                                             {isSharingLink
-                                                ? (isRTL ? 'משתף...' : 'Sharing...')
-                                                : (isRTL ? 'שתף באפליקציות' : 'Share via apps')}
+                                                ? t('analysis.sharing')
+                                                : t('analysis.shareViaApps')}
                                         </span>
                                     </button>
                                     <a
@@ -1058,7 +1059,7 @@ const AnalysisPage = () => {
                                         rel="noreferrer"
                                     >
                                         <ExternalLink size={15} />
-                                        <span>{isRTL ? 'פתח קישור' : 'Open link'}</span>
+                                        <span>{t('analysis.openLink')}</span>
                                     </a>
                                     <button
                                         className="share-link-btn revoke share-link-btn-end"
@@ -1068,8 +1069,8 @@ const AnalysisPage = () => {
                                         <Trash2 size={15} />
                                         <span>
                                             {isRevokingShareLink
-                                                ? (isRTL ? 'מבטל קישור...' : 'Revoking...')
-                                                : (isRTL ? 'ביטול קישור' : 'Revoke link')}
+                                                ? t('analysis.revoking')
+                                                : t('analysis.revokeLink')}
                                         </span>
                                     </button>
                                 </div>

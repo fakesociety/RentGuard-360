@@ -67,7 +67,7 @@ const ContractView = forwardRef(({
     onSaveToCloud,
     onEditStateChange,
 }, ref) => {
-    const { isRTL } = useLanguage();
+    const { t, isRTL } = useLanguage();
     const [editedClauses, setEditedClauses] = useState(() => initialEditedClauses || {});
     const editedClausesRef = useRef(initialEditedClauses || {});
     const [showOnlyIssues, setShowOnlyIssues] = useState(false);
@@ -399,7 +399,7 @@ const ContractView = forwardRef(({
             }));
         } catch (error) {
             console.error('Consult clause error:', error);
-            setConsultError('שגיאה בקבלת הסבר. נסה שוב.');
+            setConsultError(t('contractView.consultError'));
         } finally {
             setConsultingClauseId(null);
         }
@@ -415,14 +415,14 @@ const ContractView = forwardRef(({
     const handleExport = useCallback(async () => {
         const currentEdits = editedClausesRef.current || {};
         const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        await exportEditedContractWithSignatures(clauseTexts, currentEdits, 'חוזה_שכירות_ערוך');
-    }, [clauses, getClauseTextFromEdits]);
+        await exportEditedContractWithSignatures(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+    }, [clauses, getClauseTextFromEdits, t]);
 
     const handleGetDocxBlob = useCallback(async () => {
         const currentEdits = editedClausesRef.current || {};
         const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        return await exportEditedContractWithSignaturesBlob(clauseTexts, currentEdits, 'חוזה_שכירות_ערוך');
-    }, [clauses, getClauseTextFromEdits]);
+        return await exportEditedContractWithSignaturesBlob(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+    }, [clauses, getClauseTextFromEdits, t]);
 
     const getCurrentEditedPayload = useCallback(() => {
         const currentEdits = editedClausesRef.current || {};
@@ -483,17 +483,17 @@ return (
                         <button 
                             className="minimize-pdf-btn" 
                             onClick={() => setIsMinimized(!isMinimized)}
-                            title={isMinimized ? (isRTL ? 'הרחב חוזה' : 'Expand') : (isRTL ? 'כווץ מסמך' : 'Collapse')}
+                            title={isMinimized ? t('contractView.expand') : t('contractView.collapse')}
                         >
                             {isMinimized ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-                            <span>{isMinimized ? (isRTL ? 'הרחב חוזה' : 'Expand') : (isRTL ? 'כווץ מסמך' : 'Collapse')}</span>
+                            <span>{isMinimized ? t('contractView.expand') : t('contractView.collapse')}</span>
                         </button>
                     </div>
 
                     {/* ===== HEBREW HEADER ===== */}
                     <header className="contract-header-formal">
-                        <h1 className="contract-main-title">חוזה שכירות בלתי מוגנת</h1>
-                        <p className="contract-subtitle">נערך ונחתם ביום ________________</p>
+                        <h1 className="contract-main-title">{t('contractView.contractTitle')}</h1>
+                        <p className="contract-subtitle">{t('contractView.contractSubtitle')}</p>
                     </header>
 
                     {/* Show content only if NOT minimized */}
@@ -509,20 +509,20 @@ return (
                                                 checked={showOnlyIssues}
                                                 onChange={(e) => setShowOnlyIssues(e.target.checked)}
                                             />
-                                            הצג רק סעיפים בעייתיים
+                                            {t('contractView.showOnlyProblemClauses')}
                                         </label>
                                     )}
                                 </div>
                                 <div className="toolbar-stats">
-                                    <span className="stat-badge total">{stats.total} סעיפים</span>
+                                    <span className="stat-badge total">{stats.total} {t('contractView.clausesCountSuffix')}</span>
                                     {stats.withIssues > 0 && (
                                         <span className="stat-badge issues">
-                                            <AlertTriangle size={14} /> {stats.withIssues} בעיות
+                                            <AlertTriangle size={14} /> {stats.withIssues} {t('contractView.issuesCountSuffix')}
                                         </span>
                                     )}
                                     {stats.edited > 0 && (
                                         <span className="stat-badge edited">
-                                            <Edit3 size={14} /> {stats.edited} נערכו
+                                            <Edit3 size={14} /> {stats.edited} {t('contractView.editedCountSuffix')}
                                         </span>
                                     )}
                                 </div>
@@ -534,9 +534,9 @@ return (
                                     <div className="no-clauses">
                                         {showOnlyIssues ? (
                                             <div className="no-issues-message">
-                                                <PartyPopper size={20} /> לא נמצאו בעיות!
+                                                <PartyPopper size={20} /> {t('contractView.noIssuesFound')}
                                             </div>
-                                        ) : 'לא נמצא טקסט.'}
+                                        ) : t('contractView.noTextFound')}
                                     </div>
                                 ) : (
                                     filteredClauses.map((clause) => (
@@ -567,7 +567,7 @@ return (
                                                                     className="action-btn consult-btn"
                                                                     onClick={(e) => handleConsultClause(clause, e)}
                                                                     disabled={consultingClauseId === clause.id}
-                                                                    title="קבל הסבר על הסעיף"
+                                                                    title={t('contractView.getClauseExplanation')}
                                                                 >
                                                                     {consultingClauseId === clause.id 
                                                                         ? <Loader2 className="spin" size={16} /> 
@@ -581,7 +581,7 @@ return (
                                                 {/* Edit Hint Overlay */}
                                                 {!readOnly && (
                                                     <div className="clause-hover-hint no-print">
-                                                        <Pen size={14} /> עריכה
+                                                        <Pen size={14} /> {t('contractView.edit')}
                                                     </div>
                                                 )}
                                             </div>
@@ -594,7 +594,7 @@ return (
                                                         onClick={() => toggleExplanation(clause.id)}
                                                     >
                                                         <span className="explanation-title">
-                                                            <Sparkles size={16} /> הסבר AI
+                                                            <Sparkles size={16} /> {t('contractView.aiExplanation')}
                                                         </span>
                                                         <button className="toggle-explanation">
                                                             {expandedExplanations[clause.id] ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
@@ -611,7 +611,7 @@ return (
                                             {/* Suggested Fix */}
                                             {!readOnly && clause.hasIssue && clause.issue?.suggested_fix && (
                                                 <RecommendationCard
-                                                    title="הצעה לתיקון"
+                                                    title={t('contractView.fixSuggestion')}
                                                     suggestion={clause.issue.suggested_fix}
                                                     isApplied={!!editedClauses[clause.id]}
                                                     onApply={() => {
@@ -632,22 +632,22 @@ return (
                             {/* ===== SIGNATURE FOOTER ===== */}
                             <footer className="contract-footer-signature">
                                 <div className="signature-section">
-                                    <h3>חתימות</h3>
+                                    <h3>{t('contractView.signaturesTitle')}</h3>
                                     <div className="signatures">
                                         <div className="signature-block">
                                             <div className="signature-line"></div>
-                                            <p>המשכיר</p>
-                                            <p className="signature-placeholder">שם: ________________</p>
-                                            <p className="signature-placeholder">ת.ז.: ________________</p>
+                                            <p>{t('contractView.landlord')}</p>
+                                            <p className="signature-placeholder">{t('contractView.namePlaceholder')}</p>
+                                            <p className="signature-placeholder">{t('contractView.idPlaceholder')}</p>
                                         </div>
                                         <div className="signature-block">
                                             <div className="signature-line"></div>
-                                            <p>השוכר</p>
-                                            <p className="signature-placeholder">שם: ________________</p>
-                                            <p className="signature-placeholder">ת.ז.: ________________</p>
+                                            <p>{t('contractView.tenant')}</p>
+                                            <p className="signature-placeholder">{t('contractView.namePlaceholder')}</p>
+                                            <p className="signature-placeholder">{t('contractView.idPlaceholder')}</p>
                                         </div>
                                     </div>
-                                    <p className="signature-date">תאריך: ________________</p>
+                                    <p className="signature-date">{t('contractView.datePlaceholder')}</p>
                                 </div>
                             </footer>
 
@@ -662,13 +662,13 @@ return (
                     <button
                         className={`scroll-nav-btn no-print ${isAtBottom ? 'at-bottom' : ''}`}
                         onClick={isAtBottom ? scrollToTop : scrollToBottom}
-                        title={isAtBottom ? 'גלול למעלה' : 'גלול לחתימות'}
+                        title={isAtBottom ? t('contractView.scrollUp') : t('contractView.scrollToSignatures')}
                     >
                         {isAtBottom
                             ? <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
                             : <ArrowDown size={16} strokeWidth={2.4} aria-hidden="true" />}
                         <span className="scroll-btn-label">
-                            {isAtBottom ? 'למעלה' : 'לחתימות'}
+                            {isAtBottom ? t('contractView.up') : t('contractView.toSignatures')}
                         </span>
                     </button>
                 )}
@@ -686,7 +686,7 @@ return (
                     >
                         <div className="popup-header">
                             <h3 className="popup-title">
-                                <Edit3 size={20} /> עריכת סעיף
+                                <Edit3 size={20} /> {t('contractView.editClause')}
                             </h3>
                             <button
                                 className="popup-close"
@@ -698,7 +698,7 @@ return (
 
                         <div className="popup-body" dir="rtl">
                             <div className="popup-section">
-                                <label>סעיף מקורי:</label>
+                                <label>{t('contractView.originalClauseLabel')}</label>
                                 <div className="popup-original-text">
                                     {selectedClause.text}
                                 </div>
@@ -708,7 +708,7 @@ return (
                                 <div className="popup-section popup-suggested-modern">
                                     <div className="popup-suggested-header">
                                         <span className="popup-suggested-icon"><Sparkles size={16} /></span>
-                                        <label>הצעת תיקון AI</label>
+                                        <label>{t('contractView.aiFixSuggestionLabel')}</label>
                                     </div>
                                     <div className="popup-suggested-text">
                                         {selectedClause.issue.suggested_fix}
@@ -717,27 +717,27 @@ return (
                                         className="popup-apply-btn-modern"
                                         onClick={applySuggestedFix}
                                     >
-                                        <Check size={16} /> החל הצעה
+                                        <Check size={16} /> {t('contractView.applySuggestion')}
                                     </button>
                                 </div>
                             )}
 
                             <div className="popup-section">
-                                <label>עריכה:</label>
+                                <label>{t('contractView.editLabel')}</label>
                                 <textarea
                                     className="popup-textarea"
                                     value={editingText}
                                     onChange={(e) => setEditingText(e.target.value)}
                                     dir="rtl"
                                     rows={6}
-                                    placeholder="ערוך את הסעיף כאן..."
+                                    placeholder={t('contractView.editPlaceholder')}
                                 />
                             </div>
                         </div>
 
                         <div className="popup-footer">
                             <button className="popup-save-btn action-with-icon" onClick={saveEdit}>
-                                <Check size={16} /> סיום עריכה
+                                <Check size={16} /> {t('contractView.finishEditing')}
                             </button>
 
                             {selectedClause.isEdited && (
@@ -745,12 +745,12 @@ return (
                                     className="popup-revert-btn action-with-icon"
                                     onClick={(e) => requestRevert(selectedClause.id, e)}
                                 >
-                                    <Undo2 size={16} /> חזור למקור
+                                    <Undo2 size={16} /> {t('contractView.revertToOriginal')}
                                 </button>
                             )}
 
                             <button className="popup-cancel-btn" onClick={closeEditor}>
-                                ביטול
+                                {t('contractView.cancel')}
                             </button>
                         </div>
                     </div>
@@ -777,12 +777,12 @@ return (
                     >
                         <div className="popup-header warning-header">
                             <h3 className="popup-title">
-                                <AlertTriangle size={20} /> אישור ביטול
+                                <AlertTriangle size={20} /> {t('contractView.confirmRevertTitle')}
                             </h3>
                         </div>
                         <div className="popup-body center-text">
                             <p className="modal-description">
-                                האם אתה בטוח שברצונך לבטל את העריכה ולחזור לטקסט המקורי?
+                                {t('contractView.confirmRevertMessage')}
                             </p>
                         </div>
                         <div className="popup-footer center-footer">
@@ -790,13 +790,13 @@ return (
                                 className="popup-revert-btn fixed-width"
                                 onClick={confirmRevert}
                             >
-                                כן, בטל עריכה
+                                {t('contractView.confirmRevertYes')}
                             </button>
                             <button
                                 className="popup-cancel-btn fixed-width"
                                 onClick={cancelRevert}
                             >
-                                לא, השאר
+                                {t('contractView.confirmRevertNo')}
                             </button>
                         </div>
                     </div>
@@ -812,15 +812,15 @@ return (
                     >
                         <div className="popup-header warning-header">
                             <h3 className="popup-title">
-                                <AlertTriangle size={20} /> מחיקת כל העריכות
+                                <AlertTriangle size={20} /> {t('contractView.clearAllTitle')}
                             </h3>
                         </div>
                         <div className="popup-body center-text">
                             <p className="modal-description">
-                                האם אתה בטוח שברצונך למחוק את כל העריכות שביצעת בחוזה זה?
+                                {t('contractView.clearAllMessage')}
                                 <br />
                                 <span className="warning-text">
-                                    פעולה זו אינה הפיכה.
+                                    {t('contractView.irreversibleWarning')}
                                 </span>
                             </p>
                         </div>
@@ -836,13 +836,13 @@ return (
                                     setShowClearAllConfirm(false);
                                 }}
                             >
-                                כן, מחק הכל
+                                {t('contractView.clearAllYes')}
                             </button>
                             <button
                                 className="popup-cancel-btn fixed-width"
                                 onClick={() => setShowClearAllConfirm(false)}
                             >
-                                ביטול
+                                {t('contractView.cancel')}
                             </button>
                         </div>
                     </div>
@@ -869,12 +869,12 @@ return (
                     >
                         <div className="popup-header warning-header">
                             <h3 className="popup-title">
-                                <AlertTriangle size={20} /> אישור ביטול
+                                <AlertTriangle size={20} /> {t('contractView.confirmRevertTitle')}
                             </h3>
                         </div>
                         <div className="popup-body center-text">
                             <p className="modal-description">
-                                האם אתה בטוח שברצונך לבטל את העריכה ולחזור לטקסט המקורי?
+                                {t('contractView.confirmRevertMessage')}
                             </p>
                         </div>
                         <div className="popup-footer center-footer">
@@ -882,13 +882,13 @@ return (
                                 className="popup-revert-btn fixed-width"
                                 onClick={confirmRevert}
                             >
-                                כן, בטל עריכה
+                                {t('contractView.confirmRevertYes')}
                             </button>
                             <button
                                 className="popup-cancel-btn fixed-width"
                                 onClick={cancelRevert}
                             >
-                                לא, השאר
+                                {t('contractView.confirmRevertNo')}
                             </button>
                         </div>
                     </div>
@@ -904,14 +904,14 @@ return (
                     >
                         <div className="popup-header warning-header">
                             <h3 className="popup-title">
-                                <AlertTriangle size={20} /> מחיקת כל העריכות
+                                <AlertTriangle size={20} /> {t('contractView.clearAllTitle')}
                             </h3>
                         </div>
                         <div className="popup-body center-text">
                             <p className="modal-description">
-                                האם אתה בטוח שברצונך למחוק את כל העריכות שביצעת בחוזה זה?
+                                {t('contractView.clearAllMessage')}
                                 <br />
-                                <span className="warning-text">פעולה זו אינה הפיכה.</span>
+                                <span className="warning-text">{t('contractView.irreversibleWarning')}</span>
                             </p>
                         </div>
                         <div className="popup-footer center-footer">
@@ -926,13 +926,13 @@ return (
                                     setShowClearAllConfirm(false);
                                 }}
                             >
-                                כן, מחק הכל
+                                {t('contractView.clearAllYes')}
                             </button>
                             <button
                                 className="popup-cancel-btn fixed-width"
                                 onClick={() => setShowClearAllConfirm(false)}
                             >
-                                ביטול
+                                {t('contractView.cancel')}
                             </button>
                         </div>
                     </div>

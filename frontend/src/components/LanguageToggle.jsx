@@ -16,17 +16,17 @@ import { useLanguage } from '../contexts/LanguageContext';
 import './LanguageToggle.css';
 
 const LanguageToggle = () => {
-    const { language, toggleLanguage } = useLanguage();
+    const { language, toggleLanguage, t } = useLanguage();
 
     return (
         <button
             className="language-toggle"
             onClick={toggleLanguage}
-            title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
+            title={language === 'he' ? t('languageToggle.switchToEnglish') : t('languageToggle.switchToHebrew')}
         >
-            <span className={`lang-option ${language === 'he' ? 'active' : ''}`}>עב</span>
+            <span className={`lang-option ${language === 'he' ? 'active' : ''}`}>{t('languageToggle.heLabel')}</span>
             <span className="lang-separator">|</span>
-            <span className={`lang-option ${language === 'en' ? 'active' : ''}`}>EN</span>
+            <span className={`lang-option ${language === 'en' ? 'active' : ''}`}>{t('languageToggle.enLabel')}</span>
         </button>
     );
 };
