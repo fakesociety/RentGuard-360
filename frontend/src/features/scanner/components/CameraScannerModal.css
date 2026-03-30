@@ -1,267 +1,303 @@
+/* =========================================================
+   CameraScannerModal.css (Mobile-First, Full-Screen)
+   ========================================================= */
+
+/* --- 1. Full Screen Overlay & Modal --- */
 .scanner-modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 1100;
-    background: rgba(0, 15, 30, 0.72);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
 }
 
 .scanner-modal {
-    width: min(1120px, 100%);
-    max-height: 90vh;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background: var(--bg-primary);
-    border-radius: 16px;
-    border: 1px solid var(--glass-border);
+    background: #000;
+    position: relative;
     overflow: hidden;
+    border: none;
+    border-radius: 0;
 }
 
+/* --- 2. Header & Close Button --- */
 .scanner-modal-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: flex-start;
+    justify-content: flex-end;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--glass-border);
-}
-
-.scanner-modal-header h2 {
-    margin: 0;
-    font-size: var(--font-size-xl);
-    color: var(--text-primary);
-}
-
-.scanner-modal-header p {
-    margin: 4px 0 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    background: linear-gradient(rgba(0,0,0,0.5), transparent);
+    border: none;
 }
 
 .scanner-close {
     border: none;
-    background: transparent;
-    color: var(--text-secondary);
+    background: rgba(0,0,0,0.4);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     font-size: 1.2rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* --- 3. Camera Viewport --- */
 .scanner-modal-body {
-    display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    gap: 16px;
-    padding: 16px 20px;
-    overflow-y: auto;
+    display: block;
+    padding: 0;
+    width: 100%;
+    height: 100%;
 }
 
-.scanner-camera-panel,
-.scanner-gallery-panel {
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 12px;
-    background: var(--bg-secondary);
+.scanner-camera-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 0;
+    background: #000;
 }
 
 .scanner-webcam {
     width: 100%;
-    border-radius: 10px;
-    background: #111827;
-    aspect-ratio: 4 / 3;
+    height: 100%;
     object-fit: cover;
+    border-radius: 0;
 }
 
-.scanner-camera-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-.scanner-counters {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-}
-
-.scanner-active-preview {
-    margin-top: 12px;
-}
-
-.scanner-active-preview h4 {
-    margin: 0 0 8px;
-    color: var(--text-secondary);
-}
-
-.scanner-active-preview img {
-    width: 100%;
-    max-height: 220px;
-    object-fit: contain;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-    background: #0f172a;
-}
-
-.scanner-gallery-panel h3 {
-    margin: 0 0 10px;
-    color: var(--text-primary);
-}
-
-.scanner-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-    gap: 10px;
-    max-height: 52vh;
-    overflow: auto;
-}
-
-.scanner-thumb {
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    padding: 8px;
-    background: var(--bg-primary);
-}
-
-.scanner-thumb.active {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
-}
-
-.scanner-thumb-image-wrap {
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 0;
-    cursor: pointer;
-}
-
-.scanner-thumb-image {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-}
-
-.scanner-thumb-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 6px;
-}
-
-.scanner-thumb-actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-}
-
-.scanner-inline-action {
-    flex: 1;
-    border: 1px solid var(--glass-border);
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 12px;
-    padding: 5px 6px;
-}
-
-.scanner-inline-action.danger {
-    color: var(--accent-danger);
-}
-
-.scanner-empty {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-}
-
-.scanner-error {
-    margin: 0 20px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    color: var(--accent-danger);
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.scanner-modal-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 20px;
-    border-top: 1px solid var(--glass-border);
-}
-
-.scanner-footer-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.scanner-expanded-overlay {
-    position: fixed;
+/* --- 4. Spotlight Overlay & Scanning Guide --- */
+.scanner-spotlight-overlay {
+    position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    z-index: 10;
+    pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1200;
+}
+
+.scanner-focus-box {
+    width: 85%;
+    max-width: 400px;
+    aspect-ratio: 3/4;
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+}
+
+.scanner-focus-box::before,
+.scanner-focus-box::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--accent-primary);
+}
+
+.scanner-focus-box::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; border-radius: 16px 0 0 0; }
+.scanner-focus-box::after { top: -2px; right: -2px; border-left: 0; border-bottom: 0; border-radius: 0 16px 0 0; }
+
+.focus-corners-bottom {
+    position: absolute;
+    inset: 0;
+}
+
+.focus-corners-bottom::before,
+.focus-corners-bottom::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--accent-primary);
+}
+
+.focus-corners-bottom::before { bottom: -2px; left: -2px; border-right: 0; border-top: 0; border-radius: 0 0 0 16px; }
+.focus-corners-bottom::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-radius: 0 0 16px 0; }
+
+/* --- 5. Bottom Controls & Capture Button --- */
+.scanner-controls-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.95));
+    padding: 0 16px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.capture-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.shutter-button {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+    padding: 0;
+}
+
+.shutter-button:active { transform: scale(0.9); }
+.shutter-inner { width: 56px; height: 56px; background: var(--accent-primary); border-radius: 50%; }
+
+.finish-scan-btn {
+    position: absolute;
+    right: 0;
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.finish-scan-btn:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* --- 6. Horizontal Thumbnail Gallery (Carousel) --- */
+.scanner-gallery-panel {
+    border: none;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+}
+
+.scanner-gallery {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scanner-gallery::-webkit-scrollbar { display: none; }
+
+.scanner-thumb {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 80px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0;
+    background: #111;
+    position: relative;
+    overflow: hidden;
+}
+
+.scanner-thumb.active { border-color: var(--accent-primary); }
+.scanner-thumb-image-wrap { width: 100%; height: 100%; border: none; padding: 0; }
+.scanner-thumb-image { width: 100%; height: 100%; object-fit: cover; }
+
+.scanner-delete-icon {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- 7. Hide Deprecated Elements --- */
+.scanner-modal-header h2,
+.scanner-modal-header p,
+.scanner-gallery-panel h3,
+.scanner-thumb-meta,
+.scanner-camera-actions,
+.scanner-modal-footer,
+.scanner-active-preview {
+    display: none !important;
+}
+
+.scanner-error {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border: none;
+}
+
+/* --- 8. Expanded Image Modal (Full Screen Preview) --- */
+.scanner-expanded-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200; 
     padding: 16px;
 }
 
 .scanner-expanded-content {
     position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
-    border-radius: 12px;
-    background: #0f172a;
-    padding: 12px;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .scanner-expanded-image {
     max-width: 100%;
-    max-height: calc(90vh - 32px);
-    object-fit: contain;
+    max-height: 90vh; 
+    object-fit: contain; 
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-@media (max-width: 900px) {
-    .scanner-modal-body {
-        grid-template-columns: 1fr;
-    }
-
-    .scanner-gallery {
-        max-height: 260px;
-    }
-}
-
-@media (max-width: 600px) {
-    .scanner-modal-overlay {
-        padding: 8px;
-    }
-
-    .scanner-modal {
-        max-height: 95vh;
-    }
-
-    .scanner-modal-footer {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .scanner-footer-actions {
-        width: 100%;
-        justify-content: stretch;
-    }
-
-    .scanner-footer-actions > * {
-        flex: 1;
-    }
+.scanner-expanded-content .scanner-close {
+    position: absolute;
+    top: -16px;
+    right: 0px;
+    background: var(--accent-primary); 
+    color: white;
+    width: 36px;
+    height: 36px;
+    z-index: 1201;
 }

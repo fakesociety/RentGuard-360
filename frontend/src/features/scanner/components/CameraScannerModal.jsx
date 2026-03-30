@@ -1,7 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Webcam from 'react-webcam';
-import Button from '../../../components/Button';
 import { useScanPages } from '../hooks/useScanPages';
 import { compressCaptureDataUrl } from '../services/imageProcessing';
 import { buildPdfFileFromPages } from '../services/pdfBuilder';
@@ -113,17 +112,18 @@ const CameraScannerModal = ({
     };
 
     return ReactDOM.createPortal(
-        <div className="scanner-modal-overlay" onClick={handleClose}>
+        <div className="scanner-modal-overlay">
             <div className="scanner-modal" onClick={(e) => e.stopPropagation()}>
+                
+                {/* --- Header --- */}
                 <div className="scanner-modal-header">
-                    <div>
-                        <h2>Multi-page Contract Scanner</h2>
-                        <p>Capture pages, review thumbnails, then generate one PDF for upload.</p>
-                    </div>
                     <button type="button" className="scanner-close" onClick={handleClose}>✕</button>
                 </div>
 
+                {/* --- Main Body --- */}
                 <div className="scanner-modal-body">
+                    
+                    {/* 1. Camera Layer */}
                     <div className="scanner-camera-panel">
                         <Webcam
                             ref={webcamRef}
@@ -133,75 +133,64 @@ const CameraScannerModal = ({
                             videoConstraints={videoConstraints}
                             className="scanner-webcam"
                             mirrored={false}
+                            forceScreenshotSourceSize={true}
                         />
+                    </div>
 
-                        <div className="scanner-camera-actions">
-                            <Button
-                                variant="secondary"
+                    {/* 2. Spotlight Overlay Layer */}
+                    <div className="scanner-spotlight-overlay">
+                        <div className="scanner-focus-box">
+                            <div className="focus-corners-bottom"></div>
+                        </div>
+                    </div>
+
+                    {/* 3. Bottom Controls Layer */}
+                    <div className="scanner-controls-wrapper">
+                        
+                        <div className="scanner-gallery-panel">
+                            <ScannerThumbnailGallery
+                                pages={pages}
+                                activePageId={activePageId}
+                                onSelect={setActivePageId}
+                                onDelete={removePage}
+                                onExpand={setExpandedPageId}
+                            />
+                        </div>
+
+                        <div className="capture-btn-wrapper">
+                            
+                            <button 
+                                type="button"
+                                className="shutter-button"
                                 onClick={handleCapture}
                                 disabled={isCapturing || isBuildingPdf}
                             >
-                                {isCapturing ? 'Capturing...' : 'Capture Page'}
-                            </Button>
-                            <div className="scanner-counters">
-                                <span>{pages.length} pages</span>
-                                <span>{formatMb(totalBytes)} images</span>
-                            </div>
+                                <div className="shutter-inner"></div>
+                            </button>
+
+                            <button
+                                type="button"
+                                className="finish-scan-btn"
+                                onClick={handleCreatePdf}
+                                disabled={!pages.length || isBuildingPdf || isCapturing}
+                            >
+                                {isBuildingPdf ? 'Building...' : `Done (${pages.length})`}
+                            </button>
                         </div>
-
-                        {activePage && (
-                            <div className="scanner-active-preview">
-                                <h4>Selected Page Preview</h4>
-                                <img src={activePage.url} alt="Selected scanned page" />
-                            </div>
-                        )}
                     </div>
 
-                    <div className="scanner-gallery-panel">
-                        <h3>Pages</h3>
-                        <ScannerThumbnailGallery
-                            pages={pages}
-                            activePageId={activePageId}
-                            onSelect={setActivePageId}
-                            onDelete={removePage}
-                            onExpand={setExpandedPageId}
-                        />
-                    </div>
                 </div>
 
                 {error && <div className="scanner-error">{error}</div>}
 
-                <div className="scanner-modal-footer">
-                    <Button
-                        variant="ghost"
-                        onClick={() => {
-                            setError('');
-                            clearPages();
-                        }}
-                        disabled={!pages.length || isBuildingPdf}
-                    >
-                        Reset Pages
-                    </Button>
-                    <div className="scanner-footer-actions">
-                        <Button variant="secondary" onClick={handleClose} disabled={isBuildingPdf}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="primary"
-                            onClick={handleCreatePdf}
-                            disabled={!pages.length || isBuildingPdf || isCapturing}
-                        >
-                            {isBuildingPdf ? 'Building PDF...' : 'Use Scanned PDF'}
-                        </Button>
-                    </div>
-                </div>
-
+                {/* --- Expanded Page Overlay --- */}
                 {expandedPage && (
                     <div className="scanner-expanded-overlay" onClick={() => setExpandedPageId(null)}>
                         <div className="scanner-expanded-content" onClick={(e) => e.stopPropagation()}>
                             <button
                                 type="button"
                                 className="scanner-close"
+                                style={{ position: 'absolute', top: '-10px', right: '-10px' }}
                                 onClick={() => setExpandedPageId(null)}
                             >
                                 ✕
@@ -210,6 +199,7 @@ const CameraScannerModal = ({
                         </div>
                     </div>
                 )}
+
             </div>
         </div>,
         document.body
