@@ -1,0 +1,164 @@
+/*
+ * ============================================
+ * SidebarAccordions.css
+ * Unified Accordion Styles for Score Components
+ * ============================================
+ */
+
+.score-methodology,
+.score-breakdown,
+.lf-share-accordion {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .score-methodology,
+[data-theme="dark"] .score-breakdown,
+[data-theme="dark"] .lf-share-accordion {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Toggle Button (The Accordion Header) */
+.methodology-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: var(--glass-bg);
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.methodology-toggle:hover {
+    background: var(--glass-bg-hover);
+}
+
+.toggle-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.methodology-chevron {
+    color: var(--text-tertiary);
+    transition: transform 0.3s ease;
+}
+
+.methodology-chevron.rotated {
+    transform: rotate(180deg);
+}
+
+/* Accordion Animation Logic */
+.methodology-content-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+
+.score-methodology.expanded .methodology-content-wrapper,
+.score-breakdown.expanded .methodology-content-wrapper,
+.lf-share-accordion.expanded .methodology-content-wrapper {
+    grid-template-rows: 1fr;
+}
+
+.methodology-content {
+    overflow: hidden;
+    padding: 0 1.5rem;
+}
+
+.score-methodology.expanded .methodology-content,
+.score-breakdown.expanded .methodology-content,
+.lf-share-accordion.expanded .methodology-content {
+    padding-bottom: 1.5rem;
+}
+
+/* ============================================
+   Inner Content Styling
+   ============================================ */
+/* Score Breakdown specific */
+.categories-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+.category-item { display: flex; align-items: center; gap: 0.75rem; }
+.category-icon { color: var(--text-tertiary); }
+.category-name { font-size: 0.85rem; font-weight: 600; width: 100px; color: var(--text-primary); }
+.category-bar { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: 999px; overflow: hidden; }
+.category-progress { height: 100%; border-radius: 999px; transition: width 1s ease; }
+.category-score { font-size: 0.8rem; font-weight: 700; min-width: 35px; text-align: left; }
+[dir="rtl"] .category-score { text-align: right; }
+
+.category-progress.excellent, .category-score.excellent { background-color: var(--accent-success); color: var(--accent-success); }
+.category-progress.good, .category-score.good { background-color: #22c55e; color: #22c55e; }
+.category-progress.warning, .category-score.warning { background-color: var(--accent-warning); color: var(--accent-warning); }
+.category-progress.danger, .category-score.danger { background-color: var(--accent-danger); color: var(--accent-danger); }
+.category-score.excellent, .category-score.good, .category-score.warning, .category-score.danger { background-color: transparent; }
+
+.score-legend {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.legend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.legend-item-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legend-item.excellent .dot { background: var(--accent-success); }
+.legend-item.good .dot { background: #22c55e; }
+.legend-item.warning .dot { background: var(--accent-warning); }
+.legend-item.danger .dot { background: var(--accent-danger); }
+
+.legend-range {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Score Methodology specific */
+.methodology-intro { margin-bottom: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-md); border-inline-start: 3px solid var(--accent-primary); font-size: 0.9rem; line-height: 1.6; }
+.severity-legend { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.severity-item { flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--glass-border); border-radius: var(--radius-md); }
+.severity-header { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 0.85rem; }
+.severity-dot { width: 8px; height: 8px; border-radius: 50%; }
+.severity-item.high .severity-dot { background: var(--accent-danger); }
+.severity-item.medium .severity-dot { background: var(--accent-warning); }
+.severity-item.low .severity-dot { background: var(--accent-success); }
+.severity-points { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+.categories-header h4 { text-align: center; margin: 0 0 1rem 0; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.9rem; }
+.categories-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.category-item { background: var(--bg-tertiary); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); }
+.category-icon { padding: 6px; border-radius: 6px; }
+.icon-financial_terms { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+.icon-tenant_rights { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.icon-termination_clauses { color: #8b5cf6; background: rgba(139, 92, 246, 0.1); }
+.icon-liability_repairs { color: #0ea5e9; background: rgba(14, 165, 233, 0.1); }
+.icon-legal_compliance { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.category-info { flex: 1; display: flex; flex-direction: column; }
+.category-label { font-weight: 700; font-size: 0.85rem; }
+.category-desc { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.category-points { font-weight: 800; color: var(--accent-primary); font-size: 0.85rem; }
+.legal-source { display: flex; gap: 0.75rem; padding: 1rem; background: var(--bg-tertiary); border: 1px dashed var(--glass-border); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-secondary); }

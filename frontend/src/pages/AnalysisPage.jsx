@@ -1,27 +1,7 @@
 /**
  * ============================================
- *  AnalysisPage
- *  Contract Analysis Results Display
- * ============================================
- * 
- * STRUCTURE:
- * - State & Hooks: Analysis data, loading, polling, tabs
- * - API Handlers: fetchAnalysis, consultClause, saveEdits
- * - Export Handlers: Word, PDF, edited contract
- * - Render: Risk score, issues list, contract view
- * 
- * DEPENDENCIES:
- * - api.js: getAnalysis, consultClause, saveEditedContract
- * - ExportService.js: exportToWord, exportToPDF, exportEditedContract
- * - ContractView: Full contract text with edit capability
- * - ScoreBreakdown: Visual score categories
- * 
- * FEATURES:
- * - Auto-polling while analysis is processing
- * - AI-powered clause explanations
- * - Inline contract editing with auto-save
- * - Export to Word/PDF
- * 
+ * AnalysisPage
+ * Contract Analysis Results Display (LexisFlow Modern UI)
  * ============================================
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -30,7 +10,6 @@ import { createShareLink, getAnalysis, getShareLink, revokeShareLink, saveEdited
 import { exportToWord, exportToPDF, exportEditedContract } from '../services/ExportService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import Card from '../components/Card';
 import Button from '../components/Button';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import ScoreMethodology from '../components/ScoreMethodology';
@@ -38,6 +17,7 @@ import ContractView from '../components/ContractView';
 import ActionMenu from '../components/ActionMenu';
 import {
     FileText,
+    FileDown,
     Scale,
     Lightbulb,
     CheckCircle,
@@ -59,23 +39,25 @@ import {
     XCircle,
     AlertCircle,
     ChevronDown,
+    RefreshCw,
     ArrowRight,
-    ArrowLeft
+    ArrowLeft,
+    MoreVertical,
+    Wand2,
+    Gavel
 } from 'lucide-react';
 import './AnalysisPage.css';
-import './LegalCard.css';
 
 const AnalysisPage = () => {
     const { contractId } = useParams();
-    const { state } = useLocation(); // Get passed state from navigation
+    const { state } = useLocation(); 
     const { t, isRTL } = useLanguage();
     const { userAttributes } = useAuth();
 
     const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-    // Initialize with passed contract data if available (instant load)
     const [analysis, setAnalysis] = useState(state?.contract || null);
-    const [isLoading, setIsLoading] = useState(!state?.contract); // Only show loading if no data passed
+    const [isLoading, setIsLoading] = useState(!state?.contract);
     const [error, setError] = useState(null);
     const [expandedIssue, setExpandedIssue] = useState(null);
     const [showExportMenu, setShowExportMenu] = useState(false);
@@ -86,16 +68,16 @@ const AnalysisPage = () => {
     const [shareLink, setShareLink] = useState('');
     const [shareLinkExpiresAt, setShareLinkExpiresAt] = useState(null);
     const [isSharePanelVisible, setIsSharePanelVisible] = useState(true);
+    const [isShareAccordionOpen, setIsShareAccordionOpen] = useState(false);
     const [exportNotice, setExportNotice] = useState(null);
-    const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'contract'
+    const [activeTab, setActiveTab] = useState('issues'); 
     const [_editedClauses, setEditedClauses] = useState({});
     const [copiedIndex, setCopiedIndex] = useState(null);
     const [pollCount, setPollCount] = useState(0);
-    const MAX_POLL_ATTEMPTS = 12; // 12 attempts = ~2 minutes total
-    const INITIAL_DELAY = 15000; // Wait 15s before first poll (analysis takes 30-60s)
-    const POLL_INTERVAL = 10000; // Then poll every 10 seconds
+    const MAX_POLL_ATTEMPTS = 12; 
+    const INITIAL_DELAY = 15000; 
+    const POLL_INTERVAL = 10000; 
 
-    // ContractView ref and edit state (for the export section)
     const contractViewRef = useRef(null);
     const sharePanelRef = useRef(null);
     const prevSaveStatusRef = useRef(null);
@@ -103,7 +85,6 @@ const AnalysisPage = () => {
     const [contractEditState, setContractEditState] = useState({ editedCount: 0, saveStatus: null });
 
     const focusSharePanel = useCallback(() => {
-        setActiveTab('contract');
         setIsSharePanelVisible(true);
         requestAnimationFrame(() => {
             sharePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -134,15 +115,9 @@ const AnalysisPage = () => {
     }, [getShareCacheKey]);
 
     const getShareButtonLabel = useCallback(() => {
-        if (isGeneratingShareLink) {
-            return t('analysis.shareButtonCreating');
-        }
-        if (shareLink && isSharePanelVisible) {
-            return t('analysis.shareButtonHide');
-        }
-        if (shareLink && !isSharePanelVisible) {
-            return t('analysis.shareButtonShow');
-        }
+        if (isGeneratingShareLink) return t('analysis.shareButtonCreating');
+        if (shareLink && isSharePanelVisible) return t('analysis.shareButtonHide');
+        if (shareLink && !isSharePanelVisible) return t('analysis.shareButtonShow');
         return t('analysis.shareButtonCreate');
     }, [isGeneratingShareLink, isSharePanelVisible, shareLink, t]);
 
@@ -159,12 +134,7 @@ const AnalysisPage = () => {
         window.dispatchEvent(new CustomEvent('rg:toast', {
             detail: {
                 id: `share-${Date.now()}`,
-                title,
-                message,
-                type,
-                icon,
-                createdAt: Date.now(),
-                ttlMs,
+                title, message, type, icon, createdAt: Date.now(), ttlMs,
             },
         }));
     }, []);
@@ -176,52 +146,45 @@ const AnalysisPage = () => {
 
         if (status === 'saving') {
             const now = Date.now();
-            // Avoid flooding toasts on very frequent autosave cycles.
             if (now - lastSavingToastAtRef.current > 1500) {
-                showAppToast(
-                    t('analysis.toastSavingTitle'),
-                    t('analysis.toastSavingMessage'),
-                    { ttlMs: 1500, type: 'info', icon: '⟳' }
-                );
+                showAppToast(t('analysis.toastSavingTitle'), t('analysis.toastSavingMessage'), { ttlMs: 1500, type: 'info', icon: '⟳' });
                 lastSavingToastAtRef.current = now;
             }
         }
-
         if (status === 'success') {
-            showAppToast(
-                t('analysis.toastSavedTitle'),
-                t('analysis.toastSavedMessage'),
-                { type: 'success', icon: '✓' }
-            );
+            showAppToast(t('analysis.toastSavedTitle'), t('analysis.toastSavedMessage'), { type: 'success', icon: '✓' });
         }
-
         if (status === 'error') {
-            showAppToast(
-                t('analysis.toastSaveFailedTitle'),
-                t('analysis.toastSaveFailedMessage'),
-                { type: 'error', icon: '⚠' }
-            );
+            showAppToast(t('analysis.toastSaveFailedTitle'), t('analysis.toastSaveFailedMessage'), { type: 'error', icon: '⚠' });
         }
     }, [contractEditState.saveStatus, showAppToast, t]);
 
     const copyTextToClipboard = useCallback(async (text) => {
         if (!text) return false;
-
         if (navigator?.clipboard?.writeText) {
-            await navigator.clipboard.writeText(text);
-            return true;
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (clipboardError) {
+                // Fall back when browser denies async clipboard permissions.
+                console.warn('Async clipboard API failed, using fallback copy.', clipboardError);
+            }
         }
-
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'absolute';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        const copied = document.execCommand('copy');
-        document.body.removeChild(textarea);
-        return copied;
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            const copied = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            return copied;
+        } catch (fallbackError) {
+            console.error('Clipboard fallback copy failed', fallbackError);
+            return false;
+        }
     }, []);
 
     const handleExportWord = useCallback(async () => {
@@ -269,19 +232,11 @@ const AnalysisPage = () => {
         try {
             const currentPayload = contractViewRef.current?.getCurrentEditedPayload?.();
             if (currentPayload && userAttributes?.sub) {
-                await saveEditedContract(
-                    shareContractId,
-                    userAttributes.sub,
-                    currentPayload.editedClauses || {},
-                    currentPayload.fullEditedText || ''
-                );
+                await saveEditedContract(shareContractId, userAttributes.sub, currentPayload.editedClauses || {}, currentPayload.fullEditedText || '');
             }
-
             const shareResult = await createShareLink(shareContractId, 7);
             const token = shareResult?.shareToken;
-            if (!token) {
-                throw new Error('Missing share token in response');
-            }
+            if (!token) throw new Error('Missing share token in response');
 
             const url = `${window.location.origin}/shared/${encodeURIComponent(token)}`;
             setShareLink(url);
@@ -301,13 +256,9 @@ const AnalysisPage = () => {
 
     const handleManualCopyShareLink = useCallback(async () => {
         if (!shareLink) return;
-
         try {
             await copyTextToClipboard(shareLink);
-            showAppToast(
-                t('analysis.shareCopiedTitle'),
-                t('analysis.shareCopiedMessage')
-            );
+            showAppToast(t('analysis.shareCopiedTitle'), t('analysis.shareCopiedMessage'));
         } catch (err) {
             console.error('Failed to copy share link', err);
             showExportNotice(t('analysis.shareCopyFailed'));
@@ -316,19 +267,13 @@ const AnalysisPage = () => {
 
     const handleShareLinkViaApps = useCallback(async () => {
         if (!shareLink) return;
-
         if (!navigator?.share) {
             await handleManualCopyShareLink();
             return;
         }
-
         setIsSharingLink(true);
         try {
-            await navigator.share({
-                title: t('analysis.shareNativeTitle'),
-                text: t('analysis.shareNativeText'),
-                url: shareLink,
-            });
+            await navigator.share({ title: t('analysis.shareNativeTitle'), text: t('analysis.shareNativeText'), url: shareLink });
         } catch (err) {
             if (err?.name !== 'AbortError') {
                 console.error('Failed to share link via apps', err);
@@ -345,7 +290,6 @@ const AnalysisPage = () => {
             showExportNotice(t('analysis.missingShareContractId'));
             return;
         }
-
         setIsRevokingShareLink(true);
         try {
             await revokeShareLink(shareContractId);
@@ -353,10 +297,7 @@ const AnalysisPage = () => {
             setShareLinkExpiresAt(null);
             setIsSharePanelVisible(false);
             clearShareLinkCache(shareContractId);
-            showAppToast(
-                t('analysis.shareRevokedTitle'),
-                t('analysis.shareRevokedMessage')
-            );
+            showAppToast(t('analysis.shareRevokedTitle'), t('analysis.shareRevokedMessage'));
         } catch (err) {
             console.error('Failed to revoke share link', err);
             showExportNotice(t('analysis.shareRevokeFailed'));
@@ -373,93 +314,54 @@ const AnalysisPage = () => {
 
     const fetchAnalysis = useCallback(async () => {
         try {
-            if (pollCount === 0) {
-                setIsLoading(true);
-            }
-
+            if (pollCount === 0) setIsLoading(true);
             const decodedId = decodeURIComponent(contractId);
-            console.log('Fetching analysis for:', decodedId);
             const data = await getAnalysis(decodedId);
             setAnalysis(prev => ({
-                ...prev, 
-                ...data, 
+                ...prev, ...data,
                 fileName: data.fileName || prev?.fileName || data.fileName,
                 propertyAddress: data.propertyAddress || prev?.propertyAddress || data.propertyAddress,
                 landlordName: data.landlordName || prev?.landlordName || data.landlordName,
                 uploadDate: data.uploadDate || prev?.uploadDate || data.uploadDate,
             }));
-            setError(null); 
+            setError(null);
         } catch (err) {
-            console.error('Failed to fetch analysis:', err);
             const errorMsg = err.message || '';
-
             if (errorMsg.includes('404')) {
-                setError({
-                    title: t('analysis.errors.notReadyTitle'),
-                    message: `${t('analysis.errors.notReadyMessage')} (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`,
-                    type: 'processing'
-                });
+                setError({ title: t('analysis.errors.notReadyTitle'), message: `${t('analysis.errors.notReadyMessage')} (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`, type: 'processing' });
             } else if (errorMsg.includes('FAILED') || errorMsg.includes('ValidationException')) {
-                setError({
-                    title: t('analysis.errors.failedTitle'),
-                    message: t('analysis.errors.failedMessage'),
-                    type: 'failed',
-                    details: errorMsg
-                });
+                setError({ title: t('analysis.errors.failedTitle'), message: t('analysis.errors.failedMessage'), type: 'failed', details: errorMsg });
             } else if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
-                setError({
-                    title: t('analysis.errors.timeoutTitle'),
-                    message: t('analysis.errors.timeoutMessage'),
-                    type: 'timeout'
-                });
+                setError({ title: t('analysis.errors.timeoutTitle'), message: t('analysis.errors.timeoutMessage'), type: 'timeout' });
             } else {
-                setError({
-                    title: t('analysis.errors.genericTitle'),
-                    message: t('analysis.errors.genericMessage'),
-                    type: 'error',
-                    details: errorMsg
-                });
+                setError({ title: t('analysis.errors.genericTitle'), message: t('analysis.errors.genericMessage'), type: 'error', details: errorMsg });
             }
         } finally {
             setIsLoading(false);
         }
     }, [contractId, pollCount, t]);
 
-    useEffect(() => {
-        fetchAnalysis();
-    }, [fetchAnalysis]);
+    useEffect(() => { fetchAnalysis(); }, [fetchAnalysis]);
 
     useEffect(() => {
         if (error?.type === 'processing' && pollCount < MAX_POLL_ATTEMPTS && !USE_MOCK) {
             const delay = pollCount === 0 ? INITIAL_DELAY : POLL_INTERVAL;
-            console.log(`Auto-polling in ${delay / 1000}s... (attempt ${pollCount + 1}/${MAX_POLL_ATTEMPTS})`);
-
             const pollTimer = setTimeout(() => {
                 setPollCount(prev => prev + 1);
                 fetchAnalysis();
             }, delay);
-
             return () => clearTimeout(pollTimer);
         }
     }, [error, pollCount, USE_MOCK, fetchAnalysis]);
 
-    useEffect(() => {
-        if (analysis) {
-            setPollCount(0);
-        }
-    }, [analysis]);
+    useEffect(() => { if (analysis) setPollCount(0); }, [analysis]);
 
     useEffect(() => {
         const contractForShare = analysis?.contractId || contractId;
         if (!contractForShare) {
-            setShareLink('');
-            setShareLinkExpiresAt(null);
-            setIsSharePanelVisible(false);
-            return;
+            setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); return;
         }
-
         let hadCachedLink = false;
-
         try {
             const cachedRaw = localStorage.getItem(getShareCacheKey(contractForShare));
             if (cachedRaw) {
@@ -474,64 +376,36 @@ const AnalysisPage = () => {
                     clearShareLinkCache(contractForShare);
                 }
             }
-        } catch (error) {
-            console.warn('Failed to read share link cache', error);
-        }
+        } catch (error) { console.warn('Failed to read cache', error); }
 
         let cancelled = false;
-
         const loadExistingShareLink = async () => {
             try {
                 const shareData = await getShareLink(contractForShare);
                 if (cancelled) return;
-
                 if (shareData?.active && shareData?.shareToken) {
                     const url = `${window.location.origin}/shared/${encodeURIComponent(shareData.shareToken)}`;
-                    setShareLink(url);
-                    setShareLinkExpiresAt(shareData?.expiresAt || null);
-                    setIsSharePanelVisible(true);
+                    setShareLink(url); setShareLinkExpiresAt(shareData?.expiresAt || null); setIsSharePanelVisible(true);
                     persistShareLink(contractForShare, url, shareData?.expiresAt || null);
                 } else {
-                    setShareLink('');
-                    setShareLinkExpiresAt(null);
-                    setIsSharePanelVisible(false);
-                    clearShareLinkCache(contractForShare);
+                    setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); clearShareLinkCache(contractForShare);
                 }
             } catch (err) {
                 if (cancelled) return;
-                console.warn('No active share link found', err);
-                if (!hadCachedLink) {
-                    setShareLink('');
-                    setShareLinkExpiresAt(null);
-                    setIsSharePanelVisible(false);
-                }
+                if (!hadCachedLink) { setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); }
             }
         };
-
         loadExistingShareLink();
-
-        return () => {
-            cancelled = true;
-        };
+        return () => { cancelled = true; };
     }, [analysis?.contractId, clearShareLinkCache, contractId, getShareCacheKey, persistShareLink]);
 
     const getShareExpiryLabel = useCallback(() => {
-        if (!shareLinkExpiresAt) {
-            return t('analysis.shareExpiryDefault');
-        }
-
+        if (!shareLinkExpiresAt) return t('analysis.shareExpiryDefault');
         const secondsLeft = Math.floor(shareLinkExpiresAt - (Date.now() / 1000));
-        if (secondsLeft <= 0) {
-            return t('analysis.shareExpiryExpired');
-        }
-
+        if (secondsLeft <= 0) return t('analysis.shareExpiryExpired');
         const daysLeft = Math.ceil(secondsLeft / 86400);
-        if (isRTL) {
-            return t('analysis.shareExpiryDays').replace('{days}', String(daysLeft));
-        }
-        if (daysLeft === 1) {
-            return t('analysis.shareExpiryDaysOne');
-        }
+        if (isRTL) return t('analysis.shareExpiryDays').replace('{days}', String(daysLeft));
+        if (daysLeft === 1) return t('analysis.shareExpiryDaysOne');
         return t('analysis.shareExpiryDaysMany').replace('{days}', String(daysLeft));
     }, [isRTL, shareLinkExpiresAt, t]);
 
@@ -540,11 +414,38 @@ const AnalysisPage = () => {
         return labels[level] || 'medium';
     };
 
+    const getHealthTier = (score) => {
+        if (score >= 86) return 'health-excellent';
+        if (score >= 71) return 'health-good';
+        if (score >= 51) return 'health-warning';
+        return 'health-danger';
+    };
+
+    const pickInlineText = (...candidates) => {
+        for (const value of candidates) {
+            if (value === null || value === undefined) continue;
+            const text = String(value).replace(/\s+/g, ' ').trim();
+            if (text) return text;
+        }
+        return '';
+    };
+
+    const pickBlockText = (...candidates) => {
+        for (const value of candidates) {
+            if (value === null || value === undefined) continue;
+            const text = String(value).trim();
+            if (text) return text;
+        }
+        return '';
+    };
+
+    // ===================== RENDER HELPERS =====================
+    
     if (isLoading) {
         return (
-            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-                <div className="loading-state">
-                    <div className="loading-spinner"></div>
+            <div className="lf-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className="lf-loading-state">
+                    <div className="lf-spinner"></div>
                     <p>{t('analysis.loading')}</p>
                 </div>
             </div>
@@ -552,39 +453,28 @@ const AnalysisPage = () => {
     }
 
     if (error) {
-        // Replaced emojis with Lucide Icons for error states
         let ErrorIconComponent;
         switch (error.type) {
-            case 'processing':
-                ErrorIconComponent = <Hourglass className="error-icon" size={48} />;
-                break;
-            case 'timeout':
-                ErrorIconComponent = <Timer className="error-icon" size={48} />;
-                break;
-            case 'failed':
-                ErrorIconComponent = <XCircle className="error-icon" size={48} />;
-                break;
-            default:
-                ErrorIconComponent = <AlertCircle className="error-icon" size={48} />;
+            case 'processing': ErrorIconComponent = <Hourglass className="lf-error-icon" size={48} />; break;
+            case 'timeout': ErrorIconComponent = <Timer className="lf-error-icon" size={48} />; break;
+            case 'failed': ErrorIconComponent = <XCircle className="lf-error-icon" size={48} />; break;
+            default: ErrorIconComponent = <AlertCircle className="lf-error-icon" size={48} />;
         }
-
         return (
-            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-                <div className={`error-state error-${error.type}`}>
+            <div className="lf-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className={`lf-error-box error-${error.type}`}>
                     {ErrorIconComponent}
                     <h2>{error.title}</h2>
                     <p>{error.message}</p>
                     {error.details && (
-                        <details className="error-details">
+                        <details className="lf-error-details">
                             <summary>{t('analysis.technicalDetails')}</summary>
                             <pre>{error.details}</pre>
                         </details>
                     )}
-                    <div className="error-actions">
+                    <div className="lf-error-actions">
                         <Button variant="primary" onClick={fetchAnalysis}>{t('analysis.tryAgain')}</Button>
-                        <Link to="/contracts">
-                            <Button variant="secondary">{t('analysis.backToContracts')}</Button>
-                        </Link>
+                        <Link to="/contracts"><Button variant="secondary">{t('analysis.backToContracts')}</Button></Link>
                     </div>
                 </div>
             </div>
@@ -597,489 +487,432 @@ const AnalysisPage = () => {
     const scoreBreakdown = result?.score_breakdown || {};
 
     return (
-        <>
-            <div className="analysis-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-                
-                {/* 1. Header Row */}
-                <div className="analysis-header animate-fadeIn no-print">
-                    <h1>{t('analysis.title')}</h1>
-                    <Link to="/contracts" className="back-button-premium">
-                        {t('analysis.backToContracts')}
-                        {isRTL ? <ArrowLeft className="arrow" size={20} /> : <ArrowRight className="arrow" size={20} />}
-                    </Link>
+        <div className="lf-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
+            
+            {/* 1. Global Header & Tabs */}
+            <header className="lf-header no-print">
+                <div className="lf-header-content">
+                    <div className="lf-header-text">
+                        <span className="lf-pre-title">{t('analysis.title')}</span>
+                        <h1 className="lf-main-title">{analysis?.fileName || t('analysis.contractDocument')}</h1>
+                        <p className="lf-subtitle">{result?.summary || t('analysis.analysisComplete')}</p>
+                    </div>
+                    <div className="lf-header-actions">
+                        <Link to="/contracts" className="lf-btn-back">
+                            {isRTL ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
+                            {t('analysis.backToContracts')}
+                        </Link>
+                    </div>
                 </div>
 
-                <div className="analysis-layout">
-                    {/* Sticky Sidebar - Left */}
-                    <aside className="analysis-sidebar no-print">
-                        <Card variant="glass" padding="md" className="sidebar-card">
-                            {/* Contract Brand Card - Premium Design */}
-                            <div className="contract-hero-card animate-slideIn">
-                                <div className="contract-card-header">
-                                    <div className="contract-icon-wrapper">
-                                        <FileText size={22} className="contract-icon-main" strokeWidth={1.9} />
-                                        <div className="icon-glow"></div>
-                                    </div>
-                                    <h3 className="contract-hero-title">
-                                        {analysis?.fileName || t('analysis.contractDocument')}
-                                    </h3>
-                                </div>
+                <div className="lf-tabs-container">
+                    <div className="lf-tabs-pill">
+                        <button 
+                            className={`lf-tab-btn ${activeTab === 'issues' ? 'active' : ''}`} 
+                            onClick={() => setActiveTab('issues')}
+                        >
+                            {t('analysis.issues')} ({issues.length})
+                        </button>
+                        <button 
+                            className={`lf-tab-btn ${activeTab === 'contract' ? 'active' : ''}`} 
+                            onClick={() => setActiveTab('contract')}
+                        >
+                            {t('analysis.fullContractTab')}
+                        </button>
+                    </div>
+                </div>
+            </header>
 
-                                <div className="contract-hero-meta">
-                                    {analysis?.propertyAddress && (
-                                        <div className="meta-block">
-                                            <span className="meta-label">
-                                                <MapPin size={13} strokeWidth={2} />
-                                                <span>{t('contracts.propertyAddress')}</span>
-                                            </span>
-                                            <span className="meta-value address-value">{analysis.propertyAddress}</span>
-                                        </div>
-                                    )}
-                                    <div className="meta-row">
-                                        {analysis?.landlordName && (
-                                            <div className="meta-block half-width">
-                                                <span className="meta-label">
-                                                    <UserRound size={13} strokeWidth={2} />
-                                                    <span>{t('contracts.landlordName')}</span>
-                                                </span>
-                                                <span className="meta-value">{analysis.landlordName}</span>
-                                            </div>
-                                        )}
-                                        {analysis?.uploadDate && (
-                                            <div className="meta-block half-width">
-                                                <span className="meta-label">
-                                                    <CalendarDays size={13} strokeWidth={2} />
-                                                    <span>{t('contracts.uploadDate')}</span>
-                                                </span>
-                                                <span className="meta-value">
-                                                    {new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+            {/* 3. Main Layout Container */}
+            <div className="lf-main-container">
+                
+                {/* BENTO GRID (Visible only in Issues tab) */}
+                {activeTab === 'issues' && (
+                    <div className="lf-bento-grid no-print">
+                        
+                        {/* Main Score Card */}
+                        <div className={`lf-bento-score ${getHealthTier(riskScore)}`}>
+                            <div className="lf-score-bg-glow"></div>
+                            <div className="lf-score-header">
+                                <span className="lf-score-label">{t('analysis.aggregateIntelligence')}</span>
+                                <h2>{t('analysis.overallHealth')}</h2>
                             </div>
-
-                            <div className="sidebar-divider"></div>
-
-                            {/* Summary - Prominent */}
-                            <div className="sidebar-summary-hero">
-                                <h4 className="summary-title">
-                                    <ScrollText size={16} strokeWidth={2} />
-                                    <span>{t('analysis.summary')}</span>
-                                </h4>
-                                <p>{result?.summary || t('analysis.analysisComplete')}</p>
-                                {result?.is_contract === false && (
-                                    <div className="not-contract-warning">
-                                        <AlertTriangle size={15} strokeWidth={2} />
-                                        <span>{t('analysis.notContract')}</span>
-                                    </div>
-                                )}
+                            <div className="lf-score-body">
+                                <span className="lf-score-big">{riskScore}</span>
+                                <span className="lf-score-small">/100</span>
                             </div>
-
-                            <div className="sidebar-divider"></div>
-
-                            {/* Score Section */}
-                            <ScoreBreakdown
-                                overallScore={riskScore}
-                                breakdown={scoreBreakdown}
-                                issues={issues}
-                            />
-
-                            {/* Score Methodology Explanation */}
-                            <ScoreMethodology />
-
-                            <div className="sidebar-divider"></div>
-
-                            {/* Actions */}
-                            <div className="sidebar-actions">
-                                <button className="sidebar-action-btn" onClick={fetchAnalysis}>
-                                    {t('analysis.refresh')}
-                                </button>
-                                <ActionMenu
-                                    isOpen={showExportMenu}
-                                    onToggle={() => setShowExportMenu(!showExportMenu)}
-                                    onClose={() => setShowExportMenu(false)}
-                                    containerClassName="export-dropdown-sidebar"
-                                    triggerClassName="sidebar-action-btn"
-                                    triggerContent={`${t('analysis.export')} ${showExportMenu ? '▲' : '▼'}`}
-                                    panelClassName="export-menu-sidebar"
-                                >
-                                    <div className="export-menu-title">{t('analysis.exportMenuTitle')}</div>
-                                    <div className="export-menu-group-title">{t('analysis.exportMenuDownload')}</div>
-                                    <button onClick={handleExportWord} disabled={isExporting}>
-                                        {t('analysis.exportMenuWordTitle')}
-                                        <span className="export-note">{t('analysis.exportMenuWordNote')}</span>
-                                    </button>
-                                    <button onClick={handleExportPdf} disabled={isExporting}>
-                                        {t('analysis.exportMenuPdfTitle')}
-                                        <span className="export-note">{t('analysis.exportMenuPdfNote')}</span>
-                                    </button>
-                                    <div className="export-menu-group-title">{t('analysis.exportMenuShare')}</div>
-                                    <button onClick={handleCopyShareLink} disabled={isGeneratingShareLink}>
-                                        <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
-                                        {getShareButtonLabel()}
-                                    </button>
-                                </ActionMenu>
-                            </div>
-                            {exportNotice && (
-                                <div className="export-feedback-note" role="status">
-                                    {exportNotice}
+                            <div className="lf-score-footer">
+                                <div className="lf-progress-track">
+                                    <div className="lf-progress-fill" style={{ width: `${riskScore}%` }}></div>
                                 </div>
-                            )}
-                        </Card>
-                    </aside>
-
-                    {/* Main Content - Right */}
-                    <main className="analysis-main">
-
-                        {/* Tab Navigation */}
-                        <div className="analysis-tabs no-print">
-                            <button
-                                className={`tab-btn ${activeTab === 'issues' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('issues')}
-                            >
-                                {t('analysis.issues')} ({issues.length})
-                            </button>
-                            <button
-                                className={`tab-btn ${activeTab === 'contract' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('contract')}
-                            >
-                                {t('analysis.fullContractTab')}
-                            </button>
+                                <p>{t('analysis.overallRiskScore')}</p>
+                            </div>
                         </div>
 
-                        {/* Tab Content */}
+                        {/* Secondary Tiles */}
+                        <div className="lf-bento-tiles">
+                            
+                            {/* Quick Actions (Fixed Layout) */}
+                            <div className="lf-tile lf-tile-glass lf-quick-actions-tile">
+                                <h3>{t('analysis.quickActions')}</h3>
+                                <div className="lf-quick-actions-grid">
+                                    <button className="lf-action-btn" onClick={fetchAnalysis}>
+                                        <RefreshCw size={16} />
+                                        <span>{t('analysis.refresh')}</span>
+                                    </button>
+                                    <ActionMenu
+                                        isOpen={showExportMenu}
+                                        onToggle={() => setShowExportMenu(!showExportMenu)}
+                                        onClose={() => setShowExportMenu(false)}
+                                        containerClassName="lf-export-dropdown"
+                                        triggerClassName="lf-action-btn"
+                                        triggerContent={
+                                            <>
+                                                <FileDown size={16} />
+                                                <span>{t('analysis.export')}</span>
+                                                <ChevronDown size={14} />
+                                            </>
+                                        }
+                                        panelClassName="lf-export-menu"
+                                    >
+                                        <div className="export-menu-group-title">{t('analysis.exportMenuDownload')}</div>
+                                        <button onClick={handleExportWord} disabled={isExporting}>
+                                            <FileText size={14} />
+                                            <span>{t('analysis.exportMenuWordTitle')}</span>
+                                        </button>
+                                        <button onClick={handleExportPdf} disabled={isExporting}>
+                                            <FileDown size={14} />
+                                            <span>{t('analysis.exportMenuPdfTitle')}</span>
+                                        </button>
+                                    </ActionMenu>
+                                </div>
+                            </div>
+
+                            <div className="lf-tile lf-tile-glass">
+                                <div className="lf-tile-header">
+                                    <AlertTriangle size={28} className="lf-tile-icon error" />
+                                    <span className="lf-tile-badge error">{t('analysis.actionRequired')}</span>
+                                </div>
+                                <h3>{t('analysis.issues')}</h3>
+                                <p className="lf-tile-big-text">{issues.length}</p>
+                            </div>
+
+                            <div className="lf-tile lf-tile-glass lf-tile-wide">
+                                <div className="lf-tile-wide-content">
+                                    <h3>{t('analysis.contractMetadata')}</h3>
+                                    <div className="lf-meta-rows">
+                                        {analysis?.propertyAddress && (
+                                            <div className="lf-meta-row">
+                                                <MapPin size={16} /> <span>{analysis.propertyAddress}</span>
+                                            </div>
+                                        )}
+                                        {analysis?.landlordName && (
+                                            <div className="lf-meta-row">
+                                                <UserRound size={16} /> <span>{analysis.landlordName}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="lf-tile-wide-side">
+                                    <p className="lf-side-label">{t('contracts.uploadDate')}</p>
+                                    <p className="lf-side-value">
+                                        {analysis?.uploadDate ? new Date(analysis.uploadDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US') : '--'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'issues' && issues.length > 0 && (
+                    <div className="lf-section-divider no-print">
+                        <div className="lf-line"></div>
+                        <h2>{t('analysis.deepAnalysisAndClauses')}</h2>
+                        <div className="lf-line"></div>
+                    </div>
+                )}
+
+                {/* 4. Two-Column Analysis Area */}
+                <div className="lf-analysis-columns">
+                    
+                    {/* Left Column: Issues List or Contract View */}
+                    <div className="lf-main-content">
+                        
                         {activeTab === 'issues' && issues.length > 0 && (
-                            <section className="issues-section" dir={isRTL ? 'rtl' : 'ltr'}>
-                                <h2 className="section-title-hebrew">
-                                    {t('analysis.issues')} ({issues.length})
-                                </h2>
-                                <div className="issues-list">
-                                    {issues.map((issue, index) => {
-                                        const handleCopy = async (text, idx) => {
-                                            try {
-                                                await navigator.clipboard.writeText(text);
-                                                setCopiedIndex(idx);
-                                                setTimeout(() => setCopiedIndex(null), 2000);
-                                            } catch (err) {
-                                                console.error('Failed to copy:', err);
+                            <div className="lf-issues-list">
+                                {issues.map((issue, index) => {
+                                    const riskClass = getRiskLabel(issue.risk_level);
+                                    const isExpanded = expandedIssue === index;
+                                    const clauseTitle =
+                                        pickInlineText(
+                                            issue.clause_topic,
+                                            issue.title,
+                                            issue.section_title,
+                                            issue.heading,
+                                            issue.topic
+                                        ) ||
+                                        t('analysis.untitledClause') ||
+                                        'Untitled clause';
+                                    const clauseOriginal = pickBlockText(
+                                        issue.original_text,
+                                        issue.original,
+                                        issue.clause_text,
+                                        issue.clause
+                                    );
+                                    const clauseExplanation = pickBlockText(
+                                        issue.explanation,
+                                        issue.problem,
+                                        issue.why_it_matters,
+                                        issue.description,
+                                        issue.details
+                                    );
+                                    const clauseFix = pickBlockText(
+                                        issue.suggested_fix,
+                                        issue.recommendation,
+                                        issue.suggestedFix,
+                                        issue.solution,
+                                        issue.fix
+                                    );
+                                    const clauseTip = pickBlockText(issue.negotiation_tip, issue.tip, issue.negotiationTip);
+                                    const clausePreview =
+                                        pickInlineText(clauseExplanation, clauseOriginal) ||
+                                        t('analysis.noDetailedContent') ||
+                                        'No detailed analysis available yet.';
+
+                                    const handleCopy = async (text, idx) => {
+                                        try {
+                                            const copied = await copyTextToClipboard(text);
+                                            if (!copied) {
+                                                showExportNotice(t('analysis.shareCopyFailed'));
+                                                return;
                                             }
-                                        };
+                                            setCopiedIndex(idx);
+                                            setTimeout(() => setCopiedIndex(null), 2000);
+                                        } catch (err) {
+                                            console.error('Failed to copy:', err);
+                                            showExportNotice(t('analysis.shareCopyFailed'));
+                                        }
+                                    };
 
-                                        const riskClass = getRiskLabel(issue.risk_level);
-
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`legal-card ${riskClass} animate-slideUp`}
-                                                style={{ animationDelay: `${index * 80}ms` }}
-                                            >
-                                                {/* Severity Indicator Glow */}
-                                                <div className={`severity-glow ${riskClass}`}></div>
-
-                                                {/* Card Header */}
-                                                <div
-                                                    className="legal-card-header"
-                                                    onClick={() => setExpandedIssue(expandedIssue === index ? null : index)}
-                                                >
-                                                    <div className="legal-header-main">
-                                                        <h3 className="legal-title">{issue.clause_topic}</h3>
-                                                        <div className="legal-meta">
-                                                            {/* Risk Badge - Pill with dot */}
-                                                            <span className={`risk-pill ${riskClass}`}>
-                                                                <span className="risk-dot"></span>
-                                                                {issue.risk_level === 'High' && t('score.highRisk')}
-                                                                {issue.risk_level === 'Medium' && t('score.mediumRisk')}
-                                                                {issue.risk_level === 'Low' && t('score.lowRisk')}
-                                                            </span>
-                                                            {issue.penalty_points && (
-                                                                <span className="points-badge">
-                                                                    -{issue.penalty_points} {t('analysis.points')}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                    return (
+                                        <div key={index} className={`lf-clause-card ${isExpanded ? 'expanded' : ''}`}>
+                                            <div className={`lf-risk-line border-${riskClass}`}></div>
+                                            
+                                            {/* Header */}
+                                            <div className="lf-clause-header" onClick={() => setExpandedIssue(isExpanded ? null : index)}>
+                                                <div className="lf-clause-title-area">
+                                                    <div className="lf-clause-badges">
+                                                        <span className={`lf-badge bg-${riskClass}`}>
+                                                            {issue.risk_level === 'High' && t('score.highRisk')}
+                                                            {issue.risk_level === 'Medium' && t('score.mediumRisk')}
+                                                            {issue.risk_level === 'Low' && t('score.lowRisk')}
+                                                        </span>
+                                                        {issue.penalty_points && (
+                                                            <span className="lf-badge-points">-{issue.penalty_points} {t('analysis.points')}</span>
+                                                        )}
                                                     </div>
-                                                    <button className={`expand-trigger ${expandedIssue === index ? 'expanded' : ''}`}>
-                                                        <ChevronDown size={20} strokeWidth={2} aria-hidden="true" />
-                                                    </button>
+                                                    <h3>{clauseTitle}</h3>
+                                                    <p className="lf-clause-preview">{clausePreview}</p>
                                                 </div>
+                                                <button className="lf-expand-btn">
+                                                    <ChevronDown size={20} className={isExpanded ? 'rotated' : ''} />
+                                                </button>
+                                            </div>
 
-                                                {/* Card Content */}
-                                                <div className={`legal-card-content ${expandedIssue === index ? 'expanded' : ''}`}>
-
-                                                    {/* Original Clause - Quote Style */}
-                                                    {issue.original_text && (
-                                                        <div className="legal-section quote-section">
-                                                            <div className="section-icon">
-                                                                <FileText size={18} />
-                                                            </div>
-                                                            <div className="section-body">
-                                                                <h4 className="section-label">{t('analysis.originalClause')}</h4>
-                                                                <blockquote className="original-quote">
-                                                                    "{issue.original_text}"
-                                                                </blockquote>
-                                                            </div>
+                                            {/* Body */}
+                                            {isExpanded && (
+                                                <div className="lf-clause-body">
+                                                    {/* Original Quote */}
+                                                    {clauseOriginal && (
+                                                        <div className="lf-quote-box">
+                                                            <span className="material-symbols-outlined lf-quote-icon">format_quote</span>
+                                                            <p>"{clauseOriginal}"</p>
                                                         </div>
                                                     )}
 
-                                                    {/* Legal Basis - Compact */}
-                                                    {issue.legal_basis && (
-                                                        <div className="legal-section compact-section">
-                                                            <div className="section-icon legal-icon">
-                                                                <Scale size={18} />
-                                                            </div>
-                                                            <div className="section-body">
-                                                                <h4 className="section-label">{t('analysis.legalBasis')}</h4>
-                                                                <p className="legal-basis-text">{issue.legal_basis}</p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Why It Matters - Explanation */}
-                                                    <div className="legal-section explanation-section">
-                                                        <div className="section-icon explanation-icon">
-                                                            <Lightbulb size={18} />
-                                                        </div>
-                                                        <div className="section-body">
-                                                            <h4 className="section-label">{t('analysis.whyItMatters')}</h4>
-                                                            <p className="explanation-text">{issue.explanation}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Recommendation - Highlighted */}
-                                                    {issue.suggested_fix && (
-                                                        <div className="legal-section recommendation-section">
-                                                            <div className="section-icon recommendation-icon">
-                                                                <CheckCircle size={18} />
-                                                            </div>
-                                                            <div className="section-body">
-                                                                <h4 className="section-label">{t('analysis.recommendedClause')}</h4>
-                                                                <div className="recommendation-box">
-                                                                    <p className="recommendation-text">{issue.suggested_fix}</p>
-                                                                    <button
-                                                                        className={`copy-button ${copiedIndex === index ? 'copied' : ''}`}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleCopy(issue.suggested_fix, index);
-                                                                        }}
-                                                                    >
-                                                                        {copiedIndex === index ? (
-                                                                            <>
-                                                                                <Check size={16} />
-                                                                                <span>{t('analysis.copied')}</span>
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <Copy size={16} />
-                                                                                <span>{t('analysis.copyFix')}</span>
-                                                                            </>
-                                                                        )}
-                                                                    </button>
+                                                    {/* Analysis Grid */}
+                                                    <div className="lf-analysis-grid">
+                                                        {clauseExplanation && (
+                                                            <div className="lf-analysis-item">
+                                                                <div className="lf-item-icon bg-error">
+                                                                    <AlertTriangle size={20} />
+                                                                </div>
+                                                                <div className="lf-item-text">
+                                                                    <h4>{t('analysis.theIssue')}</h4>
+                                                                    <p>{clauseExplanation}</p>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
 
-                                                    {/* Negotiation Tip - Removed Emoji */}
-                                                    {issue.negotiation_tip && (
-                                                        <div className="legal-section tip-section">
-                                                            <div className="section-icon tip-icon">
-                                                                <MessageCircle size={18} />
+                                                        {clauseFix && (
+                                                            <div className="lf-analysis-item">
+                                                                <div className="lf-item-icon bg-primary">
+                                                                    <Wand2 size={20} />
+                                                                </div>
+                                                                <div className="lf-item-text">
+                                                                    <h4>{t('analysis.negotiationStrategy')}</h4>
+                                                                    <p>{clauseFix}</p>
+                                                                </div>
                                                             </div>
-                                                            <div className="section-body">
-                                                                <h4 className="section-label tip-label">{t('analysis.negotiationTip')}</h4>
-                                                                <p className="tip-text">{issue.negotiation_tip}</p>
-                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Actions */}
+                                                    {clauseFix && (
+                                                        <div className="lf-clause-actions">
+                                                            <button 
+                                                                className={`lf-btn-primary ${copiedIndex === index ? 'copied' : ''}`}
+                                                                onClick={(e) => { e.stopPropagation(); handleCopy(clauseFix, index); }}
+                                                            >
+                                                                {copiedIndex === index ? <Check size={18} /> : <Copy size={18} />}
+                                                                {copiedIndex === index ? t('analysis.copied') : t('analysis.copyFix')}
+                                                            </button>
+                                                            
+                                                            {clauseTip && (
+                                                                <div className="lf-tip-box">
+                                                                    <Lightbulb size={16} />
+                                                                    <span>{clauseTip}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </section>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         )}
 
                         {activeTab === 'issues' && issues.length === 0 && (
-                            <Card variant="glass" padding="lg" className={`no-issues animate-slideUp ${result?.is_contract === false ? 'not-contract' : ''}`}>
-                                <div className="no-issues-content">
+                            <div className="lf-no-issues">
+                                {result?.is_contract === false ? (
+                                    <>
+                                        <AlertTriangle size={48} className="warning-icon" />
+                                        <h3>{t('analysis.notRentalTitle')}</h3>
+                                        <p>{t('analysis.notRentalDescription')}</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShieldCheck size={48} className="success-icon" />
+                                        <h3>{t('analysis.noIssues')}</h3>
+                                        <p>{t('analysis.noIssuesDescription')}</p>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'contract' && (
+                            <>
+                                {result?.is_contract !== false && (
+                                    <div className="lf-contract-actions-wrapper no-print">
+                                        <div className="lf-contract-export-bar">
+                                            <div className="lf-contract-export-row">
+                                                <button className="lf-contract-export-btn" onClick={() => contractViewRef.current?.handleExport()}>
+                                                    <FileText size={16} />
+                                                    <span>{t('analysis.exportEditedWord')}</span>
+                                                </button>
+                                                <button
+                                                    className="lf-contract-reset-btn"
+                                                    title={t('analysis.resetEditsTitle')}
+                                                    onClick={() => contractViewRef.current?.requestClearAll()}
+                                                    disabled={contractEditState.editedCount === 0}
+                                                >
+                                                    <Eraser size={16} />
+                                                    <span>{t('analysis.resetEdits')}</span>
+                                                    <span className="lf-contract-reset-counter">{contractEditState.editedCount}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="lf-contract-view-wrapper">
                                     {result?.is_contract === false ? (
-                                        <>
-                                            <span className="no-issues-icon warning" aria-hidden="true">
-                                                <AlertTriangle size={40} strokeWidth={2} />
-                                            </span>
+                                        <div className="lf-no-issues">
+                                            <AlertTriangle size={48} className="warning-icon" />
                                             <h3>{t('analysis.notRentalTitle')}</h3>
-                                            <p>{t('analysis.notRentalDescription')}</p>
-                                        </>
+                                            <p>{t('analysis.notRentalContentDescription')}</p>
+                                        </div>
                                     ) : (
-                                        <>
-                                            <span className="no-issues-icon" aria-hidden="true">
-                                                <ShieldCheck size={40} strokeWidth={2} />
-                                            </span>
-                                            <h3>{t('analysis.noIssues')}</h3>
-                                            <p>{t('analysis.noIssuesDescription')}</p>
-                                        </>
+                                        <ContractView
+                                            ref={contractViewRef}
+                                            contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
+                                            backendClauses={analysis?.clauses_list || analysis?.clauses || []}
+                                            issues={issues}
+                                            contractId={analysis?.contractId || contractId}
+                                            onClauseChange={(clauseId, text, action) => {
+                                                setEditedClauses(prev => ({ ...prev, [clauseId]: { text, action } }));
+                                            }}
+                                            onExportEdited={async (editedClausesMap) => {
+                                                const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
+                                                const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
+                                                await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
+                                            }}
+                                            onSaveToCloud={handleSaveToCloud}
+                                            onEditStateChange={setContractEditState}
+                                        />
                                     )}
                                 </div>
-                            </Card>
+                            </>
                         )}
+                    </div>
 
-                        {/* Full Contract View Tab */}
-                        {activeTab === 'contract' && (
-                            <section className="contract-scroll-section" dir={isRTL ? 'rtl' : 'ltr'}>
-                                {result?.is_contract === false ? (
-                                    <Card variant="glass" padding="lg" className="not-contract-fullview animate-slideUp">
-                                        <div style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            padding: '3rem 2rem',
-                                            textAlign: 'center'
-                                        }}>
-                                            <AlertTriangle size={48} className="text-yellow-500" style={{ marginBottom: '1rem', color: 'var(--warning-color)' }} />
-                                            <h3 style={{
-                                                fontSize: '1.5rem',
-                                                fontWeight: 'bold',
-                                                color: 'var(--warning-color)',
-                                                marginBottom: '0.75rem'
-                                            }}>
-                                                {t('analysis.notRentalTitle')}
-                                            </h3>
-                                            <p style={{
-                                                fontSize: '1rem',
-                                                color: 'var(--text-secondary)',
-                                                maxWidth: '450px',
-                                                lineHeight: '1.6'
-                                            }}>
-                                                {t('analysis.notRentalContentDescription')}
-                                            </p>
-                                        </div>
-                                    </Card>
-                                ) : (
-                                    <ContractView
-                                        ref={contractViewRef}
-                                        contractText={analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || analysis?.extracted_text || ''}
-                                        backendClauses={analysis?.clauses_list || analysis?.clauses || []}
-                                        issues={issues}
-                                        contractId={analysis?.contractId || contractId}
-                                        onClauseChange={(clauseId, text, action) => {
-                                            setEditedClauses(prev => ({
-                                                ...prev,
-                                                [clauseId]: { text, action }
-                                            }));
-                                        }}
-                                        onExportEdited={async (editedClausesMap) => {
-                                            const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
-                                            const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
-                                            await exportEditedContract(contractText, editedClausesMap, issues, 'Edited_Contract', backendClauses);
-                                        }}
-                                        onSaveToCloud={handleSaveToCloud}
-                                        onEditStateChange={setContractEditState}
-                                    />
-                                )}
-                            </section>
-                        )}
+                    {/* Right Column: Sticky Sidebar Context */}
+                    <aside className="lf-sidebar-column no-print">
+                        
+                        {result?.is_contract !== false && (
+                            <div className={`lf-share-accordion ${isShareAccordionOpen ? 'expanded' : ''}`}>
+                                <button
+                                    className="methodology-toggle lf-share-accordion-trigger"
+                                    onClick={() => setIsShareAccordionOpen(!isShareAccordionOpen)}
+                                    aria-expanded={isShareAccordionOpen}
+                                >
+                                    <div className="toggle-content lf-share-accordion-title">
+                                        <Share2 size={16} />
+                                        <span>{t('analysis.secureShareLink')}</span>
+                                    </div>
+                                    <ChevronDown size={16} className={`methodology-chevron lf-share-chevron ${isShareAccordionOpen ? 'rotated' : ''}`} />
+                                </button>
 
-                        {/* Export Section - Always visible when contract tab is active */}
-                        {activeTab === 'contract' && result?.is_contract !== false && (
-                            <div className="contract-export-bar no-print">
-                                <div className="export-actions-row">
-                                    <button className="export-btn-main" onClick={() => contractViewRef.current?.handleExport()}>
-                                        <span className="export-btn-label">{t('analysis.exportEditedWord')}</span>
-                                    </button>
-                                    <button
-                                        className="export-btn-main"
-                                        style={{ background: 'linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%)', boxShadow: '0 4px 12px rgba(14, 165, 233, 0.35)' }}
-                                        onClick={handleCopyShareLink}
-                                        disabled={isGeneratingShareLink}
-                                    >
-                                        <Share2 size={16} style={{ marginInlineEnd: '6px' }} />
-                                        <span className="export-btn-label">
-                                            {getShareButtonLabel()}
-                                        </span>
-                                    </button>
-
-                                    <div className={`reset-btn-wrapper ${contractEditState.editedCount > 0 ? 'show' : ''}`}>
-                                        <button
-                                            className="export-btn-secondary"
-                                            title={t('analysis.resetEditsTitle')}
-                                            onClick={() => contractViewRef.current?.requestClearAll()}
-                                        >
-                                            <Eraser size={15} aria-hidden="true" />
-                                            <span>{t('analysis.resetEdits')}</span>
-                                            <span className="export-btn-counter">{contractEditState.editedCount}</span>
-                                        </button>
+                                <div className="methodology-content-wrapper lf-share-accordion-content">
+                                    <div className="methodology-content lf-share-accordion-inner">
+                                        {!shareLink || !isSharePanelVisible ? (
+                                            <button className="lf-action-btn" onClick={handleCopyShareLink} disabled={isGeneratingShareLink}>
+                                                <Share2 size={16} />
+                                                <span>{isGeneratingShareLink ? t('analysis.shareButtonCreating') : t('analysis.shareButtonCreate')}</span>
+                                            </button>
+                                        ) : (
+                                            <div ref={sharePanelRef} className="lf-share-panel mt-4">
+                                                <div className="lf-share-header">
+                                                    <span>{t('analysis.secureShareLink')}</span>
+                                                    <span className="lf-share-expiry">{getShareExpiryLabel()}</span>
+                                                </div>
+                                                <input type="text" readOnly value={shareLink} className="lf-share-input" onFocus={e => e.target.select()} />
+                                                <div className="lf-share-buttons">
+                                                    <button className="lf-share-btn-icon" onClick={handleManualCopyShareLink} title={t('analysis.copyLink')}><Copy size={14}/></button>
+                                                    <button className="lf-share-btn-icon" onClick={handleShareLinkViaApps} disabled={isSharingLink} title={t('analysis.shareViaApps')}><Share2 size={14}/></button>
+                                                    <a className="lf-share-btn-icon" href={shareLink} target="_blank" rel="noreferrer" title={t('analysis.openLink')}><ExternalLink size={14}/></a>
+                                                    <button className="lf-share-btn-icon danger" onClick={handleRevokeShareLink} disabled={isRevokingShareLink} title={t('analysis.revokeLink')}><Trash2 size={14}/></button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-
                             </div>
                         )}
 
-                        {activeTab === 'contract' && result?.is_contract !== false && shareLink && isSharePanelVisible && (
-                            <div ref={sharePanelRef} className="share-link-panel no-print">
-                                <div className="share-link-panel-header">
-                                    <div className="share-link-title">{t('analysis.secureShareLink')}</div>
-                                    <div className="share-link-expiry">{getShareExpiryLabel()}</div>
-                                </div>
+                        {/* Existing Score Breakdown & Methodology */}
+                        <div className="lf-existing-components">
+                            <ScoreBreakdown overallScore={riskScore} breakdown={scoreBreakdown} issues={issues} />
+                            <ScoreMethodology alwaysOpen={true} /> 
+                        </div>
 
-                                <div className="share-link-input-wrap">
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={shareLink}
-                                        className="share-link-input"
-                                        onFocus={(e) => e.target.select()}
-                                        aria-label={t('analysis.shareLinkAria')}
-                                    />
-                                </div>
+                    </aside>
 
-                                <div className="share-link-actions">
-                                    <button className="share-link-btn primary" onClick={handleManualCopyShareLink}>
-                                        <Copy size={15} />
-                                        <span>{t('analysis.copyLink')}</span>
-                                    </button>
-                                    <button
-                                        className="share-link-btn"
-                                        onClick={handleShareLinkViaApps}
-                                        disabled={isSharingLink || isRevokingShareLink}
-                                    >
-                                        <Share2 size={15} />
-                                        <span>
-                                            {isSharingLink
-                                                ? t('analysis.sharing')
-                                                : t('analysis.shareViaApps')}
-                                        </span>
-                                    </button>
-                                    <a
-                                        className="share-link-btn"
-                                        href={shareLink}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        <ExternalLink size={15} />
-                                        <span>{t('analysis.openLink')}</span>
-                                    </a>
-                                    <button
-                                        className="share-link-btn revoke share-link-btn-end"
-                                        onClick={handleRevokeShareLink}
-                                        disabled={isRevokingShareLink || isGeneratingShareLink}
-                                    >
-                                        <Trash2 size={15} />
-                                        <span>
-                                            {isRevokingShareLink
-                                                ? t('analysis.revoking')
-                                                : t('analysis.revokeLink')}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </main>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
