@@ -36,8 +36,8 @@ CHAT_HISTORY_TABLE = os.environ.get("CHAT_HISTORY_TABLE", "RentGuard-ContractCha
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 MAX_QUESTION_LENGTH = 1200
 MAX_CLAUSES = 6
-SLIDING_WINDOW_SIZE = 3
-MAX_ANSWER_PREVIEW = 300
+SLIDING_WINDOW_SIZE = int(os.environ.get("CHAT_SLIDING_WINDOW_SIZE", "6"))
+MAX_ANSWER_PREVIEW_CHARS = int(os.environ.get("CHAT_HISTORY_PREVIEW_CHARS", "500"))
 PROMPT_VERSION = "v3-conversational-memory"
 
 bedrock = boto3.client(
@@ -151,6 +151,12 @@ def _build_history_text(history_items):
     """Format sliding window items into a compact text block."""
     if not history_items:
         return ""
+
+    def _clip(text, max_chars=MAX_ANSWER_PREVIEW_CHARS):
+        if len(text) <= max_chars:
+            return text
+        return f"{text[:max_chars].rstrip()}..."
+
     turns = []
     for item in history_items:
         q = _normalize(item.get("question"))
@@ -158,8 +164,8 @@ def _build_history_text(history_items):
         if q:
             turns.append(f"User: {q}")
         if a:
-            # Truncate long answers to keep token count low.
-            turns.append(f"Assistant: {a[:MAX_ANSWER_PREVIEW]}")
+            # Keep context compact but informative for follow-up rewriting.
+            turns.append(f"Assistant: {_clip(a)}")
     return "\n".join(turns)
 
 
@@ -263,6 +269,7 @@ def _build_prompt(question, summary, issues, top_clauses, full_text, use_full_te
         "}\n"
         "Rules:\n"
         "- Set found_in_contract=true ONLY if your answer specifically relies on the provided context.\n"
+        "- If found_in_contract=true, evidence must include at least one short quote snippet from the provided context.\n"
         "- If the user asks for general advice, negotiation tips, or market standards, just answer naturally and conversationally without saying 'The contract doesn't contain this'.\n"
         "- evidence must contain 0-3 short snippets quoted from context (no fabrication).\n"
         "- Return ONLY JSON."
@@ -286,8 +293,96 @@ def _parse_json_response(ai_output_text):
         return None
 
 
+def _coerce_json_dict(value):
+    if isinstance(value, dict):
+        return value
+
+    text = str(value or "").strip()
+    if not text:
+        return None
+
+    parsed = _parse_json_response(text)
+    if isinstance(parsed, dict):
+        return parsed
+
+    try:
+        loaded = json.loads(text)
+    except Exception:
+        return None
+
+    if isinstance(loaded, dict):
+        return loaded
+
+    if isinstance(loaded, str):
+        nested = _parse_json_response(loaded)
+        if isinstance(nested, dict):
+            return nested
+
+    return None
+
+
+def _unwrap_nested_answer_text(answer_text):
+    candidate = str(answer_text or "").strip()
+    if not candidate:
+        return ""
+
+    for _ in range(4):
+        advanced = False
+
+        parsed = _coerce_json_dict(candidate)
+        if isinstance(parsed, dict):
+            nested_answer = parsed.get("answer")
+            if isinstance(nested_answer, str):
+                nested_answer = nested_answer.strip()
+                if nested_answer and nested_answer != candidate:
+                    candidate = nested_answer
+                    advanced = True
+
+        if advanced:
+            continue
+
+        try:
+            loaded = json.loads(candidate)
+        except Exception:
+            loaded = None
+
+        if isinstance(loaded, str):
+            loaded_text = loaded.strip()
+            if loaded_text and loaded_text != candidate:
+                candidate = loaded_text
+                advanced = True
+
+        if not advanced:
+            break
+
+    return candidate
+
+
+def _extract_answer_via_regex(raw_text):
+    """Best-effort recovery when model output is truncated/invalid JSON."""
+    match = re.search(r'"answer"\s*:\s*"((?:\\.|[^"\\])*)"', str(raw_text or ""), re.DOTALL)
+    if not match:
+        return ""
+
+    try:
+        return json.loads(f'"{match.group(1)}"').strip()
+    except Exception:
+        return match.group(1).replace("\\n", "\n").replace('\\"', '"').strip()
+
+
 def _clean_answer_text(answer_text, question):
-    answer = str(answer_text or "").strip()
+    answer = _unwrap_nested_answer_text(answer_text)
+    if not answer:
+        return ""
+
+    if answer.startswith("```") or '"answer"' in answer:
+        rescued = _extract_answer_via_regex(answer)
+        if rescued:
+            answer = rescued
+
+    answer = re.sub(r"^\s*```(?:json)?\s*", "", answer, flags=re.IGNORECASE)
+    answer = re.sub(r"\s*```\s*$", "", answer).strip()
+
     if not answer:
         return ""
 
@@ -307,19 +402,31 @@ def _clean_answer_text(answer_text, question):
 
 
 def _extract_answer(raw_model_output, question):
-    parsed = _parse_json_response(raw_model_output)
+    parsed = _coerce_json_dict(raw_model_output)
     if isinstance(parsed, dict):
         answer = _clean_answer_text(parsed.get("answer", ""), question)
+
+        nested_payload = _coerce_json_dict(parsed.get("answer", ""))
+        if not answer and isinstance(nested_payload, dict):
+            answer = _clean_answer_text(nested_payload.get("answer", ""), question)
+
         evidence = parsed.get("evidence")
+        if not isinstance(evidence, list) and isinstance(nested_payload, dict):
+            evidence = nested_payload.get("evidence")
         if not isinstance(evidence, list):
             evidence = []
         evidence = [str(item).strip() for item in evidence if str(item).strip()][:3]
 
         found_in_contract = parsed.get("found_in_contract")
+        if not isinstance(found_in_contract, bool) and isinstance(nested_payload, dict):
+            found_in_contract = nested_payload.get("found_in_contract")
         if isinstance(found_in_contract, bool):
             found = found_in_contract
         else:
             found = None
+
+        if found is True and not evidence:
+            found = False
 
         return (answer or "No answer generated."), found, evidence
 

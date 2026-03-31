@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Download } from 'lucide-react';
+import { Download, ArrowLeft, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { getSharedAnalysis } from '../services/api';
 import ContractView from '../components/ContractView';
-import Card from '../components/Card';
 import './SharedContractView.css';
 
 const SharedContractView = () => {
@@ -82,10 +81,11 @@ const SharedContractView = () => {
 
     if (isLoading) {
         return (
-            <div className="shared-contract-page" dir="rtl">
-                <div className="shared-loading">
-                    <div className="loading-spinner"></div>
-                    <p>טוען חוזה משותף...</p>
+            <div className="shared-contract-shell" dir="rtl">
+                <div className="shared-state-card shared-state-loading">
+                    <div className="shared-loading-spinner"></div>
+                    <h2>טוען חוזה משותף...</h2>
+                    <p>אוספים את מסמך החוזה בצורה מאובטחת, זה ייקח רגע.</p>
                 </div>
             </div>
         );
@@ -93,49 +93,59 @@ const SharedContractView = () => {
 
     if (error) {
         return (
-            <div className="shared-contract-page" dir="rtl">
-                <Card variant="glass" padding="lg" className="shared-error-card">
-                    <h2>שגיאה</h2>
+            <div className="shared-contract-shell" dir="rtl">
+                <section className="shared-state-card shared-state-error">
+                    <AlertTriangle size={24} aria-hidden="true" />
+                    <h2>שגיאה בטעינת החוזה</h2>
                     <p>{error}</p>
-                    <button className="shared-retry-btn" onClick={fetchSharedAnalysis}>נסה שוב</button>
-                    <Link to="/" className="shared-home-link">חזרה לדף הבית</Link>
-                </Card>
+                    <div className="shared-state-actions">
+                        <button className="shared-btn shared-btn-primary" onClick={fetchSharedAnalysis}>נסה שוב</button>
+                    </div>
+                </section>
             </div>
         );
     }
 
     return (
-        <div className="shared-contract-page" dir="rtl">
-            <header className="shared-contract-header">
-                <div>
+        <div className="shared-contract-shell" dir="rtl">
+            <header className="shared-hero">
+                <div className="shared-hero-text">
+                    <span className="shared-kicker">RentGuard 360</span>
                     <h1>צפייה בחוזה משותף</h1>
-                    <p className="shared-subtitle">מצב צפייה בלבד. ניתן להוריד את המסמך ל-Word.</p>
+                    <p className="shared-subtitle">מצב צפייה בלבד. אפשר לעיין בתוכן ולהוריד את המסמך המעודכן ל-Word.</p>
                 </div>
-                <button
-                    className="shared-download-btn"
-                    onClick={() => contractViewRef.current?.handleExport()}
-                >
-                    <Download size={18} />
-                    <span>הורדה ל-Word</span>
-                </button>
+                <div className="shared-hero-actions">
+                    <button
+                        className="shared-btn shared-btn-primary"
+                        onClick={() => contractViewRef.current?.handleExport()}
+                    >
+                        <Download size={18} />
+                        <span>ייצוא כקובץ docx (Word)</span>
+                    </button>
+                </div>
             </header>
 
-            {!isContract ? (
-                <Card variant="glass" padding="lg" className="shared-error-card">
-                    <h2>המסמך אינו חוזה שכירות</h2>
-                    <p>לא ניתן להציג את תוכן המסמך בקישור זה.</p>
-                </Card>
-            ) : (
-                <ContractView
-                    ref={contractViewRef}
-                    contractText={contractText}
-                    backendClauses={analysis?.clauses_list || analysis?.clauses || []}
-                    issues={issues}
-                    initialEditedClauses={sharedEditedClauses}
-                    contractId={null}
-                    readOnly={true}
-                />
-            )}
+            <main className="shared-contract-content">
+                {!isContract ? (
+                    <section className="shared-state-card shared-state-warning">
+                        <ShieldCheck size={24} aria-hidden="true" />
+                        <h2>המסמך אינו חוזה שכירות</h2>
+                        <p>לא ניתן להציג את תוכן המסמך בקישור זה.</p>
+                    </section>
+                ) : (
+                    <section className="shared-contract-stage">
+                        <ContractView
+                            ref={contractViewRef}
+                            contractText={contractText}
+                            backendClauses={analysis?.clauses_list || analysis?.clauses || []}
+                            issues={issues}
+                            initialEditedClauses={sharedEditedClauses}
+                            contractId={null}
+                            readOnly={true}
+                        />
+                    </section>
+                )}
+            </main>
         </div>
     );
 };

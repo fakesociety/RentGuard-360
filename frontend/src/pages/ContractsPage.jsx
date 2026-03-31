@@ -1,25 +1,7 @@
 /**
  * ============================================
- *  ContractsPage
- *  User's Contract List & Management
- * ============================================
- * 
- * STRUCTURE:
- * - ContractCard: Individual contract display component
- * - ContractsPage: Main page with list, modals, pagination
- * - Contract list with risk score gauges
- * - Auto-refresh for pending analysis
- * - Edit/Delete contract modals
- * - Export to Word/PDF
- * - Sort by date or score
- * - Pagination (20 per page)
- * - Timeout detection (default 3 min)
- * 
- * DEPENDENCIES:
- * - api.js: getContracts, deleteContract, getAnalysis, updateContract
- * - ExportService.js: exportToWord, exportToPDF
- * - RiskGauge: Visual score display
- * 
+ * ContractsPage
+ * User's Contract List & Management (LexisFlow Modern UI)
  * ============================================
  */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -31,13 +13,13 @@ import { getContracts, deleteContract, getAnalysis, updateContract } from '../se
 import { exportToWord, exportToPDF, exportToPDFBlob } from '../services/ExportService';
 import useShareFile from '../hooks/useShareFile';
 import ActionMenu from '../components/ActionMenu';
-import Button from '../components/Button';
-import RiskGauge from '../components/RiskGauge';
-import { Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check, ChevronDown, ArrowUpDown, Calendar, AlertTriangle, Share2 } from 'lucide-react';
+import {
+    Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check,
+    MoreVertical, MapPin, Users, Calendar, AlertTriangle,
+    Share2, Search, Filter, CheckCircle2
+} from 'lucide-react';
 import './ContractsPage.css';
 
-// Timeout constant (ms) for when a pending analysis is treated as "timed out".
-// Configurable via VITE_ANALYSIS_TIMEOUT_MS; defaults to 3 minutes.
 const DEFAULT_ANALYSIS_TIMEOUT_MS = 3 * 60 * 1000;
 const ANALYSIS_TIMEOUT_MS = (() => {
     const raw = import.meta.env.VITE_ANALYSIS_TIMEOUT_MS;
@@ -45,13 +27,11 @@ const ANALYSIS_TIMEOUT_MS = (() => {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ANALYSIS_TIMEOUT_MS;
 })();
 
-// Check if a contract has timed out (pending for longer than ANALYSIS_TIMEOUT_MS)
 const isContractTimedOut = (contract) => {
     const status = (contract.status || '').toLowerCase();
     if (status === 'analyzed' || status === 'failed' || status === 'error') {
-        return false; // Already has final status
+        return false;
     }
-
     const uploadDate = contract.uploadDate;
     if (!uploadDate) return false;
 
@@ -62,162 +42,181 @@ const isContractTimedOut = (contract) => {
     return elapsed > ANALYSIS_TIMEOUT_MS;
 };
 
-// Contract Card Component
+// ============================================
+// Modern Contract Card Component
+// ============================================
 const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDate, t, isRTL }) => {
     const [activeMenu, setActiveMenu] = useState(null);
     const status = (contract.status || '').toLowerCase();
 
-    // Score thresholds match legend: lower score = higher risk
-    const getScoreColor = (score) => {
-        if (score >= 86) return 'excellent';  // 86-100: Low Risk (green)
-        if (score >= 71) return 'good';       // 71-85: Low-Medium Risk (light green)
-        if (score >= 51) return 'medium';     // 51-70: Medium Risk (orange)
-        return 'low';                         // 0-50: High Risk (red)
+    const getScoreData = (score) => {
+        if (score >= 86) return { class: 'excellent', label: t('contracts.lowRisk') };
+        if (score >= 71) return { class: 'good', label: t('contracts.lowMediumRisk') };
+        if (score >= 51) return { class: 'warning', label: t('contracts.mediumRisk') };
+        return { class: 'danger', label: t('contracts.highRisk') };
     };
 
-    const getScoreLabel = (score) => {
-        if (score >= 86) return t('contracts.lowRisk');
-        if (score >= 71) return t('contracts.lowMediumRisk');
-        if (score >= 51) return t('contracts.mediumRisk');
-        return t('contracts.highRisk');
-    };
-
-    // Check for timeout - treat as failed if pending too long
     const isTimedOut = isContractTimedOut(contract);
-
     const isAnalyzed = status === 'analyzed';
     const isFailed = status === 'failed' || status === 'error' || isTimedOut;
     const score = contract.riskScore ?? contract.risk_score ?? null;
     const hasScore = isAnalyzed && score !== null && score !== undefined;
 
+    const scoreData = hasScore ? getScoreData(score) : { color: '#64748b', class: 'pending', label: '---' };
+
+    // Determine Card Border & Badge Color based on status
+    let cardClass = 'lf-card-pending';
+    let badgeClass = 'lf-badge-pending';
+    let badgeLabel = t('contracts.pendingAnalysis');
+
+    if (isAnalyzed) {
+        cardClass = `lf-card-${scoreData.class}`;
+        badgeClass = `lf-badge-${scoreData.class}`;
+        badgeLabel = scoreData.label;
+    } else if (isFailed) {
+        cardClass = 'lf-card-danger';
+        badgeClass = 'lf-badge-danger';
+        badgeLabel = isTimedOut ? t('contracts.statusTimedOutRetry') : t('contracts.statusAnalysisFailed');
+    }
+
     return (
-        <div className="contract-card">
-            {/* Card Header */}
-            <div className="card-header">
-                <div className="card-header-info">
-                    <div className="card-icon">
-                        <FileText size={20} />
-                    </div>
-                    <div className="card-header-content">
-                        <h3 className="card-title">{contract.fileName || (isRTL ? 'חוזה ללא שם' : 'Untitled Contract')}</h3>
-                        <span className="card-date">{formatDate(contract.uploadDate)}</span>
-                    </div>
+        <div className={`lf-contract-card ${cardClass}`}>
+
+            <div className="lf-card-header">
+                <div className="lf-card-title-group">
+                    <span className={`lf-card-badge ${badgeClass}`}>
+                        {!isAnalyzed && !isFailed && <RefreshCw size={12} className="lf-spin-icon" />}
+                        {badgeLabel}
+                    </span>
+                    <h3 className="lf-card-title" onClick={(e) => onEdit(contract, e)}>
+                        {contract.fileName || t('contracts.untitledContract')}
+                    </h3>
+                    <p className="lf-card-date">
+                        <Calendar size={12} />
+                        {t('contracts.uploadDate')} {formatDate(contract.uploadDate)}
+                    </p>
                 </div>
-                {/* Score Gauge */}
+
+                {/* 3-Dots Menu for Edit/Delete/Share */}
+                <div className="lf-card-menu-wrap">
+                    <ActionMenu
+                        isOpen={activeMenu === 'options'}
+                        onToggle={() => setActiveMenu(activeMenu === 'options' ? null : 'options')}
+                        onClose={() => setActiveMenu(null)}
+                        triggerClassName="lf-menu-trigger"
+                        triggerContent={<MoreVertical size={20} />}
+                        panelClassName={`lf-dropdown-menu ${isRTL ? 'rtl' : 'ltr'}`}
+                    >
+                        <button className="lf-menu-item" onClick={(e) => { onEdit(contract, e); setActiveMenu(null); }}>
+                            <Pencil size={16} /> <span>{t('contracts.editButtonTitle')}</span>
+                        </button>
+                        <button className="lf-menu-item" onClick={() => { onShare(contract); setActiveMenu(null); }} disabled={!isAnalyzed}>
+                            <Share2 size={16} /> <span>{t('contracts.menuShareTrigger')}</span>
+                        </button>
+                        <div className="lf-menu-divider"></div>
+                        <button className="lf-menu-item lf-danger-text" onClick={(e) => { onDelete(contract.contractId, e); setActiveMenu(null); }}>
+                            <Trash2 size={16} /> <span>{t('contracts.deleteButtonTitle')}</span>
+                        </button>
+                    </ActionMenu>
+                </div>
+            </div>
+
+            {/* Gauge or Processing State */}
+            <div className="lf-card-gauge-area">
                 {hasScore ? (
-                    <RiskGauge score={score} size={80} />
+                    <div className="lf-gauge-container" style={{ '--percentage': score, '--gauge-color': scoreData.color }}>
+                        <div className="lf-gauge-track"></div>
+
+                        <div className="lf-gauge-reveal">
+                            <div className="lf-gauge-gradient"></div>
+                        </div>
+
+                        <div className="lf-gauge-content">
+                            <span className="lf-gauge-score">{score}</span>
+                            <span className="lf-gauge-label">{t('contracts.riskScore', 'מדד סיכון')}</span>
+                        </div>
+                    </div>
                 ) : isFailed ? (
-                    <div className="score-gauge error">
-                        <X size={24} strokeWidth={3} />
+                    <div className="lf-gauge-failed">
+                        <AlertTriangle size={40} className="lf-danger-text" />
+                        <span className="lf-gauge-label mt-2">{t('contracts.analysisFailed', 'הניתוח נכשל')}</span>
                     </div>
                 ) : (
-                    <div className="score-gauge pending">
-                        <RefreshCw size={20} className="spinning" />
+                    <div className="lf-gauge-processing">
+                        <div className="lf-pulse-bar-wrap">
+                            <div className="lf-pulse-bar"></div>
+                        </div>
+                        <span className="lf-gauge-label mt-3">{t('contracts.processingData', 'מעבד סעיפי התקשרות...')}</span>
                     </div>
                 )}
             </div>
 
-            {/* Card Body */}
-            <div className="card-body">
-                {/* Status */}
-                <div className="status-row">
-                    {isAnalyzed ? (
-                        <span className={`status-chip ${getScoreColor(score)}`}>
-                            {getScoreLabel(score)}
-                        </span>
-                    ) : isFailed ? (
-                        <span className="status-chip error">
-                            {isTimedOut
-                                ? (isRTL ? 'תם הזמן - נסה שוב' : 'Timed Out - Retry')
-                                : (isRTL ? 'שגיאה בניתוח' : 'Analysis Failed')}
-                        </span>
-                    ) : (
-                        <span className="status-chip pending">{t('contracts.pendingAnalysis')}...</span>
-                    )}
-                    {contract.analyzedDate && (
-                        <span className="analyzed-date">{isRTL ? 'נותח:' : 'Analyzed:'} {formatDate(contract.analyzedDate)}</span>
-                    )}
+            {/* Metadata */}
+            <div className="lf-card-meta">
+                <div className="lf-meta-item">
+                    <div className="lf-meta-icon"><MapPin size={18} /></div>
+                    <div className="lf-meta-text">
+                        <span className="lf-meta-lbl">{t('contracts.propertyAddress')}</span>
+                        <span className="lf-meta-val">{contract.propertyAddress || t('contracts.notSpecified')}</span>
+                    </div>
                 </div>
-
-                {/* Meta Info */}
-                <div className="card-meta">
-                    <p className="meta-item">
-                        <span className="meta-label">{t('contracts.propertyAddress')}:</span> {contract.propertyAddress || t('contracts.notSpecified')}
-                    </p>
-                    <p className="meta-item">
-                        <span className="meta-label">{t('contracts.landlordName')}:</span> {contract.landlordName || t('contracts.notSpecified')}
-                    </p>
+                <div className="lf-meta-item">
+                    <div className="lf-meta-icon"><Users size={18} /></div>
+                    <div className="lf-meta-text">
+                        <span className="lf-meta-lbl">{t('contracts.landlordName')}</span>
+                        <span className="lf-meta-val">{contract.landlordName || t('contracts.notSpecified')}</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Card Footer - Actions */}
-            <div className="card-footer">
+            {/* Footer Actions */}
+            <div className="lf-card-footer">
                 {isAnalyzed ? (
-                    <Link
-                        to={`/analysis/${encodeURIComponent(contract.contractId)}`}
-                        state={{ contract }}
-                        className="view-btn"
-                    >
+                    <Link to={`/analysis/${encodeURIComponent(contract.contractId)}`} state={{ contract }} className="lf-btn-view">
                         {t('contracts.viewAnalysis')}
                     </Link>
                 ) : (
-                    <span className="view-btn disabled">
-                        {isFailed ? (isRTL ? 'ניתוח נכשל' : 'Analysis Failed') : (isRTL ? 'ממתין...' : 'Pending...')}
-                    </span>
+                    <button className="lf-btn-view disabled" disabled>
+                        {isFailed ? t('contracts.statusFailedShort') : t('contracts.statusPendingShort')}
+                    </button>
                 )}
-                <div className="action-buttons">
-                    {/* Export Dropdown */}
+
+                <div className="lf-card-footer-actions">
+                    <button
+                        type="button"
+                        className="lf-btn-edit"
+                        onClick={(e) => onEdit(contract, e)}
+                        title={t('contracts.editButtonTitle')}
+                        aria-label={t('contracts.editButtonTitle')}
+                    >
+                        <Pencil size={18} />
+                    </button>
+
                     <ActionMenu
                         isOpen={activeMenu === 'export'}
                         onToggle={() => setActiveMenu(activeMenu === 'export' ? null : 'export')}
                         onClose={() => setActiveMenu(null)}
-                        containerClassName="dropdown-container"
-                        triggerClassName="icon-btn"
-                        triggerTitle="ייצוא"
-                        triggerContent={<Download size={16} />}
-                        panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
+                        triggerClassName="lf-btn-download"
+                        triggerContent={<Download size={20} />}
+                        panelClassName={`lf-dropdown-menu export-menu ${isRTL ? 'rtl' : 'ltr'}`}
                     >
-                        <div className="dropdown-menu-title">{isRTL ? 'ייצוא דוח הניתוח' : 'Export Analysis Report'}</div>
-                        <div className="dropdown-group-title">{isRTL ? 'הורדה' : 'Download'}</div>
-                        <button className="menu-option" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'ייצוא ל-Word - דוח ניתוח' : 'Export to Word - Analysis Report'}</span>
-                            <span className="menu-option-note">{isRTL ? 'ייצוא כקובץ docx (Word), עריך ומומלץ לעברית' : '.docx editable, best Hebrew support'}</span>
+                        <div className="lf-menu-title">{t('contracts.menuDownloadTitle')}</div>
+                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }} disabled={!isAnalyzed}>
+                            <FileText size={16} /> <span>{t('contracts.menuExportWordTitle')}</span>
                         </button>
-                        <button className="menu-option" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'PDF - דוח ניתוח' : 'PDF - Analysis Report'}</span>
-                            <span className="menu-option-note">{isRTL ? 'סיכום מהיר, אנגלית בלבד' : 'quick summary, English only'}</span>
+                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }} disabled={!isAnalyzed}>
+                            <Download size={16} /> <span>{t('contracts.menuExportPdfTitle')}</span>
                         </button>
                     </ActionMenu>
-
-                    <ActionMenu
-                        isOpen={activeMenu === 'share'}
-                        onToggle={() => setActiveMenu(activeMenu === 'share' ? null : 'share')}
-                        onClose={() => setActiveMenu(null)}
-                        containerClassName="dropdown-container"
-                        triggerClassName="icon-btn"
-                        triggerTitle={isRTL ? 'שיתוף' : 'Share'}
-                        triggerContent={<Share2 size={16} />}
-                        panelClassName={`dropdown-menu rich-menu ${isRTL ? 'rtl' : 'ltr'}`}
-                    >
-                        <div className="dropdown-menu-title">{isRTL ? 'שיתוף דוח הניתוח' : 'Share Analysis Report'}</div>
-                        <button className="menu-option" onClick={() => { onShare(contract); setActiveMenu(null); }}>
-                            <span className="menu-option-title">{isRTL ? 'שיתוף קובץ PDF' : 'Share PDF File'}</span>
-                            <span className="menu-option-note">{isRTL ? 'מצרף את הדוח כקובץ לשיתוף' : 'attach the report as a file'}</span>
-                        </button>
-                    </ActionMenu>
-                    <button className="icon-btn" onClick={(e) => onEdit(contract, e)} title="עריכה">
-                        <Pencil size={16} />
-                    </button>
-                    <button className="icon-btn danger" onClick={(e) => onDelete(contract.contractId, e)} title="מחיקה">
-                        <Trash2 size={16} />
-                    </button>
                 </div>
             </div>
         </div>
     );
 };
 
+// ============================================
 // Main Contracts Page
+// ============================================
 const ContractsPage = () => {
     const { user, userAttributes } = useAuth();
     const { t, isRTL } = useLanguage();
@@ -231,11 +230,15 @@ const ContractsPage = () => {
     const [actionNotice, setActionNotice] = useState(null);
     const { shareFile } = useShareFile();
 
-    // Filter/Sort state
-    const [sortBy, setSortBy] = useState('date'); // 'date' | 'score'
-    const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+    // Modern Search & Filter State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'high_risk', 'pending'
 
-    // Pagination state
+    // Sort state
+    const [sortBy, setSortBy] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
+
+    // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const contractsPerPage = 20;
 
@@ -255,11 +258,9 @@ const ContractsPage = () => {
             if (showLoader) setIsLoading(true);
             else setIsRefreshing(true);
 
-            // Start timing for minimum display
             const startTime = Date.now();
             const data = await getContracts(userId);
 
-            // Ensure toast shows for at least 1.5 seconds
             const elapsed = Date.now() - startTime;
             if (!showLoader && elapsed < 1500) {
                 await new Promise(resolve => setTimeout(resolve, 1500 - elapsed));
@@ -276,49 +277,22 @@ const ContractsPage = () => {
 
     useEffect(() => { fetchContracts(); }, [fetchContracts]);
 
-    // Auto-refresh while there are pending contracts (not failed/analyzed/timed out)
+    // Auto-refresh logic
     useEffect(() => {
-        console.log('[AutoPoll] useEffect triggered - contracts count:', contracts.length);
-
         const pendingContracts = contracts.filter(c => {
             const status = (c.status || '').toLowerCase();
-            // Skip if already has final status
-            if (status === 'analyzed' || status === 'failed' || status === 'error') {
-                return false;
-            }
-            // Skip if timed out
-            if (isContractTimedOut(c)) {
-                return false;
-            }
-            // Check if actually pending/processing
-            return status === 'processing' ||
-                status === 'uploaded' ||
-                status === 'pending' ||
-                !status;  // No status yet
+            if (status === 'analyzed' || status === 'failed' || status === 'error') return false;
+            if (isContractTimedOut(c)) return false;
+            return true;
         });
 
-        console.log('[AutoPoll] Contract statuses:', contracts.map(c => ({
-            id: c.contractId?.substring(0, 8),
-            status: (c.status || '').toLowerCase() || null,
-            timedOut: isContractTimedOut(c)
-        })));
-        console.log('[AutoPoll] Pending contracts:', pendingContracts.length);
+        if (pendingContracts.length === 0) return;
 
-        if (pendingContracts.length === 0) {
-            console.log('[AutoPoll] No pending contracts - NOT starting interval');
-            return;
-        }
-
-        console.log('[AutoPoll] Starting 30 second interval...');
         const interval = setInterval(() => {
-            console.log('[AutoPoll] Interval fired - fetching contracts at', new Date().toISOString());
             fetchContracts(false);
         }, 30000);
 
-        return () => {
-            console.log('[AutoPoll] Cleanup - clearing interval');
-            clearInterval(interval);
-        };
+        return () => clearInterval(interval);
     }, [contracts, fetchContracts]);
 
     const handleDelete = (contractId, e) => {
@@ -336,7 +310,7 @@ const ContractsPage = () => {
             setContracts(contracts.filter(c => c.contractId !== deleteConfirm));
             setDeleteConfirm(null);
         } catch {
-            alert('מחיקה נכשלה');
+            alert(t('contracts.deleteFailed'));
         } finally {
             setIsDeleting(false);
         }
@@ -359,7 +333,7 @@ const ContractsPage = () => {
         setIsSaving(true);
         try {
             const updates = {
-                fileName: editModal.fileName.trim() || 'Contract',
+                fileName: editModal.fileName.trim() || t('contracts.defaultFileName'),
                 propertyAddress: editModal.propertyAddress.trim(),
                 landlordName: editModal.landlordName.trim()
             };
@@ -372,7 +346,7 @@ const ContractsPage = () => {
             ));
             setEditModal(null);
         } catch {
-            alert('שמירה נכשלה');
+            alert(t('contracts.saveFailed'));
         } finally {
             setIsSaving(false);
         }
@@ -383,13 +357,13 @@ const ContractsPage = () => {
             const analysis = await getAnalysis(contract.contractId);
             if (type === 'pdf') {
                 await exportToPDF(analysis, contract.fileName || 'Report');
-                showActionNotice(isRTL ? 'קובץ PDF ירד למחשב (סיכום באנגלית)' : 'PDF download started (English summary)');
+                showActionNotice(t('contracts.exportPdfStarted'));
             } else {
                 await exportToWord(analysis, contract.fileName || 'Report');
-                showActionNotice(isRTL ? 'קובץ docx (Word) ירד למחשב (עריך)' : 'Word (.docx) download started');
+                showActionNotice(t('contracts.exportWordStarted'));
             }
         } catch {
-            alert('ייצוא נכשל');
+            alert(t('contracts.exportFailed'));
         }
     };
 
@@ -399,54 +373,75 @@ const ContractsPage = () => {
             const baseFileName = `${(contract.fileName || 'Report').replace(/\.(pdf|docx)$/i, '')}`;
             const blob = await exportToPDFBlob(analysis, baseFileName);
             await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
-            showActionNotice(isRTL ? 'חלון השיתוף נפתח עבור PDF' : 'Share sheet opened for PDF');
+            showActionNotice(t('contracts.shareSheetOpened'));
         } catch (err) {
             console.error('Share failed:', err);
-            alert(isRTL ? 'השיתוף נכשל' : 'Share failed');
+            alert(t('contracts.shareFailed'));
         }
     };
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const utcDate = dateString.endsWith('Z') ? dateString : dateString + 'Z';
-        return new Date(utcDate).toLocaleDateString('he-IL');
+        return new Date(utcDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US');
     };
 
-    // Sort contracts based on current filter
-    const sortedContracts = [...contracts].sort((a, b) => {
+    // Apply Search and Filters
+    const filteredContracts = contracts.filter(c => {
+        // Search
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const nameMatch = (c.fileName || '').toLowerCase().includes(query);
+            const addressMatch = (c.propertyAddress || '').toLowerCase().includes(query);
+            const landlordMatch = (c.landlordName || '').toLowerCase().includes(query);
+            if (!nameMatch && !addressMatch && !landlordMatch) return false;
+        }
+
+        // Category Filter
+        if (activeFilter === 'high_risk') {
+            const score = c.riskScore ?? c.risk_score ?? 100;
+            if (score > 50 || c.status !== 'analyzed') return false;
+        } else if (activeFilter === 'pending') {
+            if (c.status === 'analyzed' || c.status === 'failed' || c.status === 'error') return false;
+        }
+
+        return true;
+    });
+
+    // Sort contracts
+    const sortedContracts = [...filteredContracts].sort((a, b) => {
         if (sortBy === 'date') {
             const dateA = new Date(a.uploadDate || 0);
             const dateB = new Date(b.uploadDate || 0);
             return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         } else if (sortBy === 'score') {
-            const scoreA = a.riskScore ?? a.risk_score ?? 0;
-            const scoreB = b.riskScore ?? b.risk_score ?? 0;
-            return sortOrder === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+            const scoreA = a.riskScore ?? a.risk_score ?? 100;
+            const scoreB = b.riskScore ?? b.risk_score ?? 100;
+            // Ascending score means higher risk first (lower score = riskier contract).
+            return sortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA;
         }
         return 0;
     });
 
-    const handleSortChange = (newSortBy) => {
-        if (sortBy === newSortBy) {
-            // Toggle order if same field
-            setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
-        } else {
-            setSortBy(newSortBy);
-            setSortOrder('desc');
-        }
-        setCurrentPage(1); // Reset to first page on sort change
-    };
-
-    // Pagination logic
     const totalPages = Math.ceil(sortedContracts.length / contractsPerPage);
     const startIndex = (currentPage - 1) * contractsPerPage;
     const paginatedContracts = sortedContracts.slice(startIndex, startIndex + contractsPerPage);
 
+    const handleSortClick = (nextSortBy) => {
+        if (sortBy === nextSortBy) {
+            setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+            return;
+        }
+
+        setSortBy(nextSortBy);
+        setSortOrder(nextSortBy === 'date' ? 'desc' : 'asc');
+    };
+
     if (isLoading) {
         return (
-            <div className="contracts-page page-container" dir="rtl">
-                <div className="loading-container">
-                    <RefreshCw size={32} className="spinning" />
+            <div className="lf-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
+                <div className="lf-loading-state">
+                    <RefreshCw size={40} className="lf-spin-icon text-primary" />
                     <p>{t('contracts.loading')}</p>
                 </div>
             </div>
@@ -454,185 +449,212 @@ const ContractsPage = () => {
     }
 
     return (
-        <>
-        <div className="contracts-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
-            {/* Refresh Toast */}
+        <div className="lf-page-wrapper lf-mesh-bg" dir={isRTL ? 'rtl' : 'ltr'}>
+
+            {/* Action Notices */}
             {isRefreshing && (
-                <div className="refresh-toast">
-                    <RefreshCw size={18} className="spinning" />
-                    <span>{isRTL ? 'מרענן...' : 'Refreshing...'}</span>
+                <div className="lf-floating-notice">
+                    <RefreshCw size={16} className="lf-spin-icon" />
+                    <span>{t('contracts.refreshing')}</span>
                 </div>
             )}
             {actionNotice && (
-                <div className="refresh-toast" style={{ top: '70px' }}>
+                <div className="lf-floating-notice success">
+                    <CheckCircle2 size={16} />
                     <span>{actionNotice}</span>
                 </div>
             )}
 
-            {/* Delete Confirmation Modal - rendered via Portal for full screen overlay */}
+            {/* Modals - Same logic, wrapped in standard portal */}
             {deleteConfirm && ReactDOM.createPortal(
-                <div className="modal-backdrop" onClick={() => setDeleteConfirm(null)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h3>{t('contracts.deleteTitle')}</h3>
-                        <p>{t('contracts.deleteConfirm')}</p>
-                        <div className="modal-buttons">
-                            <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>{t('contracts.cancel')}</button>
-                            <button className="btn-danger" onClick={confirmDelete} disabled={isDeleting}>
+                <div className="lf-modal-overlay" onClick={() => setDeleteConfirm(null)}>
+                    <div className="lf-modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="lf-modal-header lf-danger-text">
+                            <h3><AlertTriangle size={20} /> {t('contracts.deleteTitle')}</h3>
+                        </div>
+                        <div className="lf-modal-body center-text">
+                            <p>{t('contracts.deleteConfirm')}</p>
+                        </div>
+                        <div className="lf-modal-footer center-footer">
+                            <button className="lf-btn-danger" onClick={confirmDelete} disabled={isDeleting}>
                                 {isDeleting ? t('contracts.deleting') : t('contracts.delete')}
                             </button>
+                            <button className="lf-btn-cancel" onClick={() => setDeleteConfirm(null)}>{t('contracts.cancel')}</button>
                         </div>
                     </div>
                 </div>,
                 document.body
             )}
 
-            {/* Edit Modal - rendered via Portal for full screen overlay */}
             {editModal && ReactDOM.createPortal(
-                <div className="modal-backdrop" onClick={() => setEditModal(null)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h3>{t('contracts.editTitle')}</h3>
-                        <div className="form-group">
-                            <label>{t('contracts.fileName')}</label>
+                <div className="lf-modal-overlay" onClick={() => setEditModal(null)}>
+                    <div className="lf-modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="lf-modal-header">
+                            <h3><Pencil size={20} /> {t('contracts.editTitle')}</h3>
+                            <button className="lf-modal-close" onClick={() => setEditModal(null)}><X size={20} /></button>
+                        </div>
+                        <div className="lf-modal-body">
+                            <div className="lf-form-group">
+                                <label>{t('contracts.fileName')}</label>
+                                <input type="text" className="lf-input" value={editModal.fileName} onChange={e => setEditModal({ ...editModal, fileName: e.target.value })} />
+                            </div>
+                            <div className="lf-form-group">
+                                <label>{t('contracts.propertyAddress')}</label>
+                                <input type="text" className="lf-input" value={editModal.propertyAddress} onChange={e => setEditModal({ ...editModal, propertyAddress: e.target.value })} />
+                            </div>
+                            <div className="lf-form-group">
+                                <label>{t('contracts.landlordName')}</label>
+                                <input type="text" className="lf-input" value={editModal.landlordName} onChange={e => setEditModal({ ...editModal, landlordName: e.target.value })} />
+                            </div>
+                        </div>
+                        <div className="lf-modal-footer">
+                            <button className="lf-btn-primary" onClick={saveEdit} disabled={isSaving}>
+                                <Check size={16} /> {isSaving ? t('contracts.saving') : t('contracts.save')}
+                            </button>
+                            <button className="lf-btn-cancel" onClick={() => setEditModal(null)}>{t('contracts.cancel')}</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* HERO SECTION */}
+            <section className="lf-hero-section">
+                <div className="lf-hero-content">
+                    <div className="lf-hero-text">
+                        <h1 className="lf-hero-title">{t('contracts.title')}</h1>
+                        <div className="lf-hero-badges">
+                            <span className="lf-hero-count">{contracts.length} {t('contracts.activeContracts')}</span>
+                            <p className="lf-hero-subtitle hidden-mobile">{t('contracts.subtitle')}</p>
+                        </div>
+                    </div>
+                    <div className="lf-hero-actions">
+                        <Link to="/upload" className="lf-btn-upload-hero">
+                            <Plus size={24} className="icon-filled" />
+                            {t('contracts.uploadContract')}
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* WAVE DIVIDER */}
+            <div className="lf-wave-divider">
+                <svg preserveAspectRatio="none" viewBox="0 0 1440 120">
+                    <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
+                </svg>
+            </div>
+
+            {/* MAIN CONTENT AREA */}
+            <section className="lf-content-section">
+
+                {/* Search & Filters */}
+                {contracts.length > 0 && (
+                    <div className="lf-filter-bar">
+                        <div className="lf-search-box">
+                            <Search className="lf-search-icon" size={20} />
                             <input
                                 type="text"
-                                value={editModal.fileName}
-                                onChange={e => setEditModal({ ...editModal, fileName: e.target.value })}
-                                placeholder="שם הקובץ"
+                                className="lf-search-input"
+                                placeholder={t('contracts.searchPlaceholder')}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <div className="form-group">
-                            <label>כתובת הנכס</label>
-                            <input
-                                type="text"
-                                value={editModal.propertyAddress}
-                                onChange={e => setEditModal({ ...editModal, propertyAddress: e.target.value })}
-                                placeholder="כתובת"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>שם המשכיר</label>
-                            <input
-                                type="text"
-                                value={editModal.landlordName}
-                                onChange={e => setEditModal({ ...editModal, landlordName: e.target.value })}
-                                placeholder="משכיר"
-                            />
-                        </div>
-                        <div className="modal-buttons">
-                            <button className="btn-secondary" onClick={() => setEditModal(null)}>ביטול</button>
-                            <button className="btn-primary" onClick={saveEdit} disabled={isSaving}>
-                                {isSaving ? 'שומר...' : 'שמירה'}
+
+                        <div className="lf-filter-chips">
+                            <button className={`lf-chip ${activeFilter === 'all' ? 'active' : ''}`} onClick={() => setActiveFilter('all')}>
+                                {t('contracts.filterAll')}
+                            </button>
+                            <button className={`lf-chip ${activeFilter === 'high_risk' ? 'active' : ''}`} onClick={() => setActiveFilter('high_risk')}>
+                                {t('contracts.filterHighRisk')}
+                            </button>
+                            <button className={`lf-chip ${activeFilter === 'pending' ? 'active' : ''}`} onClick={() => setActiveFilter('pending')}>
+                                {t('contracts.filterPending')}
+                            </button>
+
+                            <button
+                                className={`lf-chip border-dashed ${sortBy === 'date' ? 'active' : ''}`}
+                                onClick={() => handleSortClick('date')}
+                            >
+                                <Filter size={14} />
+                                <span>{t('contracts.sortDate')}</span>
+                                <span className="lf-sort-order">
+                                    {sortBy === 'date'
+                                        ? (sortOrder === 'desc' ? t('contracts.sortNewest') : t('contracts.sortOldest'))
+                                        : t('contracts.sortNewest')}
+                                </span>
+                            </button>
+
+                            <button
+                                className={`lf-chip border-dashed ${sortBy === 'score' ? 'active' : ''}`}
+                                onClick={() => handleSortClick('score')}
+                            >
+                                <AlertTriangle size={14} />
+                                <span>{t('contracts.sortScore')}</span>
+                                <span className="lf-sort-order">
+                                    {sortBy === 'score'
+                                        ? (sortOrder === 'asc' ? t('contracts.sortHighRiskFirst') : t('contracts.sortLowRiskFirst'))
+                                        : t('contracts.sortHighRiskFirst')}
+                                </span>
                             </button>
                         </div>
                     </div>
-                </div>,
-                document.body
-            )}
+                )}
 
-            {/* Page Header */}
-            <header className="page-header">
-                <div className="header-content">
-                    <h1>{t('contracts.title')}</h1>
-                    <p>{t('contracts.subtitle')}</p>
-                </div>
-                <div className="header-actions">
-                    <button
-                        className="btn-ghost"
-                        onClick={() => fetchContracts(false)}
-                        disabled={isRefreshing}
-                    >
-                        <RefreshCw size={18} className={isRefreshing ? 'spinning' : ''} />
-                        {t('contracts.refresh')}
-                    </button>
-                    <Link to="/upload" className="btn-primary">
-                        <Plus size={18} />
-                        {t('contracts.uploadContract')}
-                    </Link>
-                </div>
-            </header>
-
-            {/* Filter Bar */}
-            {contracts.length > 0 && (
-                <div className="filter-bar">
-                    <span className="filter-label">{t('contracts.sortBy')}</span>
-                    <button
-                        className={`filter-btn ${sortBy === 'date' ? 'active' : ''}`}
-                        onClick={() => handleSortChange('date')}
-                    >
-                        <Calendar size={16} />
-                        <span>{t('contracts.sortDate')}</span>
-                        {sortBy === 'date' && (
-                            <span className="sort-arrow">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                        )}
-                    </button>
-                    <button
-                        className={`filter-btn ${sortBy === 'score' ? 'active' : ''}`}
-                        onClick={() => handleSortChange('score')}
-                    >
-                        <AlertTriangle size={16} />
-                        <span>{t('contracts.sortScore')}</span>
-                        {sortBy === 'score' && (
-                            <span className="sort-arrow">{sortOrder === 'desc' ? '↓' : '↑'}</span>
-                        )}
-                    </button>
-                </div>
-            )}
-
-            {/* Content */}
-            {contracts.length === 0 ? (
-                <div className="empty-state">
-                    <div className="empty-icon">
-                        <FileText size={48} />
+                {/* Grid */}
+                {contracts.length === 0 ? (
+                    <div className="lf-empty-state">
+                        <div className="lf-empty-icon-wrap"><FileText size={48} /></div>
+                        <h2>{t('contracts.noContracts')}</h2>
+                        <p>{t('contracts.noContractsDesc')}</p>
+                        <Link to="/upload" className="lf-btn-upload-empty">
+                            <Plus size={20} /> {t('contracts.uploadFirst')}
+                        </Link>
                     </div>
-                    <h2>{t('contracts.noContracts')}</h2>
-                    <p>{t('contracts.noContractsDesc')}</p>
-                    <Link to="/upload" className="btn-primary large">
-                        <Plus size={20} />
-                        {t('contracts.uploadFirst')}
-                    </Link>
-                </div>
-            ) : (
-                <div className="contracts-grid">
-                    {paginatedContracts.map(contract => (
-                        <ContractCard
-                            key={contract.contractId}
-                            contract={contract}
-                            onDelete={handleDelete}
-                            onEdit={handleEdit}
-                            onExport={handleExport}
-                            onShare={handleShare}
-                            formatDate={formatDate}
-                            t={t}
-                            isRTL={isRTL}
-                        />
-                    ))}
-                </div>
-            )}
+                ) : filteredContracts.length === 0 ? (
+                    <div className="lf-empty-state">
+                        <Search size={40} className="lf-text-muted mb-4" />
+                        <h2>{t('contracts.noResults')}</h2>
+                        <p>{t('contracts.noResultsDesc')}</p>
+                        <button className="lf-btn-cancel mt-4" onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}>{t('contracts.clearFilters')}</button>
+                    </div>
+                ) : (
+                    <div className="lf-contracts-grid">
+                        {paginatedContracts.map(contract => (
+                            <ContractCard
+                                key={contract.contractId}
+                                contract={contract}
+                                onDelete={handleDelete}
+                                onEdit={handleEdit}
+                                onExport={handleExport}
+                                onShare={handleShare}
+                                formatDate={formatDate}
+                                t={t}
+                                isRTL={isRTL}
+                            />
+                        ))}
+                    </div>
+                )}
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="pagination-controls">
-                    <button
-                        className="pagination-btn"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                    >
-                        {isRTL ? '→' : '←'}
-                    </button>
-                    <span className="pagination-info">
-                        {isRTL ? `עמוד ${currentPage} מתוך ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
-                    </span>
-                    <button
-                        className="pagination-btn"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                    >
-                        {isRTL ? '←' : '→'}
-                    </button>
-                </div>
-            )}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="lf-pagination-area">
+                        <div className="lf-pagination-wrap">
+                            <button className="lf-page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                                {isRTL ? '→' : '←'}
+                            </button>
+                            <span className="lf-page-info">
+                                {t('contracts.pageOf').replace('{current}', String(currentPage)).replace('{total}', String(totalPages))}
+                            </span>
+                            <button className="lf-page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                                {isRTL ? '←' : '→'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+            </section>
         </div>
-        </>
     );
 };
 

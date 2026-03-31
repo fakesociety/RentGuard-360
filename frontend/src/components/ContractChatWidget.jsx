@@ -30,8 +30,79 @@ const getAnalysisContractIdFromPath = (pathname) => {
     }
 };
 
+const parseJsonObjectFromText = (value) => {
+    const text = String(value || '').trim();
+    if (!text) return null;
+
+    const withoutFence = text
+        .replace(/^\s*```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+
+    const parseCandidates = [withoutFence, text];
+    for (const candidate of parseCandidates) {
+        if (!candidate) continue;
+
+        try {
+            const parsed = JSON.parse(candidate);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed;
+            }
+            if (typeof parsed === 'string') {
+                const nested = parseJsonObjectFromText(parsed);
+                if (nested) return nested;
+            }
+        } catch {
+            // Fall through to next parse strategy.
+        }
+    }
+
+    const match = withoutFence.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+
+    try {
+        const parsed = JSON.parse(match[0]);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+        return null;
+    }
+};
+
+const unwrapAssistantAnswerText = (rawText) => {
+    let current = String(rawText || '').trim();
+    if (!current) return '';
+
+    for (let i = 0; i < 4; i += 1) {
+        const parsed = parseJsonObjectFromText(current);
+        if (!parsed) break;
+
+        const nestedAnswer = typeof parsed.answer === 'string' ? parsed.answer.trim() : '';
+        if (!nestedAnswer || nestedAnswer === current) {
+            break;
+        }
+
+        current = nestedAnswer;
+    }
+
+    if (current.startsWith('```') || current.includes('"answer"')) {
+        const match = current.match(/"answer"\s*:\s*"((?:\\.|[^"\\])*)"/);
+        if (match) {
+            try {
+                const rescued = JSON.parse(`"${match[1]}"`);
+                if (typeof rescued === 'string' && rescued.trim()) {
+                    current = rescued.trim();
+                }
+            } catch {
+                // Keep current value if unescape fails.
+            }
+        }
+    }
+
+    return current;
+};
+
 const normalizeAssistantText = (rawText, originalQuestion = '') => {
-    const text = String(rawText || '');
+    const text = unwrapAssistantAnswerText(rawText);
     if (!text) return '';
 
     const normalizedQuestion = String(originalQuestion || '').trim();
@@ -40,6 +111,8 @@ const normalizeAssistantText = (rawText, originalQuestion = '') => {
         : '';
 
     let cleaned = text
+        .replace(/^\s*```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
         .replace(/\r\n/g, '\n')
         // Remove markdown emphasis markers.
         .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -60,6 +133,23 @@ const normalizeAssistantText = (rawText, originalQuestion = '') => {
     }
 
     return cleaned;
+};
+
+const extractClauseReference = (snippet) => {
+    const text = String(snippet || '');
+    if (!text) return '';
+
+    const hebrewMatch = text.match(/(?:סעיף|סעיפים|ס׳|ס\.)\s*([0-9]{1,3}[א-ת]?)/i);
+    if (hebrewMatch?.[1]) {
+        return `סעיף ${hebrewMatch[1]}`;
+    }
+
+    const englishMatch = text.match(/clause\s*([0-9]{1,3}[a-z]?)/i);
+    if (englishMatch?.[1]) {
+        return `Clause ${englishMatch[1]}`;
+    }
+
+    return '';
 };
 
 const formatMessageTime = (rawTime, locale) => {
@@ -116,6 +206,7 @@ const ContractChatWidget = () => {
     const [useWhyPalette, setUseWhyPalette] = useState(false);
     const lastAutoOpenedPathRef = useRef('');
     const widgetRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
     const closeTimerRef = useRef(null);
     const userLabel = useMemo(() => {
@@ -378,6 +469,37 @@ const ContractChatWidget = () => {
 
         loadHistory();
     }, [selectedContractId, open]);
+
+    const scrollMessagesToBottom = (behavior = 'smooth') => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const maxScrollTop = container.scrollHeight - container.clientHeight;
+        container.scrollTo({
+            top: Math.max(0, maxScrollTop),
+            behavior,
+        });
+    };
+
+    useEffect(() => {
+        if (!open) return;
+
+        const rafId = window.requestAnimationFrame(() => {
+            scrollMessagesToBottom('auto');
+        });
+
+        return () => window.cancelAnimationFrame(rafId);
+    }, [open, selectedContractId, isHistoryLoading]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const rafId = window.requestAnimationFrame(() => {
+            scrollMessagesToBottom('smooth');
+        });
+
+        return () => window.cancelAnimationFrame(rafId);
+    }, [open, messages.length, isAsking]);
 
     useEffect(() => {
         const el = inputRef.current;
@@ -702,7 +824,7 @@ const ContractChatWidget = () => {
                         </div>
                     </div>
 
-                    <div className="chat-widget-messages" role="log" aria-live="polite">
+                    <div className="chat-widget-messages" role="log" aria-live="polite" ref={messagesContainerRef}>
                         {selectedContractId && isHistoryLoading && (
                             <div className="chat-widget-empty">
                                 {`${t('common.loading')}...`}
@@ -735,6 +857,25 @@ const ContractChatWidget = () => {
                         {messages.map((msg) => {
                             const messageKey = `${msg.ts}-${msg.role}`;
                             const copied = copiedMessageKey === messageKey;
+                            const evidenceItems = msg.role === 'assistant' && Array.isArray(msg.meta?.evidence)
+                                ? msg.meta.evidence
+                                    .map((item) => String(item || '').trim())
+                                    .filter(Boolean)
+                                    .slice(0, 3)
+                                    .map((snippet) => ({
+                                        snippet,
+                                        clauseRef: extractClauseReference(snippet),
+                                    }))
+                                : [];
+
+                            const foundInContractMeta =
+                                typeof msg.meta?.foundInContract === 'boolean'
+                                    ? msg.meta.foundInContract
+                                    : (typeof msg.meta?.found_in_contract === 'boolean' ? msg.meta.found_in_contract : null);
+
+                            const sourceType = foundInContractMeta === true
+                                ? 'contract'
+                                : (foundInContractMeta === false ? 'general' : (evidenceItems.length > 0 ? 'contract' : ''));
 
                             return (
                             <div key={messageKey} className={`chat-msg-row ${msg.role}`}>
@@ -759,6 +900,26 @@ const ContractChatWidget = () => {
                                         </button>
                                     </div>
                                     <p>{msg.text}</p>
+                                    {msg.role === 'assistant' && sourceType && (
+                                        <div className={`chat-msg-source ${sourceType}`}>
+                                            {sourceType === 'contract' ? t('chat.sourceContract') : t('chat.sourceGeneral')}
+                                        </div>
+                                    )}
+                                    {msg.role === 'assistant' && evidenceItems.length > 0 && (
+                                        <div className="chat-msg-evidence">
+                                            <div className="chat-msg-evidence-title">{t('chat.evidenceTitle')}</div>
+                                            <ul className="chat-msg-evidence-list">
+                                                {evidenceItems.map((item, index) => (
+                                                    <li key={`${messageKey}-evidence-${index}`}>
+                                                        {item.clauseRef && (
+                                                            <span className="chat-msg-evidence-anchor">{item.clauseRef}</span>
+                                                        )}
+                                                        <span>{item.snippet}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </article>
                             </div>
                             );

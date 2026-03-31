@@ -30,7 +30,7 @@
 import React from 'react';
 import { BadgeDollarSign, House, FileText, Wrench, Scale } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import './ScoreBreakdown.css';
+import './SidebarAccordions.css';
 
 const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
     const { t, isRTL } = useLanguage();
@@ -80,82 +80,77 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
         return t('score.highRisk');                           // 0-50
     };
 
+// ... הלוגיקה שלך למעלה נשארת אותו דבר בדיוק ...
+
+    const [isExpanded, setIsExpanded] = React.useState(false);
+
     return (
-        <div className="score-breakdown" dir={isRTL ? 'rtl' : 'ltr'}>
-            {/* Overall Score Circle */}
-            <div className={`overall-score ${getScoreColor(overallScore)}`}>
-                <div className="score-circle">
-                    <svg viewBox="0 0 100 100" className="score-ring">
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke="var(--bg-tertiary)"
-                            strokeWidth="8"
-                        />
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            strokeDasharray={`${overallScore * 2.83} 283`}
-                            strokeLinecap="round"
-                            transform="rotate(-90 50 50)"
-                            className="score-progress"
-                        />
-                    </svg>
-                    <div className="score-value">
-                        <span className="score-number">{overallScore}</span>
-                        <span className="score-max">/100</span>
-                    </div>
+        <div className={`score-breakdown ${isExpanded ? 'expanded' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            
+            {/* כפתור פתיחה/סגירה של האקורדיון */}
+            <button
+                className="methodology-toggle"
+                onClick={() => setIsExpanded(!isExpanded)}
+                aria-expanded={isExpanded}
+            >
+                <div className="toggle-content">
+                    <FileText size={16} />
+                    <span>{t('analysis.scoreBreakdown', 'פירוט הציון')}</span>
                 </div>
-                <div className="score-label">{getRiskLevel(overallScore)}</div>
-            </div>
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                    className={`methodology-chevron ${isExpanded ? 'rotated' : ''}`}
+                >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
 
-            {/* Category Breakdown */}
-            <div className="categories-breakdown">
-                <h3 className="breakdown-title">{t('analysis.scoreBreakdown')}</h3>
-                <div className="categories-list">
-                    {Object.entries(categories).map(([key, data]) => {
-                        const info = categoryInfo[key];
-                        const CategoryIcon = info.icon;
-                        const categoryScore = data.score ?? 20;
+            {/* תוכן האקורדיון (ללא עיגול הציון הראשי) */}
+            <div className="methodology-content-wrapper">
+                <div className="methodology-content">
+                    {/* Category Breakdown */}
+                    <div className="categories-breakdown">
+                        <div className="categories-list">
+                            {Object.entries(categories).map(([key, data]) => {
+                                const info = categoryInfo[key];
+                                const CategoryIcon = info.icon;
+                                const categoryScore = data.score ?? 20;
 
-                        return (
-                            <div key={key} className={`category-item category-${key}`}>
-                                <span className={`category-icon icon-${key}`} aria-hidden="true">
-                                    <CategoryIcon size={16} strokeWidth={2} />
-                                </span>
-                                <span className="category-name">{info.name}</span>
-                                <div className="category-bar">
-                                    <div
-                                        className={`category-progress ${getScoreColor(categoryScore, 20)}`}
-                                        style={{ width: `${(categoryScore / 20) * 100}%` }}
-                                    />
-                                </div>
-                                <span className={`category-score ${getScoreColor(categoryScore, 20)}`}>
-                                    {categoryScore}/{info.maxScore}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Score Legend */}
-            <div className="score-legend">
-                {legendItems.map((item) => (
-                    <div key={item.key} className={`legend-item ${item.key}`}>
-                        <div className="legend-item-main">
-                            <span className="dot"></span>
-                            <span className="legend-label">{item.label}</span>
+                                return (
+                                    <div key={key} className={`category-item category-${key}`}>
+                                        <span className={`category-icon icon-${key}`} aria-hidden="true">
+                                            <CategoryIcon size={16} strokeWidth={2} />
+                                        </span>
+                                        <span className="category-name">{info.name}</span>
+                                        <div className="category-bar">
+                                            <div
+                                                className={`category-progress ${getScoreColor(categoryScore, 20)}`}
+                                                style={{ width: `${(categoryScore / 20) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className={`category-score ${getScoreColor(categoryScore, 20)}`}>
+                                            {categoryScore}/{info.maxScore}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <span className="legend-range">{item.range}</span>
                     </div>
-                ))}
+
+                    {/* Score Legend */}
+                    <div className="score-legend">
+                        {legendItems.map((item) => (
+                            <div key={item.key} className={`legend-item ${item.key}`}>
+                                <div className="legend-item-main">
+                                    <span className="dot"></span>
+                                    <span className="legend-label">{item.label}</span>
+                                </div>
+                                <span className="legend-range">{item.range}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
