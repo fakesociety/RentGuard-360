@@ -49,6 +49,38 @@ const canvasToJpegBlob = (canvas, quality) => new Promise((resolve, reject) => {
     );
 });
 
+export const getCroppedImg = async (imageSrc, pixelCrop) => {
+    if (!imageSrc || !pixelCrop) {
+        throw new Error('Missing crop data for image processing.');
+    }
+
+    const image = await loadImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(pixelCrop.width));
+    canvas.height = Math.max(1, Math.round(pixelCrop.height));
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        throw new Error('Unable to process crop in browser canvas context.');
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(
+        image,
+        Math.round(pixelCrop.x),
+        Math.round(pixelCrop.y),
+        Math.round(pixelCrop.width),
+        Math.round(pixelCrop.height),
+        0,
+        0,
+        Math.round(pixelCrop.width),
+        Math.round(pixelCrop.height)
+    );
+
+    return canvas.toDataURL('image/jpeg', 0.98);
+};
+
 export const compressCaptureDataUrl = async (dataUrl, options = {}) => {
     if (!dataUrl) {
         throw new Error('Camera did not return image data.');

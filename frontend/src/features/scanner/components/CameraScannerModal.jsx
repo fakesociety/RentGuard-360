@@ -1,8 +1,10 @@
 import React, { useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Webcam from 'react-webcam';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { useScanPages } from '../hooks/useScanPages';
-import { compressCaptureDataUrl } from '../services/imageProcessing';
+import { compressCaptureDataUrl, getCroppedImg } from '../services/imageProcessing';
 import { buildPdfFileFromPages } from '../services/pdfBuilder';
 import ScannerThumbnailGallery from './ScannerThumbnailGallery';
 import './CameraScannerModal.css';
@@ -24,6 +26,7 @@ const CameraScannerModal = ({
     initialFileName = 'scanned-contract',
 }) => {
     const webcamRef = useRef(null);
+    const pendingImageRef = useRef(null);
     const {
         pages,
         activePage,
@@ -37,6 +40,9 @@ const CameraScannerModal = ({
 
     const [isCapturing, setIsCapturing] = useState(false);
     const [isBuildingPdf, setIsBuildingPdf] = useState(false);
+    const [pendingCapture, setPendingCapture] = useState(null);
+    const [crop, setCrop] = useState(null);
+    const [completedCrop, setCompletedCrop] = useState(null);
     const [expandedPageId, setExpandedPageId] = useState(null);
     const [error, setError] = useState('');
 
@@ -51,6 +57,9 @@ const CameraScannerModal = ({
 
     const handleClose = () => {
         setError('');
+        setPendingCapture(null);
+        setCompletedCrop(null);
+        setCrop(null);
         clearPages();
         setExpandedPageId(null);
         onClose();
@@ -65,13 +74,53 @@ const CameraScannerModal = ({
             return;
         }
 
+        setError('');
+        setPendingCapture(frameDataUrl);
+        setCrop(null);
+        setCompletedCrop(null);
+    };
+
+    const handlePendingImageLoad = (event) => {
+        const image = event.currentTarget;
+        const initialCrop = {
+            unit: 'px',
+            x: image.width * 0.05,
+            y: image.height * 0.05,
+            width: image.width * 0.9,
+            height: image.height * 0.9,
+        };
+        setCrop(initialCrop);
+        setCompletedCrop(initialCrop);
+    };
+
+    const handleApplyCrop = async () => {
+        if (!pendingCapture || !completedCrop || !pendingImageRef.current) {
+            setError('Adjust the crop area before confirming.');
+            return;
+        }
+
         setIsCapturing(true);
         try {
-            const page = await compressCaptureDataUrl(frameDataUrl, {
+            const displayImage = pendingImageRef.current;
+            const scaleX = displayImage.naturalWidth / displayImage.width;
+            const scaleY = displayImage.naturalHeight / displayImage.height;
+
+            const naturalCrop = {
+                x: completedCrop.x * scaleX,
+                y: completedCrop.y * scaleY,
+                width: completedCrop.width * scaleX,
+                height: completedCrop.height * scaleY,
+            };
+
+            const croppedDataUrl = await getCroppedImg(pendingCapture, naturalCrop);
+            const page = await compressCaptureDataUrl(croppedDataUrl, {
                 maxWidth: 1600,
                 quality: 0.76,
             });
             addPage(page);
+            setPendingCapture(null);
+            setCompletedCrop(null);
+            setCrop(null);
         } catch (captureError) {
             setError(captureError.message || 'Failed to capture page.');
         } finally {
@@ -163,7 +212,7 @@ const CameraScannerModal = ({
                                 type="button"
                                 className="shutter-button"
                                 onClick={handleCapture}
-                                disabled={isCapturing || isBuildingPdf}
+                                disabled={isCapturing || isBuildingPdf || Boolean(pendingCapture)}
                             >
                                 <div className="shutter-inner"></div>
                             </button>
@@ -172,12 +221,59 @@ const CameraScannerModal = ({
                                 type="button"
                                 className="finish-scan-btn"
                                 onClick={handleCreatePdf}
-                                disabled={!pages.length || isBuildingPdf || isCapturing}
+                                disabled={!pages.length || isBuildingPdf || isCapturing || Boolean(pendingCapture)}
                             >
                                 {isBuildingPdf ? 'Building...' : `Done (${pages.length})`}
                             </button>
                         </div>
                     </div>
+
+                    {pendingCapture && (
+                        <div className="scanner-crop-overlay">
+                            <div className="scanner-crop-stage">
+                                <ReactCrop
+                                    crop={crop}
+                                    onChange={(nextCrop) => setCrop(nextCrop)}
+                                    onComplete={(nextCrop) => setCompletedCrop(nextCrop)}
+                                    minWidth={120}
+                                    minHeight={120}
+                                    keepSelection
+                                >
+                                    <img
+                                        ref={pendingImageRef}
+                                        src={pendingCapture}
+                                        alt="Capture to crop"
+                                        className="scanner-crop-image"
+                                        onLoad={handlePendingImageLoad}
+                                    />
+                                </ReactCrop>
+                            </div>
+
+                            <div className="scanner-crop-toolbar">
+                                <div className="scanner-crop-actions">
+                                    <button
+                                        type="button"
+                                        className="crop-action-btn secondary"
+                                        onClick={() => {
+                                            setPendingCapture(null);
+                                            setCompletedCrop(null);
+                                            setCrop(null);
+                                        }}
+                                    >
+                                        Retake
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="crop-action-btn primary"
+                                        onClick={handleApplyCrop}
+                                        disabled={isCapturing}
+                                    >
+                                        {isCapturing ? 'Applying...' : 'Apply Crop'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                 </div>
 
