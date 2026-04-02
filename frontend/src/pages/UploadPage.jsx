@@ -20,6 +20,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -56,6 +57,12 @@ const UploadPage = () => {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [showScannerModal, setShowScannerModal] = useState(false);
+    const [uploadVisualStatus, setUploadVisualStatus] = useState('idle');
+    const uploadStartTimeRef = useRef(0);
+    const actualUploadProgressRef = useRef(0);
+    const progressIntervalRef = useRef(null);
+    const MIN_PROGRESS_DURATION_MS = 4000;
+    const COMPLETE_PERCENT_HOLD_MS = 800;
     const hasUploadEntitlement = isAdmin || hasSubscription;
     const hasScansAvailable = isAdmin || isUnlimited || scansRemaining > 0;
     const canChooseFile = hasUploadEntitlement && hasScansAvailable;
@@ -69,7 +76,6 @@ const UploadPage = () => {
         let cancelled = false;
         (async () => {
             try {
-                // Give Step Functions some time to start writing analysis
                 const result = await pollForAnalysis(uploadedContractId, 24, 5000);
                 if (cancelled) return;
                 if (result) {
@@ -81,7 +87,6 @@ const UploadPage = () => {
                     navigate(`/analysis/${encodeURIComponent(uploadedContractId)}`);
                 }
             } catch (e) {
-                // If polling fails/times out, keep the user on this page (they can go to contracts manually)
                 if (!cancelled) {
                     console.warn('Auto-navigate polling failed:', e);
                 }
@@ -95,8 +100,8 @@ const UploadPage = () => {
 
     const validateFile = (file) => {
         const maxSize = 5 * 1024 * 1024; // 5MB - standard for rental contracts
-        const minSize = 30 * 1024; // 30KB - minimum for a valid PDF with content
-        const maxFileNameLength = 100; // Max filename length
+        const minSize = 30 * 1024; 
+        const maxFileNameLength = 100; 
         if (!file.type.includes('pdf')) {
             return t('upload.pdfOnly');
         }
@@ -126,6 +131,8 @@ const UploadPage = () => {
             return;
         }
         setFile(selectedFile);
+        setUploadVisualStatus('idle');
+        setUploadProgress(0);
         const nameWithoutExt = selectedFile.name.replace(/\.pdf$/i, '');
         setCustomFileName(nameWithoutExt);
     };
@@ -183,15 +190,32 @@ const UploadPage = () => {
 
         setIsUploading(true);
         setUploadProgress(0);
+        setUploadVisualStatus('uploading');
+        uploadStartTimeRef.current = Date.now();
+        actualUploadProgressRef.current = 0;
+        startProgressLoop();
         setError('');
 
         try {
-            const result = await uploadFile(file, setUploadProgress, {
+            const result = await uploadFile(file, (progress) => {
+                actualUploadProgressRef.current = Math.max(actualUploadProgressRef.current, progress);
+            }, {
                 propertyAddress: metadata.propertyAddress,
                 landlordName: metadata.landlordName,
                 customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
                 termsAccepted: true,
             });
+
+            const elapsed = Date.now() - uploadStartTimeRef.current;
+            const waitForMinimumDuration = Math.max(0, MIN_PROGRESS_DURATION_MS - elapsed);
+            if (waitForMinimumDuration > 0) {
+                await delay(waitForMinimumDuration);
+            }
+
+            setUploadProgress(100);
+            await delay(COMPLETE_PERCENT_HOLD_MS);
+            setUploadVisualStatus('ready');
+            await delay(250);
 
             await refreshSubscription();
 
@@ -210,16 +234,20 @@ const UploadPage = () => {
                 startDate: '',
                 monthlyRent: '',
             });
+            setUploadVisualStatus('idle');
+            setUploadProgress(0);
 
         } catch (err) {
             console.error('Upload failed:', err);
             setError(err.message || t('upload.uploadFailed'));
+            setUploadVisualStatus('idle');
             emitAppToast({
                 type: 'error',
                 title: t('notifications.uploadFailedTitle'),
                 message: err.message || t('upload.uploadFailed'),
             });
         } finally {
+            stopProgressLoop();
             setIsUploading(false);
         }
     };
@@ -231,6 +259,76 @@ const UploadPage = () => {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
+
+    const openFilePicker = () => {
+        if (!canChooseFile) {
+            setError(blockReason);
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
+    const removeSelectedFile = () => {
+        if (isUploading) return;
+        setFile(null);
+        setCustomFileName('');
+        setUploadVisualStatus('idle');
+        setUploadProgress(0);
+    };
+
+    const normalizedDisplayName = file
+        ? `${(customFileName?.trim() || file.name.replace(/\.pdf$/i, '')).replace(/\.pdf$/i, '')}.pdf`
+        : '';
+
+    const uploadItems = file ? [
+        {
+            id: 'selected-file',
+            name: normalizedDisplayName,
+            size: file.size,
+            progress: isUploading || uploadVisualStatus === 'ready' ? uploadProgress : 100,
+            status: uploadVisualStatus === 'ready' ? 'ready' : (isUploading ? 'uploading' : 'ready'),
+        },
+    ] : [];
+
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const stopProgressLoop = () => {
+        if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+        }
+    };
+
+    const startProgressLoop = () => {
+        stopProgressLoop();
+        progressIntervalRef.current = setInterval(() => {
+            const elapsed = Date.now() - uploadStartTimeRef.current;
+            let pacedProgress;
+
+            if (elapsed <= 500) {
+                pacedProgress = (elapsed / 500) * 50;
+            } else if (elapsed <= 1200) {
+                pacedProgress = 50 + ((elapsed - 500) / 700) * 40;
+            } else {
+                pacedProgress = 90 + ((elapsed - 1200) / 300) * 10;
+            }
+
+            pacedProgress = Math.min(100, pacedProgress);
+            const actualProgress = Math.min(actualUploadProgressRef.current, 100);
+
+            setUploadProgress((prev) => {
+                const pacedStep = Math.max(prev, pacedProgress);
+                const next = Math.min(pacedStep, actualProgress);
+                return Number.isFinite(next) ? next : prev;
+            });
+        }, 50);
+    };
+
+    useEffect(() => {
+        return () => {
+            stopProgressLoop();
+        };
+    }, []);
 
     return (
         <div className="upload-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -296,82 +394,118 @@ const UploadPage = () => {
                 )}
 
                 {!uploadSuccess && (
-                    <div className="upload-content">
-                        <Card
-                            variant="glass"
-                            padding="lg"
-                            className={`drop-zone animate-slideUp ${isDragging ? 'dragging' : ''} ${file ? 'has-file' : ''} ${!canChooseFile ? 'blocked' : ''}`}
-                            onDragEnter={handleDragEnter}
-                            onDragLeave={handleDragLeave}
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                            onClick={() => {
-                                if (!canChooseFile) {
-                                    setError(blockReason);
-                                    return;
-                                }
-                                if (!file) fileInputRef.current?.click();
-                            }}
-                            style={{ cursor: !canChooseFile ? 'not-allowed' : (file ? 'default' : 'pointer') }}
-                        >
-                            {!file ? (
-                                <div className="drop-content">
-                                    <div className="drop-icon">📄</div>
+                    <div className="upload-modern-shell animate-slideUp">
+                        <div className="upload-modern-card">
+                            <section className="upload-modern-dropzone-wrap">
+                                <div
+                                    className={`upload-modern-dropzone ${isDragging ? 'dragging' : ''} ${!canChooseFile ? 'blocked' : ''}`}
+                                    onDragEnter={handleDragEnter}
+                                    onDragLeave={handleDragLeave}
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    onClick={openFilePicker}
+                                >
+                                    <div className="upload-modern-icon-wrap">
+                                        <span className="material-symbols-outlined upload-modern-icon">cloud_upload</span>
+                                    </div>
                                     <h3>{t('upload.dragDrop')}</h3>
-                                    <p>{t('upload.or')}</p>
-                                    <Button
-                                        variant="secondary"
-                                        disabled={!canChooseFile}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (!canChooseFile) {
-                                                setError(blockReason);
-                                                return;
-                                            }
-                                            fileInputRef.current?.click();
-                                        }}
-                                    >
-                                        {t('upload.selectFile')}
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        className="mobile-only-scan-btn"
-                                        disabled={!canChooseFile}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (!canChooseFile) {
-                                                setError(blockReason);
-                                                return;
-                                            }
-                                            setShowScannerModal(true);
-                                        }}
-                                    >
-                                        {isRTL ? 'סריקה עם מצלמה' : 'Scan With Camera'}
-                                    </Button>
-                                    <p className="drop-hint">{t('upload.maxSize')}</p>
+                                    <p>{t('upload.maxSize')}</p>
                                     {!canChooseFile && <p className="drop-locked-note">{blockReason}</p>}
                                 </div>
-                            ) : (
-                                <div className="file-preview">
-                                    <div className="file-icon">📄</div>
-                                    <div className="file-info">
-                                        <div className="filename-edit">
-                                            <input
-                                                type="text"
-                                                value={customFileName}
-                                                onChange={(e) => setCustomFileName(e.target.value)}
-                                                className="filename-input"
-                                                placeholder={t('upload.contractName')}
-                                            />
-                                            <span className="filename-ext">.pdf</span>
-                                        </div>
-                                        <p>{formatFileSize(file.size)}</p>
+                            </section>
+
+                            <section className="upload-modern-action-grid">
+                                <button
+                                    type="button"
+                                    className="upload-modern-action-btn upload"
+                                    onClick={openFilePicker}
+                                    disabled={!canChooseFile}
+                                >
+                                    <span className="material-symbols-outlined">upload</span>
+                                    <span>{t('upload.selectFile')}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="upload-modern-action-btn scan"
+                                    onClick={() => {
+                                        if (!canChooseFile) {
+                                            setError(blockReason);
+                                            return;
+                                        }
+                                        setShowScannerModal(true);
+                                    }}
+                                    disabled={!canChooseFile}
+                                >
+                                    <span className="material-symbols-outlined">photo_camera</span>
+                                    <span>{isRTL ? 'סריקה באמצעות מצלמה' : 'Scan With Camera'}</span>
+                                </button>
+                            </section>
+
+                            <AnimatePresence>
+                                {uploadItems.length > 0 && (
+                                <motion.section
+                                    className="upload-modern-files-section"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
+                                >
+                                    <h4>
+                                        <span className="material-symbols-outlined">inventory_2</span>
+                                        <span>{isRTL ? 'קבצים שנבחרו' : 'Selected Files'}</span>
+                                    </h4>
+
+                                    <div className="upload-modern-file-list">
+                                            {uploadItems.map((item) => (
+                                            <motion.div
+                                                key={item.id}
+                                                className="upload-modern-file-item"
+                                                initial={{ opacity: 0, y: -20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.4, ease: 'easeInOut' } }}
+                                            >
+                                                <div className="upload-modern-file-icon-wrap">
+                                                    <span className="material-symbols-outlined">picture_as_pdf</span>
+                                                </div>
+                                                <div className="upload-modern-file-main">
+                                                    <div className="upload-modern-file-row">
+                                                        <span className="upload-modern-file-name" dir="ltr">{item.name}</span>
+                                                        <span className="upload-modern-file-size">{formatFileSize(item.size)}</span>
+                                                    </div>
+
+                                                    <div className="upload-modern-progress-track">
+                                                        <div className={`upload-modern-progress-fill ${item.status === 'uploading' ? 'uploading' : ''}`} style={{ width: `${item.progress}%` }}></div>
+                                                    </div>
+
+                                                    <div className="upload-modern-file-row status-row">
+                                                        {item.status === 'uploading' ? (
+                                                            <span className="upload-modern-status uploading">
+                                                                <span className="material-symbols-outlined">sync</span>
+                                                                <span>{isRTL ? 'מעלה...' : 'Uploading...'} {Math.round(item.progress)}%</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="upload-modern-status ready">
+                                                                <span className="material-symbols-outlined">check_circle</span>
+                                                                <span>{isRTL ? 'מוכן לניתוח' : 'Ready for Analysis'}</span>
+                                                            </span>
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            className="upload-modern-delete-btn"
+                                                            onClick={removeSelectedFile}
+                                                            disabled={isUploading}
+                                                            aria-label={isRTL ? 'מחיקת קובץ' : 'Delete file'}
+                                                        >
+                                                            <span className="material-symbols-outlined">delete</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
                                     </div>
-                                    <Button variant="ghost" onClick={() => { setFile(null); setCustomFileName(''); }} disabled={isUploading}>
-                                        ✕
-                                    </Button>
-                                </div>
+                                </motion.section>
                             )}
+                            </AnimatePresence>
 
                             <input
                                 ref={fileInputRef}
@@ -380,16 +514,7 @@ const UploadPage = () => {
                                 onChange={handleInputChange}
                                 style={{ display: 'none' }}
                             />
-
-                            {isUploading && (
-                                <div className="upload-progress">
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${uploadProgress}%` }}></div>
-                                    </div>
-                                    <p>{uploadProgress}% {uploadProgress < 100 ? t('upload.uploading') : t('upload.complete')}</p>
-                                </div>
-                            )}
-                        </Card>
+                        </div>
 
                         {error && <div className="error-message animate-slideUp">{error}</div>}
 
@@ -413,7 +538,6 @@ const UploadPage = () => {
                             </Card>
                         )}
 
-                        {/* Terms Checkbox */}
                         {file && !isUploading && (
                             <div className="terms-section animate-slideUp">
                                 <label className="terms-checkbox">
