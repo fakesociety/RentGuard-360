@@ -56,6 +56,7 @@ export const useShareLink = (contractId, analysis) => {
             persistShareLink(shareContractId, generatedUrl, data.expiresAt);
 
             await navigator.clipboard.writeText(generatedUrl);
+            setTimeout(() => {
                 sharePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
             

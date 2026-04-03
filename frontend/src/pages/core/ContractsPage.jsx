@@ -4,259 +4,19 @@
  * User's Contract List & Management (LexisFlow Modern UI)
  * ============================================
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getContracts, deleteContract, getAnalysis, updateContract } from '../../services/api';
-import { exportToWord, exportToPDF, exportToPDFBlob } from '../../services/ExportService';
-import useShareFile from '../../hooks/useShareFile';
-import ActionMenu from '../../components/ui/ActionMenu';
+import { useContracts } from '../../hooks/useContracts';
+import ContractCard from './components/ContractCard';
 import {
-    Trash2, Pencil, Download, Plus, RefreshCw, FileText, X, Check,
-    MoreVertical, MapPin, Users, Calendar, AlertTriangle,
-    Share2, Search, Filter, CheckCircle2
+    Plus, RefreshCw, FileText, X, Check,
+    AlertTriangle,
+    Search, Filter, CheckCircle2, Pencil
 } from 'lucide-react';
 import './ContractsPage.css';
-
-const DEFAULT_ANALYSIS_TIMEOUT_MS = 3 * 60 * 1000;
-const ANALYSIS_TIMEOUT_MS = (() => {
-    const raw = import.meta.env.VITE_ANALYSIS_TIMEOUT_MS;
-    const parsed = raw ? Number(raw) : NaN;
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ANALYSIS_TIMEOUT_MS;
-})();
-
-const isContractTimedOut = (contract) => {
-    const status = (contract.status || '').toLowerCase();
-    if (status === 'analyzed' || status === 'failed' || status === 'error') {
-        return false;
-    }
-    const uploadDate = contract.uploadDate;
-    if (!uploadDate) return false;
-
-    const uploadTime = new Date(uploadDate.endsWith('Z') ? uploadDate : uploadDate + 'Z').getTime();
-    const now = Date.now();
-    const elapsed = now - uploadTime;
-
-    return elapsed > ANALYSIS_TIMEOUT_MS;
-};
-
-// ============================================
-// Modern Contract Card Component
-// ============================================
-const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDate, t, isRTL }) => {
-    const [activeMenu, setActiveMenu] = useState(null);
-    const status = (contract.status || '').toLowerCase();
-
-    const getScoreData = (score) => {
-        if (score >= 86) return { class: 'excellent', label: t('contracts.lowRisk') };
-        if (score >= 71) return { class: 'good', label: t('contracts.lowMediumRisk') };
-        if (score >= 51) return { class: 'warning', label: t('contracts.mediumRisk') };
-        return { class: 'danger', label: t('contracts.highRisk') };
-    };
-
-    const isTimedOut = isContractTimedOut(contract);
-    const isAnalyzed = status === 'analyzed';
-    const isFailed = status === 'failed' || status === 'error' || isTimedOut;
-    const score = contract.riskScore ?? contract.risk_score ?? null;
-    const hasScore = isAnalyzed && score !== null && score !== undefined;
-
-    const scoreData = hasScore ? getScoreData(score) : { color: '#64748b', class: 'pending', label: '---' };
-
-    const [animatedScore, setAnimatedScore] = useState(0);
-
-    useEffect(() => {
-        if (!hasScore) return;
-
-        let startTime;
-        let rafId;
-
-        const animate = (time) => {
-            if (!startTime) startTime = time;
-            const progress = Math.min((time - startTime) / 1500, 1);
-            // easeOutCubic matching the css transition
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            
-            setAnimatedScore(Math.floor(easeOut * score));
-
-            if (progress < 1) {
-                rafId = requestAnimationFrame(animate);
-            } else {
-                setAnimatedScore(score);
-            }
-        };
-
-        const timer = setTimeout(() => {
-            rafId = requestAnimationFrame(animate);
-        }, 50);
-
-        return () => {
-            clearTimeout(timer);
-            if (rafId) cancelAnimationFrame(rafId);
-        };
-    }, [hasScore, score]);
-
-    // Determine Card Border & Badge Color based on status
-    let cardClass = 'lf-card-pending';
-    let badgeClass = 'lf-badge-pending';
-    let badgeLabel = t('contracts.pendingAnalysis');
-
-    if (isAnalyzed) {
-        cardClass = `lf-card-${scoreData.class}`;
-        badgeClass = `lf-badge-${scoreData.class}`;
-        badgeLabel = scoreData.label;
-    } else if (isFailed) {
-        cardClass = 'lf-card-danger';
-        badgeClass = 'lf-badge-danger';
-        badgeLabel = isTimedOut ? t('contracts.statusTimedOutRetry') : t('contracts.statusAnalysisFailed');
-    }
-
-    const handleMouseMove = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-        e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-    };
-
-    return (
-        <div 
-            className={`lf-contract-card ${cardClass}`} 
-            style={{ zIndex: activeMenu ? 99 : 1 }}
-            onMouseMove={handleMouseMove}
-        >
-
-            <div className="lf-card-header">
-                <div className="lf-card-title-group">
-                    <span className={`lf-card-badge ${badgeClass}`}>
-                        {!isAnalyzed && !isFailed && <RefreshCw size={12} className="lf-spin-icon" />}
-                        {badgeLabel}
-                    </span>
-                    <h3 className="lf-card-title" onClick={(e) => onEdit(contract, e)}>
-                        {contract.fileName || t('contracts.untitledContract')}
-                    </h3>
-                    <p className="lf-card-date">
-                        <Calendar size={12} />
-                        {t('contracts.uploadDate')} {formatDate(contract.uploadDate)}
-                    </p>
-                </div>
-
-                {/* 3-Dots Menu for Edit/Delete/Share */}
-                <div className="lf-card-menu-wrap">
-                    <ActionMenu
-                        isOpen={activeMenu === 'options'}
-                        onToggle={() => setActiveMenu(activeMenu === 'options' ? null : 'options')}
-                        onClose={() => setActiveMenu(null)}
-                        triggerClassName="lf-menu-trigger"
-                        triggerContent={<MoreVertical size={20} />}
-                        panelClassName={`lf-dropdown-menu ${isRTL ? 'rtl' : 'ltr'}`}
-                    >
-                        <button className="lf-menu-item" onClick={(e) => { onEdit(contract, e); setActiveMenu(null); }}>
-                            <Pencil size={16} /> <span>{t('contracts.editButtonTitle')}</span>
-                        </button>
-                        <button className="lf-menu-item" onClick={() => { onShare(contract); setActiveMenu(null); }} disabled={!isAnalyzed}>
-                            <Share2 size={16} /> <span>{t('contracts.menuShareTrigger')}</span>
-                        </button>
-                        <div className="lf-menu-divider"></div>
-                        <button className="lf-menu-item lf-danger-text" onClick={(e) => { onDelete(contract.contractId, e); setActiveMenu(null); }}>
-                            <Trash2 size={16} /> <span>{t('contracts.deleteButtonTitle')}</span>
-                        </button>
-                    </ActionMenu>
-                </div>
-            </div>
-
-            {/* Gauge or Processing State */}
-            <div className="lf-card-gauge-area">
-                {hasScore ? (
-                      <div className="lf-gauge-container" style={{ '--percentage': animatedScore, '--gauge-color': scoreData.color }}>
-                          <div className="lf-gauge-track"></div>
-
-                          <div className="lf-gauge-reveal">
-                              <div className="lf-gauge-gradient"></div>
-                          </div>
-
-                          <div className="lf-gauge-content">
-                              <span className="lf-gauge-score">{animatedScore}</span>
-                            <span className="lf-gauge-label">{t('contracts.riskScore', 'מדד סיכון')}</span>
-                        </div>
-                    </div>
-                ) : isFailed ? (
-                    <div className="lf-gauge-failed">
-                        <AlertTriangle size={40} className="lf-danger-text" />
-                        <span className="lf-gauge-label mt-2">{t('contracts.analysisFailed', 'הניתוח נכשל')}</span>
-                    </div>
-                ) : (
-                    <div className="lf-gauge-processing">
-                        <div className="lf-pulse-bar-wrap">
-                            <div className="lf-pulse-bar"></div>
-                        </div>
-                        <span className="lf-gauge-label mt-3">{t('contracts.processingData', 'מעבד סעיפי התקשרות...')}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Metadata */}
-            <div className="lf-card-meta">
-                <div className="lf-meta-item">
-                    <div className="lf-meta-icon"><MapPin size={18} /></div>
-                    <div className="lf-meta-text">
-                        <span className="lf-meta-lbl">{t('contracts.propertyAddress')}</span>
-                        <span className="lf-meta-val">{contract.propertyAddress || t('contracts.notSpecified')}</span>
-                    </div>
-                </div>
-                <div className="lf-meta-item">
-                    <div className="lf-meta-icon"><Users size={18} /></div>
-                    <div className="lf-meta-text">
-                        <span className="lf-meta-lbl">{t('contracts.landlordName')}</span>
-                        <span className="lf-meta-val">{contract.landlordName || t('contracts.notSpecified')}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="lf-card-footer">
-                {isAnalyzed ? (
-                    <Link to={`/analysis/${encodeURIComponent(contract.contractId)}`} state={{ contract }} className="lf-btn-view">
-                        {t('contracts.viewAnalysis')}
-                    </Link>
-                ) : (
-                    <button className="lf-btn-view disabled" disabled>
-                        {isFailed ? t('contracts.statusFailedShort') : t('contracts.statusPendingShort')}
-                    </button>
-                )}
-
-                <div className="lf-card-footer-actions">
-                    <button
-                        type="button"
-                        className="lf-btn-edit"
-                        onClick={(e) => onEdit(contract, e)}
-                        title={t('contracts.editButtonTitle')}
-                        aria-label={t('contracts.editButtonTitle')}
-                    >
-                        <Pencil size={18} />
-                    </button>
-
-                    <ActionMenu
-                        isOpen={activeMenu === 'export'}
-                        onToggle={() => setActiveMenu(activeMenu === 'export' ? null : 'export')}
-                        onClose={() => setActiveMenu(null)}
-                        containerClassName="lf-card-menu-wrap"
-                        triggerClassName="lf-btn-download"
-                        triggerContent={<Download size={20} />}
-                        panelClassName={`lf-dropdown-menu export-menu ${isRTL ? 'rtl' : 'ltr'}`}
-                    >
-                        <div className="lf-menu-title">{t('contracts.menuDownloadTitle')}</div>
-                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }} disabled={!isAnalyzed}>
-                            <FileText size={16} /> <span>{t('contracts.menuExportWordTitle')}</span>
-                        </button>
-                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }} disabled={!isAnalyzed}>
-                            <Download size={16} /> <span>{t('contracts.menuExportPdfTitle')}</span>
-                        </button>
-                    </ActionMenu>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 // ============================================
 // Main Contracts Page
@@ -264,222 +24,39 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
 const ContractsPage = () => {
     const { user, userAttributes } = useAuth();
     const { t, isRTL } = useLanguage();
-    const [contracts, setContracts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [editModal, setEditModal] = useState(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const [actionNotice, setActionNotice] = useState(null);
-    const { shareFile } = useShareFile();
+    const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
 
-    // Modern Search & Filter State
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'high_risk', 'pending'
-
-    // Sort state
-    const [sortBy, setSortBy] = useState('date');
-    const [sortOrder, setSortOrder] = useState('desc');
-
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const contractsPerPage = 20;
-
-    const showActionNotice = useCallback((message) => {
-        setActionNotice(message);
-        setTimeout(() => setActionNotice(null), 3000);
-    }, []);
-
-    const fetchContracts = useCallback(async (showLoader = true) => {
-        const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
-        if (!userId) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            if (showLoader) setIsLoading(true);
-            else setIsRefreshing(true);
-
-            const startTime = Date.now();
-            const data = await getContracts(userId);
-
-            const elapsed = Date.now() - startTime;
-            if (!showLoader && elapsed < 1500) {
-                await new Promise(resolve => setTimeout(resolve, 1500 - elapsed));
-            }
-
-            setContracts(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('Failed to fetch contracts:', err);
-        } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
-        }
-    }, [user, userAttributes]);
-
-    useEffect(() => { fetchContracts(); }, [fetchContracts]);
-
-    // Auto-refresh logic
-    useEffect(() => {
-        const pendingContracts = contracts.filter(c => {
-            const status = (c.status || '').toLowerCase();
-            if (status === 'analyzed' || status === 'failed' || status === 'error') return false;
-            if (isContractTimedOut(c)) return false;
-            return true;
-        });
-
-        if (pendingContracts.length === 0) return;
-
-        const interval = setInterval(() => {
-            fetchContracts(false);
-        }, 30000);
-
-        return () => clearInterval(interval);
-    }, [contracts, fetchContracts]);
-
-    const handleDelete = (contractId, e) => {
-        e?.preventDefault();
-        e?.stopPropagation();
-        setDeleteConfirm(contractId);
-    };
-
-    const confirmDelete = async () => {
-        if (!deleteConfirm) return;
-        const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
-        setIsDeleting(true);
-        try {
-            await deleteContract(deleteConfirm, userId);
-            setContracts(contracts.filter(c => c.contractId !== deleteConfirm));
-            setDeleteConfirm(null);
-        } catch {
-            alert(t('contracts.deleteFailed'));
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-    const handleEdit = (contract, e) => {
-        e?.preventDefault();
-        e?.stopPropagation();
-        setEditModal({
-            contractId: contract.contractId,
-            fileName: (contract.fileName || '').replace(/\.pdf$/i, ''),
-            propertyAddress: contract.propertyAddress || '',
-            landlordName: contract.landlordName || ''
-        });
-    };
-
-    const saveEdit = async () => {
-        if (!editModal) return;
-        const userId = userAttributes?.sub || user?.userId || user?.sub || user?.username;
-        setIsSaving(true);
-        try {
-            const updates = {
-                fileName: editModal.fileName.trim() || t('contracts.defaultFileName'),
-                propertyAddress: editModal.propertyAddress.trim(),
-                landlordName: editModal.landlordName.trim()
-            };
-            await updateContract(editModal.contractId, userId, updates);
-            const finalFileName = updates.fileName.endsWith('.pdf') ? updates.fileName : `${updates.fileName}.pdf`;
-            setContracts(contracts.map(c =>
-                c.contractId === editModal.contractId
-                    ? { ...c, fileName: finalFileName, propertyAddress: updates.propertyAddress, landlordName: updates.landlordName }
-                    : c
-            ));
-            setEditModal(null);
-        } catch {
-            alert(t('contracts.saveFailed'));
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleExport = async (contract, type) => {
-        try {
-            const analysis = await getAnalysis(contract.contractId);
-            if (type === 'pdf') {
-                await exportToPDF(analysis, contract.fileName || 'Report');
-                showActionNotice(t('contracts.exportPdfStarted'));
-            } else {
-                await exportToWord(analysis, contract.fileName || 'Report');
-                showActionNotice(t('contracts.exportWordStarted'));
-            }
-        } catch {
-            alert(t('contracts.exportFailed'));
-        }
-    };
-
-    const handleShare = async (contract) => {
-        try {
-            const analysis = await getAnalysis(contract.contractId);
-            const baseFileName = `${(contract.fileName || 'Report').replace(/\.(pdf|docx)$/i, '')}`;
-            const blob = await exportToPDFBlob(analysis, baseFileName);
-            await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
-            showActionNotice(t('contracts.shareSheetOpened'));
-        } catch (err) {
-            console.error('Share failed:', err);
-            alert(t('contracts.shareFailed'));
-        }
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const utcDate = dateString.endsWith('Z') ? dateString : dateString + 'Z';
-        return new Date(utcDate).toLocaleDateString(isRTL ? 'he-IL' : 'en-US');
-    };
-
-    // Apply Search and Filters
-    const filteredContracts = contracts.filter(c => {
-        // Search
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            const nameMatch = (c.fileName || '').toLowerCase().includes(query);
-            const addressMatch = (c.propertyAddress || '').toLowerCase().includes(query);
-            const landlordMatch = (c.landlordName || '').toLowerCase().includes(query);
-            if (!nameMatch && !addressMatch && !landlordMatch) return false;
-        }
-
-        // Category Filter
-        if (activeFilter === 'high_risk') {
-            const score = c.riskScore ?? c.risk_score ?? 100;
-            if (score > 50 || c.status !== 'analyzed') return false;
-        } else if (activeFilter === 'pending') {
-            if (c.status === 'analyzed' || c.status === 'failed' || c.status === 'error') return false;
-        }
-
-        return true;
-    });
-
-    // Sort contracts
-    const sortedContracts = [...filteredContracts].sort((a, b) => {
-        if (sortBy === 'date') {
-            const dateA = new Date(a.uploadDate || 0);
-            const dateB = new Date(b.uploadDate || 0);
-            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-        } else if (sortBy === 'score') {
-            const scoreA = a.riskScore ?? a.risk_score ?? 100;
-            const scoreB = b.riskScore ?? b.risk_score ?? 100;
-            // Ascending score means higher risk first (lower score = riskier contract).
-            return sortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA;
-        }
-        return 0;
-    });
-
-    const totalPages = Math.ceil(sortedContracts.length / contractsPerPage);
-    const startIndex = (currentPage - 1) * contractsPerPage;
-    const paginatedContracts = sortedContracts.slice(startIndex, startIndex + contractsPerPage);
-
-    const handleSortClick = (nextSortBy) => {
-        if (sortBy === nextSortBy) {
-            setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
-            return;
-        }
-
-        setSortBy(nextSortBy);
-        setSortOrder(nextSortBy === 'date' ? 'desc' : 'asc');
-    };
+    const {
+        contracts,
+        isLoading,
+        isRefreshing,
+        deleteConfirm,
+        setDeleteConfirm,
+        isDeleting,
+        editModal,
+        setEditModal,
+        isSaving,
+        actionNotice,
+        searchQuery,
+        setSearchQuery,
+        activeFilter,
+        setActiveFilter,
+        sortBy,
+        sortOrder,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        paginatedContracts,
+        filteredContracts,
+        handleDelete,
+        confirmDelete,
+        handleEdit,
+        saveEdit,
+        handleExport,
+        handleShare,
+        formatDate,
+        handleSortClick
+    } = useContracts(userId, t, isRTL);
 
     if (isLoading) {
         return (
