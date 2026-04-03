@@ -1,0 +1,78 @@
+import React from 'react';
+import { Check, Copy, Bot } from 'lucide-react';
+import { extractClauseReference, formatMessageTime } from '../../../utils/chatTextFormatting';
+
+const ChatMessage = ({ msg, isRTL, t, userInitial, userLabel, copyMessageText, copiedMessageKey, locale }) => {
+    const messageKey = `${msg.ts}-${msg.role}`;
+    const copied = copiedMessageKey === messageKey;
+    
+    // Process evidence to extract and format items properly
+    const evidenceItems = msg.role === 'assistant' && Array.isArray(msg.meta?.evidence)
+        ? msg.meta.evidence
+            .map((item) => String(item || '').trim())
+            .filter(Boolean)
+            .slice(0, 3)
+            .map((snippet) => ({
+                snippet,
+                clauseRef: extractClauseReference(snippet),
+            }))
+        : [];
+
+    const foundInContractMeta =
+        typeof msg.meta?.foundInContract === 'boolean'
+            ? msg.meta.foundInContract
+            : (typeof msg.meta?.found_in_contract === 'boolean' ? msg.meta.found_in_contract : null);
+
+    const sourceType = foundInContractMeta === true
+        ? 'contract'
+        : (foundInContractMeta === false ? 'general' : (evidenceItems.length > 0 ? 'contract' : ''));
+
+    return (
+        <div key={messageKey} className={`chat-msg-row ${msg.role}`}>
+            <div className={`chat-msg-avatar ${msg.role}`} aria-hidden="true">
+                {msg.role === 'assistant' ? <Bot size={14} /> : <span>{userInitial}</span>}
+            </div>
+            <article className={`chat-msg ${msg.role}`}>
+                <div className="chat-msg-head">
+                    <div className="chat-msg-meta">
+                        <div className="chat-msg-role">{msg.role === 'user' ? userLabel : t('chat.assistant')}</div>
+                        {msg.createdAt && <div className="chat-msg-time">{formatMessageTime(msg.createdAt, locale)}</div>}
+                    </div>
+                    <button
+                        type="button"
+                        className="chat-msg-copy"
+                        onClick={() => copyMessageText(msg.text, messageKey)}
+                        title={copied ? t('chat.copied') : t('chat.copy')}
+                        aria-label={copied ? t('chat.copied') : t('chat.copy')}
+                    >
+                        {copied ? <Check size={13} /> : <Copy size={13} />}
+                        <span>{copied ? t('chat.copied') : t('chat.copy')}</span>
+                    </button>
+                </div>
+                <p>{msg.text}</p>
+                {msg.role === 'assistant' && sourceType && (
+                    <div className={`chat-msg-source ${sourceType}`}>
+                        {sourceType === 'contract' ? t('chat.sourceContract') : t('chat.sourceGeneral')}
+                    </div>
+                )}
+                {msg.role === 'assistant' && evidenceItems.length > 0 && (
+                    <div className="chat-msg-evidence">
+                        <div className="chat-msg-evidence-title">{t('chat.evidenceTitle')}</div>
+                        <ul className="chat-msg-evidence-list">
+                            {evidenceItems.map((item, index) => (
+                                <li key={`${messageKey}-evidence-${item.source || index}`}>
+                                    {item.clauseRef && (
+                                        <span className="chat-msg-evidence-anchor">{item.clauseRef}</span>
+                                    )}
+                                    <span>{item.snippet}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </article>
+        </div>
+    );
+};
+
+export default ChatMessage;

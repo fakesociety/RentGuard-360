@@ -24,11 +24,14 @@ import {
     ChevronLeft,
     PartyPopper
 } from 'lucide-react';
-import { processContractClauses } from '../../utils/contractTextProcessor';
-import { consultClause } from '../../services/api';
-import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../../services/ExportService';
-import { useLanguage } from '../../contexts/LanguageContext';
-import RecommendationCard from './RecommendationCard';
+import { processContractClauses } from '../../../utils/contractTextProcessor';
+import { consultClause } from '../../../services/api';
+import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../../../services/ExportService';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import ContractViewSignatures from './ContractViewSignatures';
+import EditClauseModal from './EditClauseModal';
+import ClauseRow from './ClauseRow';
+import ContractToolbar from './ContractToolbar';
 import './ContractView.css';
 
 const ContractView = forwardRef(({
@@ -404,15 +407,6 @@ const containerRef = useRef(null);
         requestClearAll: () => setShowClearAllConfirm(true),
     }), [handleExport, handleGetDocxBlob, getCurrentEditedPayload]);
 
-    const renderRiskIcon = (level) => {
-        switch (level) {
-            case 'High': return <AlertTriangle size={16} strokeWidth={2.5} />;
-            case 'Medium': return <Info size={16} strokeWidth={2.5} />;
-            case 'Low': return <CheckCircle2 size={16} strokeWidth={2.5} />;
-            default: return <Info size={16} strokeWidth={2.5} />;
-        }
-    };
-
     return (
         <div className="lf-cv-container">
             <div className={`lf-cv-paper ${isMinimized ? 'minimized' : ''}`} ref={containerRef}>
@@ -438,35 +432,13 @@ const containerRef = useRef(null);
                 {!isMinimized && (
                     <>
                         {/* ===== TOOLBAR ===== */}
-                        <div className="lf-cv-toolbar no-print">
-                            <div className="lf-cv-toolbar-left">
-                                {!readOnly && (
-                                    <label className="lf-cv-filter-toggle">
-                                        <input
-                                            type="checkbox"
-                                            checked={showOnlyIssues}
-                                            onChange={(e) => setShowOnlyIssues(e.target.checked)}
-                                        />
-                                        <span>{t('contractView.showOnlyProblemClauses')}</span>
-                                    </label>
-                                )}
-                            </div>
-                            <div className="lf-cv-toolbar-stats">
-                                <span className="lf-cv-stat-badge neutral">
-                                    {stats.total} {t('contractView.clausesCountSuffix')}
-                                </span>
-                                {stats.withIssues > 0 && (
-                                    <span className="lf-cv-stat-badge warning">
-                                        <AlertTriangle size={14} /> {stats.withIssues} {t('contractView.issuesCountSuffix')}
-                                    </span>
-                                )}
-                                {stats.edited > 0 && (
-                                    <span className="lf-cv-stat-badge success">
-                                        <Edit3 size={14} /> {stats.edited} {t('contractView.editedCountSuffix')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                        <ContractToolbar 
+                            readOnly={readOnly}
+                            showOnlyIssues={showOnlyIssues}
+                            setShowOnlyIssues={setShowOnlyIssues}
+                            t={t}
+                            stats={stats}
+                        />
 
                         {/* ===== CLAUSES LIST ===== */}
                         <div className="lf-cv-clauses-list">
@@ -481,113 +453,29 @@ const containerRef = useRef(null);
                                 </div>
                             ) : (
                                 filteredClauses.map((clause) => (
-                                    <div key={clause.id} className="lf-cv-clause-row">
-                                        
-                                        {/* Issue indicator */}
-                                        {clause.hasIssue && clause.issue && (
-                                            <div className={`lf-cv-issue-indicator ${clause.issue.risk_level?.toLowerCase()}`}>
-                                                {renderRiskIcon(clause.issue.risk_level)}
-                                                <span className="lf-cv-issue-topic">{clause.issue.clause_topic}</span>
-                                            </div>
-                                        )}
-
-                                        {/* Clause content */}
-                                        <div
-                                            className={`lf-cv-clause-box ${clause.hasIssue ? 'has-issue' : ''} ${clause.isEdited ? 'is-edited' : ''} ${readOnly ? 'read-only' : ''}`}
-                                            onClick={readOnly ? undefined : () => openEditor(clause)}
-                                        >
-                                            <div className="lf-cv-clause-text-area">
-                                                <p className="lf-cv-clause-text" dir="rtl">
-                                                    {getClauseText(clause)}
-                                                </p>
-
-                                                {!readOnly && (
-                                                    <div className="lf-cv-clause-actions no-print">
-                                                        {!clauseExplanations[clause.id] && (
-                                                            <button
-                                                                className="lf-cv-action-btn consult-btn"
-                                                                onClick={(e) => handleConsultClause(clause, e)}
-                                                                disabled={consultingClauseId === clause.id}
-                                                                title={t('contractView.getClauseExplanation')}
-                                                            >
-                                                                {consultingClauseId === clause.id 
-                                                                    ? <Loader2 className="spin" size={16} /> 
-                                                                    : <Sparkles size={16} />}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Edit Hint Overlay */}
-                                            {!readOnly && (
-                                                <div className="lf-cv-hover-hint no-print">
-                                                    <Pen size={14} /> {t('contractView.edit')}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* AI Explanation Box */}
-                                        {clauseExplanations[clause.id] && (
-                                            <div className={`lf-cv-ai-explanation no-print ${expandedExplanations[clause.id] ? 'expanded' : 'minimized'}`}>
-                                                <div className="lf-cv-ai-header" onClick={() => toggleExplanation(clause.id)}>
-                                                    <span className="lf-cv-ai-title">
-                                                        <Sparkles size={16} /> {t('contractView.aiExplanation')}
-                                                    </span>
-                                                    <button className="lf-cv-toggle-btn">
-                                                        {expandedExplanations[clause.id] ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
-                                                    </button>
-                                                </div>
-                                                {expandedExplanations[clause.id] && (
-                                                    <div className="lf-cv-ai-content" dir="rtl">
-                                                        {clauseExplanations[clause.id]}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Suggested Fix Card (External Component) */}
-                                        {!readOnly && clause.hasIssue && clause.issue?.suggested_fix && (
-                                            <div className="lf-cv-recommendation-wrapper">
-                                                <RecommendationCard
-                                                    title={t('contractView.fixSuggestion')}
-                                                    suggestion={clause.issue.suggested_fix}
-                                                    isApplied={!!editedClauses[clause.id]}
-                                                    onApply={() => {
-                                                        updateEditedClauses(prev => ({
-                                                            ...prev,
-                                                            [clause.id]: { text: clause.issue.suggested_fix, action: 'accepted' }
-                                                        }));
-                                                        onClauseChange?.(clause.id, clause.issue.suggested_fix, 'accepted');
-                                                    }}
-                                                    onRevert={(e) => requestRevert(clause.id, e)}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
+                                    <ClauseRow
+                                        key={clause.id}
+                                        clause={clause}
+                                        readOnly={readOnly}
+                                        t={t}
+                                        getClauseText={getClauseText}
+                                        clauseExplanations={clauseExplanations}
+                                        consultingClauseId={consultingClauseId}
+                                        handleConsultClause={handleConsultClause}
+                                        expandedExplanations={expandedExplanations}
+                                        toggleExplanation={toggleExplanation}
+                                        editedClauses={editedClauses}
+                                        updateEditedClauses={updateEditedClauses}
+                                        onClauseChange={onClauseChange}
+                                        requestRevert={requestRevert}
+                                        openEditor={openEditor}
+                                    />
                                 ))
                             )}
                         </div>
 
                         {/* ===== SIGNATURE FOOTER ===== */}
-                        <footer className="lf-cv-signatures-footer">
-                            <h3>{t('contractView.signaturesTitle')}</h3>
-                            <div className="lf-cv-signatures-grid">
-                                <div className="lf-cv-signature-block">
-                                    <div className="lf-cv-sig-line"></div>
-                                    <p className="lf-cv-sig-role">{t('contractView.landlord')}</p>
-                                    <p className="lf-cv-sig-placeholder">{t('contractView.namePlaceholder')}</p>
-                                    <p className="lf-cv-sig-placeholder">{t('contractView.idPlaceholder')}</p>
-                                </div>
-                                <div className="lf-cv-signature-block">
-                                    <div className="lf-cv-sig-line"></div>
-                                    <p className="lf-cv-sig-role">{t('contractView.tenant')}</p>
-                                    <p className="lf-cv-sig-placeholder">{t('contractView.namePlaceholder')}</p>
-                                    <p className="lf-cv-sig-placeholder">{t('contractView.idPlaceholder')}</p>
-                                </div>
-                            </div>
-                            <p className="lf-cv-sig-date">{t('contractView.datePlaceholder')}</p>
-                        </footer>
+                        <ContractViewSignatures t={t} />
 
                         <div ref={bottomRef}></div>
 
@@ -609,61 +497,16 @@ const containerRef = useRef(null);
 
             {/* Edit Modal */}
             {!readOnly && selectedClause && (
-                <div className="lf-cv-modal-overlay" onClick={closeEditor}>
-                    <div className="lf-cv-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="lf-cv-modal-header">
-                            <h3><Edit3 size={20} /> {t('contractView.editClause')}</h3>
-                            <button className="lf-cv-modal-close" onClick={closeEditor}><X size={20} /></button>
-                        </div>
-
-                        <div className="lf-cv-modal-body" dir="rtl">
-                            <div className="lf-cv-modal-section">
-                                <label>{t('contractView.originalClauseLabel')}</label>
-                                <div className="lf-cv-original-text">{selectedClause.text}</div>
-                            </div>
-
-                            {selectedClause.issue?.suggested_fix && (
-                                <div className="lf-cv-modal-section lf-cv-suggested-section">
-                                    <div className="lf-cv-suggested-header">
-                                        <Sparkles size={16} /> <label>{t('contractView.aiFixSuggestionLabel')}</label>
-                                    </div>
-                                    <div className="lf-cv-suggested-text">{selectedClause.issue.suggested_fix}</div>
-                                    <button className="lf-cv-apply-btn" onClick={applySuggestedFix}>
-                                        <Check size={16} /> {t('contractView.applySuggestion')}
-                                    </button>
-                                </div>
-                            )}
-
-                            <div className="lf-cv-modal-section">
-                                <label>{t('contractView.editLabel')}</label>
-                                <textarea
-                                    className="lf-cv-textarea"
-                                    value={editingText}
-                                    onChange={(e) => setEditingText(e.target.value)}
-                                    dir="rtl"
-                                    rows={6}
-                                    placeholder={t('contractView.editPlaceholder')}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="lf-cv-modal-footer">
-                            <button className="lf-cv-btn-primary" onClick={saveEdit}>
-                                <Check size={16} /> {t('contractView.finishEditing')}
-                            </button>
-
-                            {selectedClause.isEdited && (
-                                <button className="lf-cv-btn-revert" onClick={(e) => requestRevert(selectedClause.id, e)}>
-                                    <Undo2 size={16} /> {t('contractView.revertToOriginal')}
-                                </button>
-                            )}
-
-                            <button className="lf-cv-btn-cancel" onClick={closeEditor}>
-                                {t('contractView.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <EditClauseModal
+                    t={t}
+                    selectedClause={selectedClause}
+                    editingText={editingText}
+                    setEditingText={setEditingText}
+                    saveEdit={saveEdit}
+                    requestRevert={requestRevert}
+                    closeEditor={closeEditor}
+                    applySuggestedFix={applySuggestedFix}
+                />
             )}
 
             {/* Error Toast */}

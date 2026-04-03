@@ -1,184 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, Send, Copy, Check, Bot, ChevronDown } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { askContractQuestion, clearContractChatHistory, getContractChatHistory, getContracts } from '../../services/api';
-import ActionMenu from '../ui/ActionMenu';
+import { MessageCircle, X, Send, Bot, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { askContractQuestion, clearContractChatHistory, getContractChatHistory, getContracts } from '../../../services/api';
+import ActionMenu from '../../ui/ActionMenu';
+import { isContractChatAutoOpenEnabled, getAnalysisContractIdFromPath, normalizeAssistantText, looksLikeMachineId, CHAT_AUTO_OPEN_PREF_KEY } from '../../../utils/chatTextFormatting';
+import ChatMessage from './ChatMessage';
+import ChatHeader from './ChatHeader';
+import ChatInputForm from './ChatInputForm';
 import './ContractChatWidget.css';
 
-const CHAT_AUTO_OPEN_PREF_KEY = 'rentguard_chat_auto_open_contract';
 const CHAT_PANEL_CLOSE_MS = 260;
-
-const isContractChatAutoOpenEnabled = () => {
-    try {
-        const saved = localStorage.getItem(CHAT_AUTO_OPEN_PREF_KEY);
-        if (saved === null) return true;
-        return saved !== 'false';
-    } catch {
-        return true;
-    }
-};
-
-const getAnalysisContractIdFromPath = (pathname) => {
-    const match = String(pathname || '').match(/^\/analysis\/([^/?#]+)/);
-    if (!match || !match[1]) return null;
-    try {
-        return decodeURIComponent(match[1]);
-    } catch {
-        return match[1];
-    }
-};
-
-const parseJsonObjectFromText = (value) => {
-    const text = String(value || '').trim();
-    if (!text) return null;
-
-    const withoutFence = text
-        .replace(/^\s*```(?:json)?\s*/i, '')
-        .replace(/\s*```\s*$/i, '')
-        .trim();
-
-    const parseCandidates = [withoutFence, text];
-    for (const candidate of parseCandidates) {
-        if (!candidate) continue;
-
-        try {
-            const parsed = JSON.parse(candidate);
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                return parsed;
-            }
-            if (typeof parsed === 'string') {
-                const nested = parseJsonObjectFromText(parsed);
-                if (nested) return nested;
-            }
-        } catch {
-            // Fall through to next parse strategy.
-        }
-    }
-
-    const match = withoutFence.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-
-    try {
-        const parsed = JSON.parse(match[0]);
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
-    } catch {
-        return null;
-    }
-};
-
-const unwrapAssistantAnswerText = (rawText) => {
-    let current = String(rawText || '').trim();
-    if (!current) return '';
-
-    for (let i = 0; i < 4; i += 1) {
-        const parsed = parseJsonObjectFromText(current);
-        if (!parsed) break;
-
-        const nestedAnswer = typeof parsed.answer === 'string' ? parsed.answer.trim() : '';
-        if (!nestedAnswer || nestedAnswer === current) {
-            break;
-        }
-
-        current = nestedAnswer;
-    }
-
-    if (current.startsWith('```') || current.includes('"answer"')) {
-        const match = current.match(/"answer"\s*:\s*"((?:\\.|[^"\\])*)"/);
-        if (match) {
-            try {
-                const rescued = JSON.parse(`"${match[1]}"`);
-                if (typeof rescued === 'string' && rescued.trim()) {
-                    current = rescued.trim();
-                }
-            } catch {
-                // Keep current value if unescape fails.
-            }
-        }
-    }
-
-    return current;
-};
-
-const normalizeAssistantText = (rawText, originalQuestion = '') => {
-    const text = unwrapAssistantAnswerText(rawText);
-    if (!text) return '';
-
-    const normalizedQuestion = String(originalQuestion || '').trim();
-    const escapedQuestion = normalizedQuestion
-        ? normalizedQuestion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        : '';
-
-    let cleaned = text
-        .replace(/^\s*```(?:json)?\s*/i, '')
-        .replace(/\s*```\s*$/i, '')
-        .replace(/\r\n/g, '\n')
-        // Remove markdown emphasis markers.
-        .replace(/\*\*(.*?)\*\*/g, '$1')
-        .replace(/__(.*?)__/g, '$1')
-        // Remove heading markers at line start.
-        .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-        // Remove horizontal rules.
-        .replace(/^\s*([-*_])\1{2,}\s*$/gm, '')
-        // Collapse overly large vertical gaps after markdown cleanup.
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-
-    if (escapedQuestion) {
-        // Remove prefixed question echoes such as "שאלה: ..." / "Question: ..." if they mirror user text.
-        cleaned = cleaned
-            .replace(new RegExp(`^\\s*(?:שאלה|question)\\s*[:\\-]\\s*${escapedQuestion}\\s*`, 'i'), '')
-            .trim();
-    }
-
-    return cleaned;
-};
-
-const extractClauseReference = (snippet) => {
-    const text = String(snippet || '');
-    if (!text) return '';
-
-    const hebrewMatch = text.match(/(?:סעיף|סעיפים|ס׳|ס\.)\s*([0-9]{1,3}[א-ת]?)/i);
-    if (hebrewMatch?.[1]) {
-        return `סעיף ${hebrewMatch[1]}`;
-    }
-
-    const englishMatch = text.match(/clause\s*([0-9]{1,3}[a-z]?)/i);
-    if (englishMatch?.[1]) {
-        return `Clause ${englishMatch[1]}`;
-    }
-
-    return '';
-};
-
-const formatMessageTime = (rawTime, locale) => {
-    if (!rawTime) return '';
-    const date = new Date(rawTime);
-    if (Number.isNaN(date.getTime())) return '';
-
-    return new Intl.DateTimeFormat(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-};
-
-const looksLikeMachineId = (value) => {
-    const text = String(value || '').trim();
-    if (!text) return true;
-
-    // Common UUID-like Cognito identifiers.
-    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(text)) {
-        return true;
-    }
-
-    // Provider-prefixed IDs or long opaque tokens.
-    if (text.includes('|') || text.length > 28) {
-        return true;
-    }
-
-    return false;
-};
 
 const ContractChatWidget = () => {
     const { isAuthenticated, user, userAttributes } = useAuth();
@@ -744,20 +577,7 @@ const ContractChatWidget = () => {
         >
             {showPanel && (
                 <section className={`chat-widget-panel ${isClosing ? 'closing' : ''}`} aria-label={t('chat.title')}>
-                    <header className="chat-widget-header">
-                        <div>
-                            <h3>{t('chat.title')}</h3>
-                            <p className="chat-widget-scope">{t('chat.scope')}</p>
-                        </div>
-                        <button
-                            className="chat-widget-close"
-                            onClick={closePanel}
-                            aria-label={t('chat.close')}
-                            type="button"
-                        >
-                            <X size={18} />
-                        </button>
-                    </header>
+                    <ChatHeader t={t} closePanel={closePanel} />
 
                     <div className="chat-widget-contract-picker">
                         <label id="chat-contract-select-label">{t('chat.contractLabel')}</label>
@@ -854,76 +674,19 @@ const ContractChatWidget = () => {
                             </div>
                         )}
 
-                        {messages.map((msg) => {
-                            const messageKey = `${msg.ts}-${msg.role}`;
-                            const copied = copiedMessageKey === messageKey;
-                            const evidenceItems = msg.role === 'assistant' && Array.isArray(msg.meta?.evidence)
-                                ? msg.meta.evidence
-                                    .map((item) => String(item || '').trim())
-                                    .filter(Boolean)
-                                    .slice(0, 3)
-                                    .map((snippet) => ({
-                                        snippet,
-                                        clauseRef: extractClauseReference(snippet),
-                                    }))
-                                : [];
-
-                            const foundInContractMeta =
-                                typeof msg.meta?.foundInContract === 'boolean'
-                                    ? msg.meta.foundInContract
-                                    : (typeof msg.meta?.found_in_contract === 'boolean' ? msg.meta.found_in_contract : null);
-
-                            const sourceType = foundInContractMeta === true
-                                ? 'contract'
-                                : (foundInContractMeta === false ? 'general' : (evidenceItems.length > 0 ? 'contract' : ''));
-
-                            return (
-                            <div key={messageKey} className={`chat-msg-row ${msg.role}`}>
-                                <div className={`chat-msg-avatar ${msg.role}`} aria-hidden="true">
-                                    {msg.role === 'assistant' ? <Bot size={14} /> : <span>{userInitial}</span>}
-                                </div>
-                                <article className={`chat-msg ${msg.role}`}>
-                                    <div className="chat-msg-head">
-                                        <div className="chat-msg-meta">
-                                            <div className="chat-msg-role">{msg.role === 'user' ? userLabel : t('chat.assistant')}</div>
-                                            {msg.createdAt && <div className="chat-msg-time">{formatMessageTime(msg.createdAt, locale)}</div>}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="chat-msg-copy"
-                                            onClick={() => copyMessageText(msg.text, messageKey)}
-                                            title={copied ? t('chat.copied') : t('chat.copy')}
-                                            aria-label={copied ? t('chat.copied') : t('chat.copy')}
-                                        >
-                                            {copied ? <Check size={13} /> : <Copy size={13} />}
-                                            <span>{copied ? t('chat.copied') : t('chat.copy')}</span>
-                                        </button>
-                                    </div>
-                                    <p>{msg.text}</p>
-                                    {msg.role === 'assistant' && sourceType && (
-                                        <div className={`chat-msg-source ${sourceType}`}>
-                                            {sourceType === 'contract' ? t('chat.sourceContract') : t('chat.sourceGeneral')}
-                                        </div>
-                                    )}
-                                    {msg.role === 'assistant' && evidenceItems.length > 0 && (
-                                        <div className="chat-msg-evidence">
-                                            <div className="chat-msg-evidence-title">{t('chat.evidenceTitle')}</div>
-                                            <ul className="chat-msg-evidence-list">
-                                                {evidenceItems.map((item, index) => (
-                                                    <li key={`${messageKey}-evidence-${item.source || index}`}>
-                                                        {item.clauseRef && (
-                                                            <span className="chat-msg-evidence-anchor">{item.clauseRef}</span>
-                                                        )}
-                                                        <span>{item.snippet}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </article>
-                            </div>
-                            );
-                        })}
+{messages.map((msg) => (
+                              <ChatMessage
+                                  key={`${msg.ts}-${msg.role}`}
+                                  msg={msg}
+                                  isRTL={isRTL}
+                                  t={t}
+                                  userInitial={userInitial}
+                                  userLabel={userLabel}
+                                  copyMessageText={copyMessageText}
+                                  copiedMessageKey={copiedMessageKey}
+                                  locale={locale}
+                              />
+                          ))}
 
                         {isAsking && (
                             <div className="chat-msg-row assistant pending">
@@ -969,37 +732,16 @@ const ContractChatWidget = () => {
 
                     {errorKey && <p className="chat-widget-error">{t(`chat.errors.${errorKey}`)}</p>}
 
-                    <form onSubmit={onSubmit} className="chat-widget-input-row">
-                        <textarea
-                            ref={inputRef}
-                            value={question}
-                            onChange={(e) => setQuestion(e.target.value)}
-                            onKeyDown={onInputKeyDown}
-                            placeholder={t('chat.inputPlaceholder')}
-                            maxLength={1200}
-                            disabled={isAsking || rateLimitSecondsLeft > 0}
-                            rows={1}
-                            dir="auto"
-                        />
-                        <button type="submit" disabled={isAsking || rateLimitSecondsLeft > 0 || !question.trim()} aria-label={t('chat.send')}>
-                            <Send size={16} />
-                        </button>
-                    </form>
-                    <div className={`chat-widget-tip ${isTipCollapsed ? 'collapsed' : ''}`}>
-                        <button
-                            type="button"
-                            className="chat-widget-tip-toggle"
-                            onClick={() => setIsTipCollapsed((prev) => !prev)}
-                            aria-expanded={!isTipCollapsed}
-                        >
-                            {isTipCollapsed ? t('chat.showNotice') : t('chat.hideNotice')}
-                        </button>
-                        {!isTipCollapsed && (
-                            <p>
-                                {`${t('chat.tip')} ${t('chat.disclaimer')}`}
-                            </p>
-                        )}
-                    </div>
+                    <ChatInputForm 
+                        t={t}
+                        question={question}
+                        setQuestion={setQuestion}
+                        onSubmit={onSubmit}
+                        onInputKeyDown={onInputKeyDown}
+                        inputRef={inputRef}
+                        isAsking={isAsking}
+                        rateLimitSecondsLeft={rateLimitSecondsLeft}
+                    />
 
                     {isClearConfirmOpen && (
                         <div className="chat-widget-confirm-overlay" role="dialog" aria-modal="true" aria-label={t('chat.clear')}>
