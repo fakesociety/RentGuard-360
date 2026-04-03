@@ -50,10 +50,47 @@ import AuthModal from './components/AuthModal';
 import { DashboardMockup, ContractsGridMockup, ContractViewerMockup } from './components/Mockups';
 import RegisterPromptModal from './components/RegisterPromptModal';
 
+const benefits = [
+    {
+        icon: Shield,
+        titleHe: 'ניתוח AI מתקדם',
+        titleEn: 'Advanced AI Analysis',
+        descHe: 'בינה מלאכותית מתקדמת מזהה סעיפים בעייתיים ומצביעה על סיכונים.',
+        descEn: 'Advanced AI identifies problematic clauses and highlights risks.'
+    },
+    {
+        icon: Lock,
+        titleHe: 'פרטיות מלאה',
+        titleEn: 'Full Privacy',
+        descHe: 'המידע האישי שלך מוסתר אוטומטית לפני הניתוח ומוחזר אחריו.',
+        descEn: 'Your personal info is automatically hidden before analysis and restored after.'
+    },
+    {
+        icon: Zap,
+        titleHe: 'תוצאות בשניות',
+        titleEn: 'Results in Seconds',
+        descHe: 'קבל ניתוח מלא של החוזה תוך פחות מדקה, בלי צורך בעורך דין.',
+        descEn: 'Get full contract analysis in under a minute, no lawyer needed.'
+    },
+];
+
 const LandingPage = () => {
     const { isAuthenticated } = useAuth();
     const { hasSubscription, isLoading: isSubscriptionLoading, isEntitlementKnown } = useSubscription();
-    const { t, isRTL } = useLanguage();
+    const { isRTL } = useLanguage();
+
+    const staggerChildren = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.2 }
+        }
+    };
+
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    };
 
     const getPendingVerificationEmail = () => {
         try {
@@ -68,9 +105,38 @@ const LandingPage = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
 
+    // Scroll refs
+    const carouselRef = useRef(null);
+    const contractsRef = useRef(null);
+    const featureRef = useRef(null);
+    const carouselInView = useInView(carouselRef, { once: true, margin: '-80px' });
+    const contractsInView = useInView(contractsRef, { once: true, margin: '-80px' });
+    const featureInView = useInView(featureRef, { once: true, margin: '-80px' });
+
+    // Navigation and helpers
+    const toggleAuth = (type) => {
+        setAuthModal(authModal === type ? null : type);
+    };
+
     const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % benefits.length);
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + benefits.length) % benefits.length);
     const CurrentBenefitIcon = benefits[currentSlide].icon;
+
+    useEffect(() => {
+        if (isPaused) return;
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % benefits.length);
+        }, 4000);
+        return () => clearInterval(timer);
+    }, [isPaused]);
+
+    if (isAuthenticated) {
+        localStorage.removeItem('rentguard_pending_verification');
+        if (isSubscriptionLoading || !isEntitlementKnown) {
+            return null;
+        }
+        return <Navigate to={hasSubscription ? '/dashboard' : '/pricing'} replace />;
+    }
 
     return (
         <div className="landing-real" dir={isRTL ? 'rtl' : 'ltr'}>
