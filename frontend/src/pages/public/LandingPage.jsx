@@ -37,7 +37,6 @@ import { ThemeToggle } from '../../components/ui/Toggle';
 import LanguageToggle from '../../components/ui/LanguageToggle';
 import Navigation from '../../components/layout/Navigation';
 import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2, X, Cloud, Bot, Lock, Zap, Pause, Wallet, House } from 'lucide-react';
-import Footer from '../../components/layout/Footer';
 import './LandingPage.css';
 
 // Some eslint setups don't count JSX member expressions (e.g. <motion.div>) as a variable usage.
@@ -318,7 +317,6 @@ const LandingPage = () => {
                 }}
                 isRTL={isRTL}
             />
-
 
         </div>
     );
