@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAdminStripeInsights } from '../../hooks/useAdminStripeInsights';
 import { AlertTriangle, CreditCard } from 'lucide-react';

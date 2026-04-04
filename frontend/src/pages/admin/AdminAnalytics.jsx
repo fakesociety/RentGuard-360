@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import Button from '../../components/ui/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { BarChart3, AlertTriangle, RefreshCw } from 'lucide-react';

@@ -28,8 +28,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 // TRANSLATIONS
 // ============================================
 
-import { he } from "../locales/he";
-import { en } from "../locales/en";
+import { he } from './he';
+import { en } from './en';
 
 const translations = { he, en };;
 

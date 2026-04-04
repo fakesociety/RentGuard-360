@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import AdminSidebar from '../../components/layout/AdminSidebar';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Menu, X, Shield } from 'lucide-react';
 import './AdminLayout.css';

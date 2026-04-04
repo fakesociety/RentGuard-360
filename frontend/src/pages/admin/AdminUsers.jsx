@@ -5,7 +5,7 @@
  * ============================================
  */
 import React, { useState } from 'react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAdminUsers } from '../../hooks/useAdminUsers';
 import Button from '../../components/ui/Button';
@@ -44,7 +44,6 @@ const AdminUsers = () => {
         copiedUsername,
         handleCopyEmail,
         fetchAllUsers,
-        getLocalizedLabel,
         getUserIdentifier,
         doEnableUser,
         doDisableUser,
@@ -68,7 +67,7 @@ const AdminUsers = () => {
             type: 'disable',
             username,
             title: t('admin.confirmDisableTitle') || 'Disable User',
-            message: `${t('admin.confirmDisable')}\n${getLocalizedLabel('admin.userLabel', 'User', 'משתמש')}: ${getUserIdentifier(username)}`,
+            message: `${t('admin.confirmDisable')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
         });
     };
 
@@ -82,7 +81,7 @@ const AdminUsers = () => {
             type: 'delete',
             username,
             title: t('admin.confirmDeleteTitle') || 'Delete User',
-            message: `${t('admin.confirmDelete')}\n${getLocalizedLabel('admin.userLabel', 'User', 'משתמש')}: ${getUserIdentifier(username)}`,
+            message: `${t('admin.confirmDelete')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
         });
     };
 
@@ -98,7 +97,7 @@ const AdminUsers = () => {
                 type: 'deleteConfirm',
                 username,
                 title: t('admin.confirmDeleteFinalTitle') || 'Final Confirmation',
-                message: `${t('admin.confirmDeleteFinal')}\n${getLocalizedLabel('admin.userLabel', 'User', 'משתמש')}: ${getUserIdentifier(username)}`,
+                message: `${t('admin.confirmDeleteFinal')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
             });
         } else if (type === 'deleteConfirm') {
             doDeleteUser(username);
@@ -113,15 +112,15 @@ const AdminUsers = () => {
             return { badgeClass: 'disabled', label: t('admin.suspended') || 'Suspended' };
         }
         if (statusKey === 'pending') {
-            return { badgeClass: 'pending', label: t('admin.pendingVerification') || (isRTL ? 'ממתין לאימות' : 'Pending verification') };
+            return { badgeClass: 'pending', label: t('admin.pendingVerification') || 'Pending verification' };
         }
         return { badgeClass: 'active', label: t('admin.active') || 'Active' };
     };
 
     const getPackageDisplay = (user) => {
-        const noneLabel = getLocalizedLabel('admin.none', 'No package', 'ללא');
-        const expiredLabel = getLocalizedLabel('admin.expired', 'expired', 'פג תוקף');
-        const pendingLabel = getLocalizedLabel('admin.pending', 'pending', 'ממתין');
+        const noneLabel = t('admin.none') || 'No package';
+        const expiredLabel = t('admin.expired') || 'expired';
+        const pendingLabel = t('admin.pending') || 'pending';
         if (!user?.packageName) return noneLabel;
         if (user?.packagePending) return `${user.packageName} (${pendingLabel})`;
         return user.packageExpired ? `${user.packageName} (${expiredLabel})` : user.packageName;
@@ -150,7 +149,7 @@ const AdminUsers = () => {
                 )
             };
         }
-        return { key: 'email', label: getLocalizedLabel('admin.emailPassword', 'Email', 'אימייל'), icon: <Mail size={14} /> };
+        return { key: 'email', label: t('admin.emailPassword') || 'Email', icon: <Mail size={14} /> };
     };
 
     const getProviderDisplay = (user) => getProviderMeta(user).label;
@@ -190,7 +189,6 @@ const AdminUsers = () => {
                             advancedFilterOpen={advancedFilterOpen}
                             setAdvancedFilterOpen={setAdvancedFilterOpen}
                             advancedFilterCount={advancedFilterCount}
-                            getLocalizedLabel={getLocalizedLabel}
                             clearAdvancedFilters={clearAdvancedFilters}
                             isAdvancedFilterActive={isAdvancedFilterActive}
                             toggleAdvancedFilter={toggleAdvancedFilter}
@@ -214,7 +212,6 @@ const AdminUsers = () => {
                             handleEnableUser={handleEnableUser}
                             handleDeleteUser={handleDeleteUser}
                             actionLoading={actionLoading}
-                            getLocalizedLabel={getLocalizedLabel}
                         />
 
                         <p className="users-count">

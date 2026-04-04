@@ -6,7 +6,7 @@
  */
 import React, { useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Button from '../../components/ui/Button';
 import { ThemeProvider, createTheme } from '@mui/material/styles';

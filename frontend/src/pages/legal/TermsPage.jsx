@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import {
     Calendar,
     ChevronDown,
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import './LegalPages.css';
 
-// פונקציית עזר שמתאימה אייקון מודרני לפי המספר הסידורי של הסעיף
+// Helper that maps each section index to a modern icon.
 const getIconForIndex = (index) => {
     const icons = [Info, Gavel, CreditCard, Shield, AlertTriangle, XCircle];
     const IconComponent = icons[index % icons.length];
@@ -42,19 +42,19 @@ const TermsPage = () => {
         }
     };
 
-    // גלילה חלקה למעלה
+    // Scroll to top on page load.
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // ניהול מצב האקורדיון - שומר את ה-ID של הסעיף הפתוח (ברירת מחדל: הראשון פתוח)
+    // Track which accordion section is open (first one by default).
     const [activeSection, setActiveSection] = useState(sections[0]?.id || null);
 
-    // פונקציית הפתיחה והגלילה
+    // Toggle accordion and scroll the opened section into view.
     const handleToggle = (id) => {
         setActiveSection(prev => prev === id ? null : id);
 
-        // גלילה חלקה לסעיף שנפתח
+        // Smoothly scroll to the section that was opened.
         if (activeSection !== id) {
             setTimeout(() => {
                 const el = document.getElementById(id);
@@ -68,7 +68,7 @@ const TermsPage = () => {
     return (
         <div className="terms-page-wrapper mesh-gradient" dir={isRTL ? 'rtl' : 'ltr'}>
             
-            {/* 1. הכותרת צריכה להיות מחוץ לגריד של שתי העמודות, כדי לתפוס 100% רוחב! */}
+            {/* Keep the header outside the two-column layout so it spans full width */}
             <header className="terms-global-header">
                 <button className="legal-back-btn" onClick={handleBack}>
                     {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
@@ -81,12 +81,12 @@ const TermsPage = () => {
                             <Calendar size={16} /> {updated}
                         </span>
                         <span className="meta-dot"></span>
-                        <span className="meta-badge">מסמך משפטי</span>
+                        <span className="meta-badge">{t('legal.legalDocument')}</span>
                     </div>
                 </div>
             </header>
 
-            {/* 2. המכולה המרכזית המחלקת את המסך לשתי עמודות */}
+            {/* Main container split into two columns */}
             <div className="terms-layout">
 
                 {/* Sidebar (TOC) */}
@@ -94,7 +94,7 @@ const TermsPage = () => {
                     <div className="sidebar-card">
                         <div className="sidebar-header">
                             <h2>{tocTitle}</h2>
-                            <p>ניווט מהיר בסעיפים</p>
+                            <p>{t('legal.quickNavigation')}</p>
                         </div>
                         <nav className="toc-nav">
                             {sections.map((section, idx) => {
@@ -119,7 +119,7 @@ const TermsPage = () => {
                 {/* Main Content Area */}
                 <main className="terms-main-content">
 
-                    {/* 3. העטיפה הלבנה הענקית (Paper) שכל האקורדיונים צריכים להיות בתוכה! */}
+                    {/* Large white paper wrapper that contains all accordions */}
                     <div className="content-paper">
                         <div className="terms-accordions">
                             {sections.map((section, idx) => {

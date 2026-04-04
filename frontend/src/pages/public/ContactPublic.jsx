@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, CheckCircle2, MapPin, Phone, Send, Shield, Clock, ArrowRight } from 'lucide-react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { sendContactMessage } from '../../services/api';
 import { emitAppToast } from '../../utils/toast';
 import Card from '../../components/ui/Card';

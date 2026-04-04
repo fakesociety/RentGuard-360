@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useAnimate, useAnimateBar, useDrawingArea } from '@mui/x-charts/hooks';
@@ -34,7 +34,7 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
         <div className="analytics-card analytics-card-full" ref={chartContainerRef}>
             <h3>
                 <FileText size={16} />
-                {t('admin.commonIssues') || 'בעיות נפוצות בחוזים'}
+                {t('admin.commonIssues')}
             </h3>
             {commonIssues.length > 0 ? (
                 <div className="bar-chart-section">
@@ -78,9 +78,9 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
                         <table>
                             <thead>
                                 <tr>
-                                    <th>{t('admin.code') || 'קוד'}</th>
-                                    <th>{t('admin.issue') || 'בעיה'}</th>
-                                    <th>{t('admin.count') || 'כמות'}</th>
+                                    <th>{t('admin.code')}</th>
+                                    <th>{t('admin.issue')}</th>
+                                    <th>{t('admin.count')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,7 +101,7 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
                 </div>
             ) : (
                 <div className="no-data" style={{ padding: '40px 20px', textAlign: 'center' }}>
-                    {t('admin.noIssuesYet') || 'עדיין לא נמצאו בעיות - העלה חוזים לניתוח'}
+                    {t('admin.noIssuesYet')}
                 </div>
             )}
         </div>

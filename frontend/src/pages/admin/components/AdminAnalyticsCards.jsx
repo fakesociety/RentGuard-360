@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
@@ -18,7 +18,7 @@ export const AdminAnalyticsCards = ({ pieData, avgRiskScore, riskColor }) => {
             <div className="analytics-card">
                 <h3>
                     <AlertTriangle size={16} />
-                    {t('admin.riskDistribution') || 'התפלגות סיכונים'}
+                    {t('admin.riskDistribution')}
                 </h3>
                 <div className="chart-content">
                     <div className="pie-chart-wrapper">
@@ -55,7 +55,7 @@ export const AdminAnalyticsCards = ({ pieData, avgRiskScore, riskColor }) => {
             <div className="analytics-card">
                 <h3>
                     <AlertTriangle size={16} />
-                    {t('admin.avgRiskScore') || 'ציון סיכון ממוצע'}
+                    {t('admin.avgRiskScore')}
                 </h3>
                 <div className="chart-content gauge-content">
                     <Gauge

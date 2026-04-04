@@ -20,7 +20,7 @@ import {
     ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { createCustomerPortalSession, getTransactions } from '../../services/stripeApi';
 import { emitAppToast } from '../../utils/toast';
@@ -96,11 +96,11 @@ const BillingPage = () => {
     }, []);
 
     const transactionFilterOptions = useMemo(() => ([
-        { key: 'last5', label: isRTL ? '5 עסקאות אחרונות' : 'Last 5 transactions' },
-        { key: 'all', label: isRTL ? 'כל העסקאות' : 'All transactions' },
-        { key: 'paid', label: isRTL ? 'שולם' : 'Paid' },
-        { key: 'failed', label: isRTL ? 'נכשל' : 'Failed' },
-    ]), [isRTL]);
+        { key: 'last5', label: t('billing.filterLast5') },
+        { key: 'all', label: t('billing.filterAllTransactions') },
+        { key: 'paid', label: t('billing.filterPaid') },
+        { key: 'failed', label: t('billing.filterFailed') },
+    ]), [t]);
 
     const filteredTransactions = useMemo(() => {
         const sorted = [...transactions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -150,10 +150,10 @@ const BillingPage = () => {
     };
 
     const formatDate = (value) => {
-        if (!value) return isRTL ? 'לא זמין' : 'N/A';
+        if (!value) return t('billing.notAvailable');
 
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return isRTL ? 'לא זמין' : 'N/A';
+        if (Number.isNaN(date.getTime())) return t('billing.notAvailable');
 
         return date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', {
             year: 'numeric',
@@ -299,7 +299,7 @@ const BillingPage = () => {
                 {/* Transactions History */}
                 <div className="billing-card transactions-card">
                     <div className="transactions-header">
-                        <h3>{isRTL ? 'היסטוריית חיובים' : 'Billing History'}</h3>
+                        <h3>{t('billing.historyTitle')}</h3>
                         <div className="billing-transactions-filter-menu" ref={filterMenuRef}>
                             <button
                                 type="button"
@@ -346,7 +346,7 @@ const BillingPage = () => {
 
                     {!transactionsLoading && !transactionsError && filteredTransactions.length === 0 && (
                         <p className="transactions-empty">
-                            {isRTL ? 'לא נמצאו עסקאות עבור הסינון שנבחר.' : 'No transactions found for the selected filter.'}
+                            {t('billing.noTransactionsForFilter')}
                         </p>
                     )}
 
@@ -362,10 +362,10 @@ const BillingPage = () => {
                                         <div className="transaction-amount">{formatAmount(tx.amount, tx.currency)}</div>
                                         <div className={`transaction-status ${status}`}>
                                             {status === 'succeeded'
-                                                ? (isRTL ? 'שולם' : 'Paid')
+                                                ? t('billing.statusPaid')
                                                 : status === 'failed'
-                                                    ? (isRTL ? 'נכשל' : 'Failed')
-                                                    : (tx.status || (isRTL ? 'לא ידוע' : 'Unknown'))}
+                                                    ? t('billing.statusFailed')
+                                                    : (tx.status || t('billing.statusUnknown'))}
                                         </div>
                                     </div>
                                 );

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { TrendingUp, UserPlus } from 'lucide-react';
 
@@ -42,7 +42,7 @@ const AdminDashboardCharts = ({
                 <div className="chart-header">
                     <h3>
                         <TrendingUp size={16} />
-                        {t('admin.analyzedOverTime') || 'חוזים שנותחו לאורך הזמן'}
+                        {t('admin.analyzedOverTime')}
                     </h3>
                     <div className="date-range-selector">
                         <div className="date-range-buttons">
@@ -56,7 +56,7 @@ const AdminDashboardCharts = ({
                                         range === '30d' ? `30 ${t('admin.days')}` :
                                             range === 'month' ? t('admin.thisMonth') :
                                                 range === 'year' ? t('admin.thisYear') :
-                                                    t('admin.allTime') || 'הכל'}
+                                                    t('admin.allTime')}
                                 </button>
                             ))}
                             <select
@@ -64,7 +64,7 @@ const AdminDashboardCharts = ({
                                 value={dateRange.match(/^\d{4}$/) ? dateRange : ''}
                                 onChange={(e) => e.target.value && setDateRange(e.target.value)}
                             >
-                                <option value="" disabled>{t('admin.selectYear') || 'Year'}</option>
+                                <option value="" disabled>{t('admin.selectYear')}</option>
                                 {[2026, 2025].map(year => (
                                     <option key={year} value={String(year)}>{year}</option>
                                 ))}
@@ -115,7 +115,7 @@ const AdminDashboardCharts = ({
                 <div className="chart-header">
                     <h3>
                         <UserPlus size={16} />
-                        {t('admin.userRegistrations') || 'משתמשים שנרשמו לאורך הזמן'}
+                        {t('admin.userRegistrations')}
                     </h3>
                     <div className="date-range-selector">
                         <div className="date-range-buttons">
@@ -129,7 +129,7 @@ const AdminDashboardCharts = ({
                                         range === '30d' ? `30 ${t('admin.days')}` :
                                             range === 'month' ? t('admin.thisMonth') :
                                                 range === 'year' ? t('admin.thisYear') :
-                                                    t('admin.allTime') || 'הכל'}
+                                                    t('admin.allTime')}
                                 </button>
                             ))}
                             <select
@@ -137,7 +137,7 @@ const AdminDashboardCharts = ({
                                 value={userDateRange.match(/^\d{4}$/) ? userDateRange : ''}
                                 onChange={(e) => e.target.value && setUserDateRange(e.target.value)}
                             >
-                                <option value="" disabled>{t('admin.selectYear') || 'Year'}</option>
+                                <option value="" disabled>{t('admin.selectYear')}</option>
                                 {[2026, 2025].map(year => (
                                     <option key={year} value={String(year)}>{year}</option>
                                 ))}

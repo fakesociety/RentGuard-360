@@ -1,61 +1,38 @@
-/*
- * ============================================
- * AdminSidebar.css - Sub-stylesheet
- * ============================================
- *
+/* ==========================================================================
+ * AdminSidebar.css
+ * Admin Sidebar - Responsive Navigation (Professional SaaS Style)
+ * ==========================================================================
  * TABLE OF CONTENTS
- * ============================================
- * 1. Sidebar Container
- * 2. Sidebar Header
- * 3. Navigation Items
- * 4. Sidebar Footer
- * 5. States (active, hover, collapsed)
- * 6. Dark Mode
- * 7. Media Queries
- * ============================================
- */
-
-/*
- * Admin Sidebar - Responsive Navigation
- * Professional SaaS Style with Collapsible Tablet Mode
- * 
- * STRUCTURE:
+ * ==========================================================================
  * 1. CSS Variables
  * 2. Base Sidebar Styles
  * 3. Theme Modes (Dark/Light)
  * 4. Header / Logo
  * 5. Back Link
- * 6. Controls (Theme/Language)
- * 7. Navigation Items
- * 8. Footer
+ * 6. Sidebar Controls (Theme/Language)
+ * 7. Navigation
+ * 8. Footer (User Profile & Actions)
  * 9. Media Queries
- *    - 1024px: Collapsible sidebar (icons only)
- *    - 768px: Hidden, overlay mode
- *    - 600px: Mobile adjustments
- *    - 480px: Small mobile
- */
+ * ========================================================================== */
 
-/* ============================================
-   1. CSS VARIABLES
-   ============================================ */
-
+/* ==========================================================================
+ * 1. CSS Variables
+ * ========================================================================== */
 .admin-sidebar {
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 60px;
     --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ============================================
-   2. BASE SIDEBAR STYLES
-   ============================================ */
-
+/* ==========================================================================
+ * 2. Base Sidebar Styles
+ * ========================================================================== */
 .admin-sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
     height: 100dvh;
-    /* Dynamic viewport height - accounts for Safari browser chrome */
     width: var(--sidebar-width);
     display: flex;
     flex-direction: column;
@@ -69,11 +46,10 @@
     right: 0;
 }
 
-/* ============================================
-   3. THEME MODES
-   ============================================ */
+/* ==========================================================================
+ * 3. Theme Modes (Dark/Light)
+ * ========================================================================== */
 
-/* Dark Mode */
 .admin-sidebar.dark {
     background: #0D1117;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -84,7 +60,6 @@
     border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Light Mode */
 .admin-sidebar.light {
     background: #ffffff;
     border-right: 1px solid var(--glass-border);
@@ -96,10 +71,9 @@
     border-left: 1px solid var(--glass-border);
 }
 
-/* ============================================
-   4. HEADER / LOGO
-   ============================================ */
-
+/* ==========================================================================
+ * 4. Header / Logo
+ * ========================================================================== */
 .sidebar-header {
     display: flex;
     align-items: center;
@@ -146,10 +120,9 @@
     transition: opacity 0.2s ease, width 0.3s ease;
 }
 
-/* ============================================
-   5. BACK LINK
-   ============================================ */
-
+/* ==========================================================================
+ * 5. Back Link
+ * ========================================================================== */
 .sidebar-back-link {
     padding: 8px 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -193,10 +166,9 @@
     transition: opacity 0.2s ease;
 }
 
-/* ============================================
-   6. SIDEBAR CONTROLS (Theme/Language Toggles)
-   ============================================ */
-
+/* ==========================================================================
+ * 6. Sidebar Controls (Theme/Language)
+ * ========================================================================== */
 .sidebar-control {
     padding: 8px 14px;
 }
@@ -205,10 +177,9 @@
     justify-content: flex-end;
 }
 
-/* ============================================
-   7. NAVIGATION
-   ============================================ */
-
+/* ==========================================================================
+ * 7. Navigation
+ * ========================================================================== */
 .sidebar-nav {
     flex: 1;
     display: flex;
@@ -263,10 +234,9 @@
     transition: opacity 0.2s ease;
 }
 
-/* ============================================
-   8. FOOTER
-   ============================================ */
-
+/* ==========================================================================
+ * 8. Footer (User Profile & Actions)
+ * ========================================================================== */
 .sidebar-footer {
     display: flex;
     flex-direction: column;
@@ -274,7 +244,6 @@
     padding: 16px 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     flex-shrink: 0;
-    /* Ensure footer never gets compressed */
 }
 
 .admin-sidebar.light .sidebar-footer {
@@ -323,7 +292,6 @@
     transition: opacity 0.2s ease;
 }
 
-/* User Profile */
 .sidebar-user {
     display: flex;
     align-items: center;
@@ -374,26 +342,20 @@
     color: var(--text-tertiary);
 }
 
-/* ============================================
-   9. MEDIA QUERIES
-   ============================================ */
+/* ==========================================================================
+ * 9. Media Queries
+ * ========================================================================== */
 
-/* --- Tablet/Mobile (1024px and below) - Full Sidebar Overlay --- */
-/* Sidebar is full width, slides in from left/right as overlay */
+
 @media (max-width: 1024px) {
 
-    /* Remove inner fixed position - let parent container control positioning */
-    /* This allows the sidebar-container transform to work correctly */
     .admin-sidebar {
         position: static;
-        /* Override desktop fixed position */
         width: var(--sidebar-width);
         box-shadow: var(--shadow-xl);
         padding-top: 56px;
-        /* Make room for mobile-top-bar */
     }
 
-    /* All text elements visible in overlay */
     .admin-sidebar .logo-text,
     .admin-sidebar .nav-label,
     .admin-sidebar .back-link span,
@@ -419,18 +381,15 @@
         padding: 12px 14px;
     }
 
-    /* Hide sidebar-header - mobile-top-bar shows the logo instead */
     .admin-sidebar .sidebar-header {
         display: none;
     }
 
-    /* No hover effects needed in overlay mode */
     .admin-sidebar:hover {
         width: var(--sidebar-width);
     }
 }
 
-/* --- Mobile (600px) --- */
 @media (max-width: 600px) {
     .admin-sidebar {
         width: 280px;
@@ -446,7 +405,6 @@
     }
 }
 
-/* --- Small Mobile (480px) --- */
 @media (max-width: 480px) {
     .admin-sidebar {
         width: 100%;
@@ -455,7 +413,7 @@
 
     .sidebar-header {
         padding: 16px 14px;
-    }
+        }
 
     .sidebar-nav {
         padding: 12px 10px;

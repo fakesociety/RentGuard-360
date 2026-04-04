@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { deleteAllUserContracts } from '../../services/api';
 import Toggle from '../../components/ui/Toggle';
 import './SettingsPage.css';
@@ -61,7 +61,7 @@ const SettingsPage = () => {
 
     const handleDeleteAccount = async () => {
         if (deleteConfirmText !== 'DELETE') {
-            setDeleteError(isRTL ? 'יש להקליד DELETE כדי לאשר' : 'Please type DELETE to confirm');
+            setDeleteError(t('account.typeDeleteToConfirmError'));
             return;
         }
 
@@ -94,11 +94,9 @@ const SettingsPage = () => {
             
             {/* Header Section */}
             <div className="settings-header">
-                <h1 className="settings-title">{isRTL ? 'מרכז בקרה' : 'Control Center'}</h1>
+                <h1 className="settings-title">{t('settings.title')}</h1>
                 <p className="settings-subtitle">
-                    {isRTL 
-                        ? 'ניהול הפרופיל, הגדרות התצוגה והאבטחה של החשבון שלך במקום אחד מסודר.' 
-                        : 'Manage your profile, appearance, and security settings in one centralized hub.'}
+                    {t('settings.subtitle')}
                 </p>
             </div>
 
@@ -111,8 +109,8 @@ const SettingsPage = () => {
         <div className="profile-avatar-giant">{userInitial}</div>
     </div>
     <div className="profile-info-block">
-        <span className="premium-badge">{isRTL ? 'חשבון פעיל' : 'Active Account'}</span>
-        <h2>{userAttributes?.name || (isRTL ? 'משתמש/ת' : 'User')}</h2>
+        <span className="premium-badge">{t('settings.activeAccount')}</span>
+        <h2>{userAttributes?.name || t('settings.profileFallbackUser')}</h2>
         <p className="profile-email">{userAttributes?.email}</p>
         
         {/* ADDED LOGOUT HERE */}
@@ -131,11 +129,11 @@ const SettingsPage = () => {
                         <div className="cube-icon-wrapper icon-primary">
                             <Palette size={24} />
                         </div>
-                        <h3>{isRTL ? 'תצוגה' : 'Appearance'}</h3>
-                        <p className="cube-desc">{isRTL ? 'החלפה בין בהיר לכהה' : 'Toggle light/dark mode'}</p>
+                        <h3>{t('settings.appearanceTitle')}</h3>
+                        <p className="cube-desc">{t('settings.appearanceDesc')}</p>
                     </div>
                     <div className="cube-action-row">
-                        <span className="status-text">{isDark ? (isRTL ? 'מצב כהה' : 'Dark Mode') : (isRTL ? 'מצב בהיר' : 'Light Mode')}</span>
+                        <span className="status-text">{isDark ? t('settings.darkMode') : t('settings.lightMode')}</span>
                         <Toggle checked={isDark} onChange={toggleTheme} />
                     </div>
                 </div>
@@ -146,7 +144,7 @@ const SettingsPage = () => {
                         <div className="cube-icon-wrapper icon-secondary">
                             <CreditCard size={24} />
                         </div>
-                        <h3>{isRTL ? 'חיובים ותשלומים' : 'Billing'}</h3>
+                        <h3>{t('billing.title')}</h3>
                         
                         {/* Fake Credit Card visual for future logic */}
                         <div className="fake-credit-card">
@@ -158,7 +156,7 @@ const SettingsPage = () => {
                         </div>
                     </div>
                     <button className="cube-link-btn text-secondary" onClick={() => navigate('/billing')}>
-                        {isRTL ? 'ניהול חיובים' : 'Manage Billing'} &rarr;
+                        {t('settings.manageBilling')} &rarr;
                     </button>
                 </div>
 
@@ -168,18 +166,14 @@ const SettingsPage = () => {
                         <div className="cube-icon-wrapper icon-primary">
                             <MessageCircle size={24} />
                         </div>
-                        <h3>{isRTL ? 'התנהגות צ׳אט' : 'Chat Behavior'}</h3>
-                        <p className="cube-desc">
-                            {isRTL
-                                ? 'קובע אם צ׳אט החוזה ייפתח אוטומטית בעת כניסה לעמוד ניתוח חוזה.'
-                                : 'Control whether the contract chat opens automatically when entering an analysis page.'}
-                        </p>
+                        <h3>{t('settings.chatBehaviorTitle')}</h3>
+                        <p className="cube-desc">{t('settings.chatBehaviorDesc')}</p>
                     </div>
                     <div className="cube-action-row">
                         <span className="status-text">
                             {chatAutoOpenEnabled
-                                ? (isRTL ? 'פתיחה אוטומטית: פעילה' : 'Auto-open: On')
-                                : (isRTL ? 'פתיחה אוטומטית: כבויה' : 'Auto-open: Off')}
+                                ? t('settings.chatAutoOpenOn')
+                                : t('settings.chatAutoOpenOff')}
                         </span>
                         <Toggle checked={chatAutoOpenEnabled} onChange={handleChatAutoOpenToggle} />
                     </div>
@@ -191,16 +185,12 @@ const SettingsPage = () => {
                         <div className="cube-icon-wrapper icon-tertiary">
                             <BellRing size={24} />
                         </div>
-                        <h3>{isRTL ? 'התראות' : 'Alerts'}</h3>
-                        <p className="cube-desc">
-                            {isRTL 
-                                ? 'עדכונים נשלחים לכתובת האימייל המאומתת שלך.' 
-                                : 'Updates are sent to your verified email address.'}
-                        </p>
+                        <h3>{t('settings.alertsTitle')}</h3>
+                        <p className="cube-desc">{t('settings.alertsDesc')}</p>
                         
                         <div className="notification-tip-box">
                             <Lightbulb size={14} className="tip-icon" />
-                            <span>{isRTL ? 'בדוק ספאם אם חסר מייל' : 'Check spam if email missing'}</span>
+                            <span>{t('settings.alertsTip')}</span>
                         </div>
                     </div>
                     <div className="cube-tags">
@@ -215,15 +205,15 @@ const SettingsPage = () => {
                         <div className="cube-icon-wrapper icon-primary">
                             <Info size={24} />
                         </div>
-                        <h3>{isRTL ? 'אודות המערכת' : 'System Info'}</h3>
+                        <h3>{t('settings.systemInfoTitle')}</h3>
                         <div className="about-list">
                             <div className="about-item">
-                                <span className="about-label">{isRTL ? 'גרסה' : 'Version'}</span>
+                                <span className="about-label">{t('settings.versionLabel')}</span>
                                 <strong className="about-value">1.0.0</strong>
                             </div>
                             <div className="about-item">
-                                <span className="about-label">{isRTL ? 'צוות פיתוח' : 'Built by'}</span>
-                                <strong className="about-value">{isRTL ? 'רון, מוטי ועידן' : 'Ron, Moty & Idan'}</strong>
+                                <span className="about-label">{t('settings.builtByLabel')}</span>
+                                <strong className="about-value">{t('settings.devTeam')}</strong>
                             </div>
                         </div>
                     </div>
@@ -236,12 +226,8 @@ const SettingsPage = () => {
             <ShieldAlert size={32} />
         </div>
         <div>
-            <h3 className="danger-title">{isRTL ? 'מחיקת חשבון' : 'Delete Account'}</h3>
-            <p className="danger-desc">
-                {isRTL 
-                    ? 'פעולה זו תמחק לצמיתות את החשבון שלך ואת כל החוזים המקושרים אליו. לא ניתן לבטל פעולה זו.' 
-                    : 'This will permanently delete your account and all associated contracts. This cannot be undone.'}
-            </p>
+            <h3 className="danger-title">{t('settings.deleteAccountTitle')}</h3>
+            <p className="danger-desc">{t('settings.deleteAccountDesc')}</p>
         </div>
     </div>
     <div className="danger-actions">

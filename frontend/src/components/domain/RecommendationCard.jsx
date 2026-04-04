@@ -20,7 +20,7 @@
  */
 import React from 'react';
 import { Lightbulb, Check, RotateCcw } from 'lucide-react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import './RecommendationCard.css';
 
 const RecommendationCard = ({

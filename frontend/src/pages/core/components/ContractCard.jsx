@@ -159,20 +159,20 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
 
                           <div className="lf-gauge-content">
                               <span className="lf-gauge-score">{animatedScore}</span>
-                            <span className="lf-gauge-label">{t('contracts.riskScore', 'מדד סיכון')}</span>
+                            <span className="lf-gauge-label">{t('contracts.riskScore')}</span>
                         </div>
                     </div>
                 ) : isFailed ? (
                     <div className="lf-gauge-failed">
                         <AlertTriangle size={40} className="lf-danger-text" />
-                        <span className="lf-gauge-label mt-2">{t('contracts.analysisFailed', 'הניתוח נכשל')}</span>
+                        <span className="lf-gauge-label mt-2">{t('contracts.analysisFailed')}</span>
                     </div>
                 ) : (
                     <div className="lf-gauge-processing">
                         <div className="lf-pulse-bar-wrap">
                             <div className="lf-pulse-bar"></div>
                         </div>
-                        <span className="lf-gauge-label mt-3">{t('contracts.processingData', 'מעבד סעיפי התקשרות...')}</span>
+                        <span className="lf-gauge-label mt-3">{t('contracts.processingData')}</span>
                     </div>
                 )}
             </div>

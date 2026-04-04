@@ -3,7 +3,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Shield, RefreshCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 import Button from './Button';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import './GlobalErrorBoundary.css';
 
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
