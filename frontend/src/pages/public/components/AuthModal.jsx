@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { X, CheckCircle } from 'lucide-react';
@@ -57,7 +57,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
 
         if (oauthError && view) {
             const message = decodeURIComponent(
-                oauthErrorDescription || oauthError || (isRTL ? 'ההתחברות החברתית בוטלה או נכשלה' : 'Social login was canceled or failed')
+                oauthErrorDescription || oauthError || t('auth.socialLoginCanceledOrFailed')
             );
             setError(message);
             onChangeView('login');
@@ -73,25 +73,25 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
     const translateError = (errorMessage) => {
         if (!isRTL) return errorMessage;
 
-        const errorTranslations = {
-            'Attempt limit exceeded, please try after some time': 'חרגת ממספר הניסיונות המותר, נסה שוב מאוחר יותר',
-            'Invalid verification code provided': 'קוד אימות שגוי',
-            'User does not exist': 'משתמש לא קיים',
-            'Incorrect username or password': 'שם משתמש או סיסמה שגויים',
-            'Password did not conform with policy': 'הסיסמה לא עומדת בדרישות המערכת',
-            'An account with the given email already exists': 'כתובת האימייל כבר קיימת במערכת',
-            'Invalid password format': 'פורמט סיסמה לא תקין',
-            'Cannot reset password for the user as there is no registered/verified email': 'לא ניתן לאפס סיסמה - אין אימייל רשום',
-            'User is disabled': 'המשתמש מושבת',
-            'Failed to send reset code': 'שליחת קוד איפוס נכשלה',
-            'Failed to reset password': 'איפוס הסיסמה נכשל',
-            'Code mismatch': 'קוד שגוי',
-            'Expired code': 'הקוד פג תוקף'
+        const errorTranslationKeys = {
+            'Attempt limit exceeded, please try after some time': 'auth.errors.attemptLimitExceeded',
+            'Invalid verification code provided': 'auth.errors.invalidVerificationCodeProvided',
+            'User does not exist': 'auth.errors.userDoesNotExist',
+            'Incorrect username or password': 'auth.errors.incorrectUsernameOrPassword',
+            'Password did not conform with policy': 'auth.errors.passwordDidNotConformWithPolicy',
+            'An account with the given email already exists': 'auth.errors.accountWithEmailAlreadyExists',
+            'Invalid password format': 'auth.errors.invalidPasswordFormat',
+            'Cannot reset password for the user as there is no registered/verified email': 'auth.errors.cannotResetPasswordNoVerifiedEmail',
+            'User is disabled': 'auth.errors.userIsDisabled',
+            'Failed to send reset code': 'auth.errors.failedToSendResetCode',
+            'Failed to reset password': 'auth.errors.failedToResetPassword',
+            'Code mismatch': 'auth.errors.codeMismatch',
+            'Expired code': 'auth.errors.expiredCode'
         };
 
-        if (errorTranslations[errorMessage]) return errorTranslations[errorMessage];
-        for (const [english, hebrew] of Object.entries(errorTranslations)) {
-            if (errorMessage.includes(english)) return hebrew;
+        if (errorTranslationKeys[errorMessage]) return t(errorTranslationKeys[errorMessage]);
+        for (const [english, key] of Object.entries(errorTranslationKeys)) {
+            if (errorMessage.includes(english)) return t(key);
         }
         return errorMessage;
     };
@@ -104,7 +104,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         const trimmedPassword = password.trim();
 
         if (!trimmedEmail || !trimmedPassword) {
-            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            setError(t('auth.fillAllFields'));
             return;
         }
 
@@ -124,7 +124,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
 
         const result = await socialLogin(provider);
         if (!result?.success) {
-            setError(translateError(result?.error || (isRTL ? 'ההתחברות נכשלה' : 'Social login failed')));
+            setError(translateError(result?.error || t('auth.socialLoginFailed')));
             setLoading(false);
         }
     };
@@ -139,7 +139,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         setError('');
 
         if (isAuthenticated) {
-            setError(isRTL ? 'כדי להירשם, התנתק קודם מהחשבון הנוכחי' : 'To register, please log out from the current account first');
+            setError(t('auth.logoutToRegister'));
             return;
         }
 
@@ -147,17 +147,17 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         const trimmedEmail = email.trim().toLowerCase();
 
         if (!trimmedName || !trimmedEmail || !password) {
-            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            setError(t('auth.fillAllFields'));
             return;
         }
 
         if (trimmedName.length < 2 || trimmedName.length > 50) {
-            setError(isRTL ? 'שם חייב להיות בין 2-50 תווים' : 'Name must be 2-50 characters');
+            setError(t('auth.nameLengthError'));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError(isRTL ? 'הסיסמאות לא תואמות' : 'Passwords do not match');
+            setError(t('auth.passwordsDoNotMatch'));
             return;
         }
 
@@ -167,14 +167,14 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         const check = await checkUserStatus(trimmedEmail);
         
         if (check.status === 'EXISTS') {
-            setError(isRTL ? 'נראה שכבר יש לך חשבון!' : 'It looks like you already have an account!');
+            setError(t('auth.accountAlreadyExistsHint'));
             setUserExistsStatus('EXISTS');
             setLoading(false);
             return;
         }
 
         if (check.status === 'NEEDS_VERIFICATION') {
-            setError(isRTL ? 'החשבון קיים אך דורש אימות.' : 'Account exists but requires verification.');
+            setError(t('auth.accountNeedsVerification'));
             setUserExistsStatus('NEEDS_VERIFICATION');
             try { await resendCode(trimmedEmail); } catch (e) { console.error(e); }
             setTempEmail(trimmedEmail);
@@ -186,7 +186,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
 
         if (check.status === 'SOCIAL_ONLY') {
             setShowSocialConflictModal(true);
-            setError(isRTL ? 'האימייל הזה מחובר לחשבון חברתי. יש להתחבר דרך Google או Facebook.' : 'This email is linked to a social account. Please sign in with Google or Facebook.');
+            setError(t('auth.socialAccountOnly'));
             setLoading(false);
             return;
         }
@@ -199,17 +199,17 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         } else {
             if (isSocialProviderConflictError(result.error)) {
                 setShowSocialConflictModal(true);
-                setError(isRTL ? 'האימייל הזה מחובר לחשבון חברתי. יש להתחבר דרך Google או Facebook.' : 'This email is linked to a social account. Please sign in with Google or Facebook.');
+                setError(t('auth.socialAccountOnly'));
                 setLoading(false);
                 return;
             }
 
             let errorMsg = result.error;
             if (isRTL) {
-                if (errorMsg.includes('Password')) errorMsg = 'הסיסמה חייבת לכלול לפחות 8 תווים, אות גדולה, אות קטנה ומספר';
-                else if (errorMsg.includes('email')) errorMsg = 'כתובת אימייל לא תקינה';
-                else if (errorMsg.includes('already exists')) errorMsg = 'המשתמש כבר קיים במערכת';
-                else errorMsg = 'ההרשמה נכשלה. נסה שוב.';
+                if (errorMsg.includes('Password')) errorMsg = t('auth.registerPasswordPolicyError');
+                else if (errorMsg.includes('email')) errorMsg = t('auth.invalidEmailAddress');
+                else if (errorMsg.includes('already exists')) errorMsg = t('auth.accountAlreadyExists');
+                else errorMsg = t('auth.registerFailedTryAgain');
             }
             setError(errorMsg);
         }
@@ -229,9 +229,9 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         } else {
             let errorMsg = result.error;
             if (isRTL) {
-                if (errorMsg.includes('Invalid') || errorMsg.includes('code')) errorMsg = 'קוד אימות שגוי';
-                else if (errorMsg.includes('expired')) errorMsg = 'הקוד פג תוקף. לחץ על שלח קוד חדש';
-                else errorMsg = 'האימות נכשל. נסה שוב.';
+                if (errorMsg.includes('Invalid') || errorMsg.includes('code')) errorMsg = t('auth.confirmCodeInvalid');
+                else if (errorMsg.includes('expired')) errorMsg = t('auth.confirmCodeExpiredResend');
+                else errorMsg = t('auth.verificationFailedTryAgain');
             }
             setError(errorMsg);
             setLoading(false);
@@ -249,9 +249,9 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         setLoading(true);
         try {
             await resendCode(tempEmail);
-            setError(isRTL ? 'קוד חדש נשלח לאימייל שלך' : 'New code sent to your email');
+            setError(t('auth.newCodeSent'));
         } catch {
-            setError(isRTL ? 'שליחת הקוד נכשלה. נסה שוב.' : 'Failed to resend code. Try again.');
+            setError(t('auth.resendCodeFailed'));
         }
         setLoading(false);
     };
@@ -270,7 +270,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
 
         const trimmedEmail = email.trim().toLowerCase();
         if (!trimmedEmail) {
-            setError(isRTL ? 'יש להזין כתובת אימייל' : 'Please enter email address');
+            setError(t('auth.enterEmailAddress'));
             return;
         }
 
@@ -290,7 +290,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         setError('');
 
         if (!resetCode.trim() || !newPassword.trim()) {
-            setError(isRTL ? 'יש למלא את כל השדות' : 'Please fill in all fields');
+            setError(t('auth.fillAllFields'));
             return;
         }
 
@@ -314,12 +314,14 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
         setLoading(true);
         try {
             await forgotPassword(tempEmail);
-            setError(isRTL ? 'קוד חדש נשלח לאימייל שלך' : 'New code sent to your email');
+            setError(t('auth.newCodeSent'));
         } catch {
-            setError(isRTL ? 'שליחת הקוד נכשלה. נסה שוב.' : 'Failed to resend code. Try again.');
+            setError(t('auth.resendCodeFailed'));
         }
         setLoading(false);
     };
+
+    const isSuccessMessage = error === t('auth.newCodeSent');
 
     const toggleAuth = (type) => {
         const pendingEmail = localStorage.getItem('rentguard_pending_verification');
@@ -347,14 +349,14 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 <div className="auth-social-group">
                                     <button type="button" className="auth-social-btn google" onClick={() => handleSocialLogin('Google')} disabled={loading}>
                                         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                                        {isRTL ? 'התחברות עם Google' : 'Sign in with Google'}
+                                        {t('auth.signInWithGoogle')}
                                     </button>
                                     <button type="button" className="auth-social-btn facebook" onClick={() => handleSocialLogin('Facebook')} disabled={loading}>
                                         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#1877F2" d="M48 24C48 10.745 37.255 0 24 0S0 10.745 0 24c0 11.979 8.776 21.908 20.25 23.708v-16.77h-6.094V24h6.094v-5.288c0-6.014 3.583-9.337 9.065-9.337 2.625 0 5.372.469 5.372.469v5.906h-3.026c-2.981 0-3.911 1.85-3.911 3.75V24h6.656l-1.064 6.938H27.75v16.77C39.224 45.908 48 35.978 48 24z"/></svg>
-                                        {isRTL ? 'התחברות עם Facebook' : 'Sign in with Facebook'}
+                                        {t('auth.signInWithFacebook')}
                                     </button>
                                 </div>
-                                <div className="auth-divider"><span>{isRTL ? 'או עם אימייל' : 'or with email'}</span></div>
+                                <div className="auth-divider"><span>{t('auth.orWithEmail')}</span></div>
                                 <Input type="email" label={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
                                 <button type="button" onClick={() => onChangeView('forgotPassword')} className="forgot-password-link" style={{ alignSelf: isRTL ? 'flex-start' : 'flex-end', background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.9rem', marginTop: '-0.5rem', marginBottom: '0.5rem', textDecoration: 'underline' }}>
@@ -371,24 +373,24 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 <div className="auth-social-group">
                                     <button type="button" className="auth-social-btn google" onClick={() => handleSocialLogin('Google')} disabled={loading}>
                                         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                                        {isRTL ? 'הרשמה עם Google' : 'Continue with Google'}
+                                        {t('auth.continueWithGoogle')}
                                     </button>
                                     <button type="button" className="auth-social-btn facebook" onClick={() => handleSocialLogin('Facebook')} disabled={loading}>
                                         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#1877F2" d="M48 24C48 10.745 37.255 0 24 0S0 10.745 0 24c0 11.979 8.776 21.908 20.25 23.708v-16.77h-6.094V24h6.094v-5.288c0-6.014 3.583-9.337 9.065-9.337 2.625 0 5.372.469 5.372.469v5.906h-3.026c-2.981 0-3.911 1.85-3.911 3.75V24h6.656l-1.064 6.938H27.75v16.77C39.224 45.908 48 35.978 48 24z"/></svg>
-                                        {isRTL ? 'הרשמה עם Facebook' : 'Continue with Facebook'}
+                                        {t('auth.continueWithFacebook')}
                                     </button>
                                 </div>
-                                <div className="auth-divider"><span>{isRTL ? 'או הרשמה באימייל' : 'or sign up with email'}</span></div>
+                                <div className="auth-divider"><span>{t('auth.orSignUpWithEmail')}</span></div>
                                 <Input label={t('auth.fullName')} value={name} onChange={(e) => setName(e.target.value)} required maxLength={50} />
                                 <Input type="email" label={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={100} />
                                 <Input type="password" label={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} required maxLength={128} helperText={t('auth.passwordHint')} />
-                                <Input type="password" label={isRTL ? 'אימות סיסמה' : 'Confirm Password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required maxLength={128} />
+                                <Input type="password" label={t('auth.confirmPassword')} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required maxLength={128} />
                                 
                                 {error && <p className="auth-error">{error}</p>}
                                 {userExistsStatus === 'EXISTS' && (
                                     <div className="auth-guidance">
                                         <Button variant="outline" fullWidth onClick={() => { onChangeView('login'); setEmail(email); }}>{t('auth.loginButton')}</Button>
-                                        <Button variant="ghost" fullWidth onClick={() => { onChangeView('forgotPassword'); setEmail(email); }}>{isRTL ? 'שכחתי סיסמה' : 'Forgot Password'}</Button>
+                                        <Button variant="ghost" fullWidth onClick={() => { onChangeView('forgotPassword'); setEmail(email); }}>{t('auth.forgotPasswordShort')}</Button>
                                     </div>
                                 )}
                                 <Button variant="primary" fullWidth loading={loading} type="submit" disabled={userExistsStatus === 'EXISTS'}>{t('auth.registerButton')}</Button>
@@ -400,10 +402,10 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 <h3>{t('auth.confirmTitle')}</h3>
                                 <p className="confirm-msg">{t('auth.confirmMessage')} <strong>{tempEmail}</strong></p>
                                 <Input label={t('auth.confirmCode')} value={code} onChange={(e) => setCode(e.target.value)} required placeholder="123456" maxLength={6} />
-                                {error && <p className={error.includes('נשלח') || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
+                                {error && <p className={isSuccessMessage || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">{t('auth.confirmButton')}</Button>
-                                <p className="auth-switch">{isRTL ? 'לא קיבלת את הקוד?' : "Didn't receive the code?"} <button type="button" onClick={handleResendCode} disabled={loading}>{isRTL ? 'שלח קוד חדש' : 'Resend Code'}</button></p>
-                                <p className="auth-switch">{isRTL ? 'טעית באימייל?' : 'Wrong email?'} <button type="button" onClick={clearPendingVerification} disabled={loading}>{isRTL ? 'הירשם מחדש' : 'Register again'}</button></p>
+                                <p className="auth-switch">{t('auth.didntReceiveCode')} <button type="button" onClick={handleResendCode} disabled={loading}>{t('auth.resendCode')}</button></p>
+                                <p className="auth-switch">{t('auth.wrongEmail')} <button type="button" onClick={clearPendingVerification} disabled={loading}>{t('auth.registerAgain')}</button></p>
                             </form>
                         )}
                         {view === 'forgotPassword' && (
@@ -422,9 +424,9 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 <p className="confirm-msg">{t('auth.resetPasswordMessage')} <strong>{tempEmail}</strong></p>
                                 <Input label={t('auth.confirmCode')} value={resetCode} onChange={(e) => setResetCode(e.target.value)} required placeholder={t('auth.resetCodePlaceholder')} maxLength={6} />
                                 <Input type="password" label={t('auth.newPassword')} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required maxLength={128} helperText={t('auth.passwordHint')} />
-                                {error && <p className={error.includes('נשלח') || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
+                                {error && <p className={isSuccessMessage || error.includes('sent') ? 'auth-success' : 'auth-error'}>{error}</p>}
                                 <Button variant="primary" fullWidth loading={loading} type="submit">{t('auth.resetPasswordButton')}</Button>
-                                <p className="auth-switch">{isRTL ? 'לא קיבלת את הקוד?' : "Didn't receive the code?"} <button type="button" onClick={handleResendResetCode} disabled={loading}>{isRTL ? 'שלח קוד חדש' : 'Resend Code'}</button></p>
+                                <p className="auth-switch">{t('auth.didntReceiveCode')} <button type="button" onClick={handleResendResetCode} disabled={loading}>{t('auth.resendCode')}</button></p>
                                 <p className="auth-switch"><button type="button" onClick={() => toggleAuth('login')}>{t('auth.backToLogin')}</button></p>
                             </form>
                         )}
@@ -437,11 +439,9 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                     <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
                         <button className="auth-modal-close" onClick={() => setShowSocialConflictModal(false)} aria-label="Close"><X size={20} /></button>
                         <div className="auth-form">
-                            <h3>{isRTL ? 'התחברות דרך רשת חברתית' : 'Sign in with Social Account'}</h3>
+                            <h3>{t('auth.socialLoginTitle')}</h3>
                             <p className="confirm-msg" style={{ textAlign: 'center' }}>
-                                {isRTL
-                                    ? 'האימייל הזה כבר מקושר להתחברות חברתית. כדי להמשיך, התחבר דרך Google (או Facebook בהמשך).'
-                                    : 'This email is already linked to a social login. Continue with Google (Facebook support is coming next).'}
+                                {t('auth.socialLoginDescription')}
                             </p>
                             <button type="button" className="auth-social-btn google" onClick={() => {
                                 setShowSocialConflictModal(false);
@@ -449,7 +449,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 handleSocialLogin('Google');
                             }} disabled={loading}>
                                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                                {isRTL ? 'התחברות עם Google' : 'Sign in with Google'}
+                                {t('auth.signInWithGoogle')}
                             </button>
                             <button type="button" className="auth-social-btn facebook" onClick={() => {
                                 setShowSocialConflictModal(false);
@@ -457,7 +457,7 @@ const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
                                 handleSocialLogin('Facebook');
                             }} disabled={loading}>
                                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#1877F2" d="M48 24C48 10.745 37.255 0 24 0S0 10.745 0 24c0 11.979 8.776 21.908 20.25 23.708v-16.77h-6.094V24h6.094v-5.288c0-6.014 3.583-9.337 9.065-9.337 2.625 0 5.372.469 5.372.469v5.906h-3.026c-2.981 0-3.911 1.85-3.911 3.75V24h6.656l-1.064 6.938H27.75v16.77C39.224 45.908 48 35.978 48 24z"/></svg>
-                                {isRTL ? 'התחברות עם Facebook' : 'Sign in with Facebook'}
+                                {t('auth.signInWithFacebook')}
                             </button>
                         </div>
                     </div>

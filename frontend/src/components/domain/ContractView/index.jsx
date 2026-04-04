@@ -27,7 +27,7 @@ import {
 import { processContractClauses } from '../../../utils/contractTextProcessor';
 import { consultClause } from '../../../services/api';
 import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../../../services/ExportService';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import ContractViewSignatures from './ContractViewSignatures';
 import EditClauseModal from './EditClauseModal';
 import ClauseRow from './ClauseRow';

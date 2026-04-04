@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';

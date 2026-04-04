@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { getAnalysis, createShareLink, getShareLink, revokeShareLink, saveEditedContract } from '../services/api';
 import { exportToWord, exportToPDF } from '../services/ExportService';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export const useAnalysisPage = () => {

@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Download, ArrowLeft, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Download, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { getSharedAnalysis } from '../../services/api';
 import ContractView from '../../components/domain/ContractView';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import './SharedContractView.css';
 
 const SharedContractView = () => {
+    const { t, isRTL } = useLanguage();
     const { id } = useParams();
     const [analysis, setAnalysis] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -16,7 +18,7 @@ const SharedContractView = () => {
 
     const fetchSharedAnalysis = useCallback(async () => {
         if (!shareToken) {
-            setError('קישור לא תקין');
+            setError(t('sharedContract.invalidLink'));
             setIsLoading(false);
             return;
         }
@@ -28,11 +30,11 @@ const SharedContractView = () => {
             setAnalysis(data);
         } catch (err) {
             console.error('Failed to load shared contract', err);
-            setError('לא ניתן לטעון את החוזה מהקישור הזה.');
+            setError(t('sharedContract.loadFailed'));
         } finally {
             setIsLoading(false);
         }
-    }, [shareToken]);
+    }, [shareToken, t]);
 
     useEffect(() => {
         fetchSharedAnalysis();
@@ -81,11 +83,11 @@ const SharedContractView = () => {
 
     if (isLoading) {
         return (
-            <div className="shared-contract-shell" dir="rtl">
+            <div className="shared-contract-shell" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="shared-state-card shared-state-loading">
                     <div className="shared-loading-spinner"></div>
-                    <h2>טוען חוזה משותף...</h2>
-                    <p>אוספים את מסמך החוזה בצורה מאובטחת, זה ייקח רגע.</p>
+                    <h2>{t('sharedContract.loadingTitle')}</h2>
+                    <p>{t('sharedContract.loadingSubtitle')}</p>
                 </div>
             </div>
         );
@@ -93,13 +95,13 @@ const SharedContractView = () => {
 
     if (error) {
         return (
-            <div className="shared-contract-shell" dir="rtl">
+            <div className="shared-contract-shell" dir={isRTL ? 'rtl' : 'ltr'}>
                 <section className="shared-state-card shared-state-error">
                     <AlertTriangle size={24} aria-hidden="true" />
-                    <h2>שגיאה בטעינת החוזה</h2>
+                    <h2>{t('sharedContract.errorTitle')}</h2>
                     <p>{error}</p>
                     <div className="shared-state-actions">
-                        <button className="shared-btn shared-btn-primary" onClick={fetchSharedAnalysis}>נסה שוב</button>
+                        <button className="shared-btn shared-btn-primary" onClick={fetchSharedAnalysis}>{t('sharedContract.retryButton')}</button>
                     </div>
                 </section>
             </div>
@@ -107,12 +109,12 @@ const SharedContractView = () => {
     }
 
     return (
-        <div className="shared-contract-shell" dir="rtl">
+        <div className="shared-contract-shell" dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="shared-hero">
                 <div className="shared-hero-text">
                     <span className="shared-kicker">RentGuard 360</span>
-                    <h1>צפייה בחוזה משותף</h1>
-                    <p className="shared-subtitle">מצב צפייה בלבד. אפשר לעיין בתוכן ולהוריד את המסמך המעודכן ל-Word.</p>
+                    <h1>{t('sharedContract.viewTitle')}</h1>
+                    <p className="shared-subtitle">{t('sharedContract.viewSubtitle')}</p>
                 </div>
                 <div className="shared-hero-actions">
                     <button
@@ -120,7 +122,7 @@ const SharedContractView = () => {
                         onClick={() => contractViewRef.current?.handleExport()}
                     >
                         <Download size={18} />
-                        <span>ייצוא כקובץ docx (Word)</span>
+                        <span>{t('sharedContract.exportWord')}</span>
                     </button>
                 </div>
             </header>
@@ -129,8 +131,8 @@ const SharedContractView = () => {
                 {!isContract ? (
                     <section className="shared-state-card shared-state-warning">
                         <ShieldCheck size={24} aria-hidden="true" />
-                        <h2>המסמך אינו חוזה שכירות</h2>
-                        <p>לא ניתן להציג את תוכן המסמך בקישור זה.</p>
+                        <h2>{t('sharedContract.notRentalTitle')}</h2>
+                        <p>{t('sharedContract.notRentalDesc')}</p>
                     </section>
                 ) : (
                     <section className="shared-contract-stage">

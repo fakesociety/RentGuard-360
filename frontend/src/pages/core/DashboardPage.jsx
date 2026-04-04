@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { getContracts } from '../../services/api';
 import './DashboardPage.css';
@@ -178,12 +178,8 @@ const DashboardPage = () => {
                                 <div className="action-bg-effect coming-soon-effect"></div>
                                 <span className="material-symbols-outlined action-large-icon text-secondary">rocket_launch</span>
                                 <span className="coming-soon-pill">{t('common.comingSoon')}</span>
-                                <h3>{isRTL ? 'פיצ׳רים חדשים' : 'New Features'}</h3>
-                                <p>
-                                    {isRTL
-                                        ? 'כלים ויכולות נוספות לניהול חוזים יתווספו כאן בקרוב.'
-                                        : 'More contract management tools and features will appear here soon.'}
-                                </p>
+                                <h3>{t('dashboard.newFeaturesTitle')}</h3>
+                                <p>{t('dashboard.newFeaturesDesc')}</p>
                                 <div className="action-link-text text-secondary">{t('common.comingSoon')}</div>
                             </div>
                         )}

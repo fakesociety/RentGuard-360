@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import {
     Calendar,
     ChevronDown,
@@ -66,7 +66,7 @@ const PrivacyPage = () => {
         <div className="terms-page-wrapper mesh-gradient" dir={isRTL ? 'rtl' : 'ltr'}>
             
             {/* ---------------- Global Header (Spans Full Width) ---------------- */}
-            {/* שינוי קריטי: הוצאנו את ההדר החוצה כדי שייפרס על כל המסך */}
+            {/* Keep the header outside the two-column layout so it spans full width */}
             <header className="terms-global-header">
                 <button className="legal-back-btn" onClick={handleBack}>
                     {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
@@ -79,7 +79,7 @@ const PrivacyPage = () => {
                             <Calendar size={16} /> {updated}
                         </span>
                         <span className="meta-dot"></span>
-                        <span className="meta-badge">{isRTL ? 'מסמך משפטי' : 'Legal Document'}</span>
+                        <span className="meta-badge">{t('legal.legalDocument')}</span>
                     </div>
                 </div>
             </header>
@@ -92,7 +92,7 @@ const PrivacyPage = () => {
                     <div className="sidebar-card">
                         <div className="sidebar-header">
                             <h2>{tocTitle}</h2>
-                            <p>{isRTL ? 'ניווט מהיר בסעיפים' : 'Quick Navigation'}</p>
+                            <p>{t('legal.quickNavigation')}</p>
                         </div>
                         <nav className="toc-nav">
                             {sections.map((section, idx) => {
@@ -118,7 +118,7 @@ const PrivacyPage = () => {
                 <main className="terms-main-content">
 
                     {/* Unified Background Container for all sections */}
-                    {/* עטפנו את כל התוכן ב"דף" אחד גדול ולבן */}
+                    {/* Wrap all content in one large white "paper" container */}
                     <div className="content-paper">
                         <div className="terms-accordions">
                             {sections.map((section, idx) => {

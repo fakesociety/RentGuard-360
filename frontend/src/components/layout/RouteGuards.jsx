@@ -1,7 +1,8 @@
 import React from 'react';
-import { Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
+import './RouteGuards.css';
 
 export const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,12 +28,12 @@ export const RequireActivePlanRoute = ({ children }) => {
 
   if (error) {
     return (
-      <div className="app-error" style={{ textAlign: 'center', padding: '50px 20px', maxWidth: '600px', margin: '0 auto' }}>
-        <h2 style={{ color: '#d32f2f' }}>Connection Error</h2>
-        <p style={{ margin: '20px 0' }}>We could not verify your subscription status due to a network or server error ({error}). Please make sure you are connected to the internet and try again.</p>
+      <div className="app-error route-guard-error">
+        <h2 className="route-guard-error-title">Connection Error</h2>
+        <p className="route-guard-error-text">We could not verify your subscription status due to a network or server error ({error}). Please make sure you are connected to the internet and try again.</p>
         <button 
           onClick={() => refreshSubscription()} 
-          style={{ padding: '10px 20px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          className="route-guard-retry-btn"
         >
           Try Again
         </button>

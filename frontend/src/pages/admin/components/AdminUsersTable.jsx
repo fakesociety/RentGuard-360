@@ -17,8 +17,7 @@ const AdminUsersTable = ({
     handleDisableUser,
     handleEnableUser,
     handleDeleteUser,
-    actionLoading,
-    getLocalizedLabel
+    actionLoading
 }) => {
     return (
         <div className="users-table-wrapper">
@@ -49,8 +48,8 @@ const AdminUsersTable = ({
                                 {getSortIcon('createdAt')}
                             </div>
                         </th>
-                        <th>{getLocalizedLabel('admin.package', 'Package', 'חבילה')}</th>
-                        <th>{getLocalizedLabel('admin.authProvider', 'Provider', 'ספק התחברות')}</th>
+                        <th>{t('admin.package') || 'Package'}</th>
+                        <th>{t('admin.authProvider') || 'Provider'}</th>
                         <th>{t('admin.actions')}</th>
                     </tr>
                 </thead>
@@ -63,8 +62,8 @@ const AdminUsersTable = ({
                         users.map(user => {
                             const statusPresentation = getUserStatusPresentation(user);
                             const copyLabel = copiedUsername === user.username
-                                ? getLocalizedLabel('admin.copied', 'Copied', 'הועתק')
-                                : getLocalizedLabel('admin.copyEmail', 'Copy Email', 'העתק אימייל');
+                                ? t('admin.copied')
+                                : t('admin.copyEmail');
                             return (
                                 <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
                                     <td className="email-cell" title={user.email || ''}>

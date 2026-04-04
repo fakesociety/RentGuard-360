@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { askContractQuestion, clearContractChatHistory, getContractChatHistory, getContracts } from '../services/api';
 import { isContractChatAutoOpenEnabled, getAnalysisContractIdFromPath, normalizeAssistantText, looksLikeMachineId } from '../utils/chatTextFormatting';
 

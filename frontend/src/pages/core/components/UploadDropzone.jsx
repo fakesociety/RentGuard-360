@@ -1,12 +1,12 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import FileDropZone from '../../../components/ui/FileDropZone';
 
-const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 בייט';
+const formatFileSize = (bytes, t) => {
+    if (bytes === 0) return `0 ${t('upload.fileSizeByte')}`;
     const k = 1024;
-    const sizes = ['בייט', 'KB', 'MB'];
+    const sizes = [t('upload.fileSizeByte'), 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
@@ -31,7 +31,7 @@ const UploadDropzone = ({
     fileInputRef,
     handleInputChange,
 }) => {
-    const { t, isRTL } = useLanguage();
+    const { t } = useLanguage();
 
     const normalizedDisplayName = file
         ? `${(customFileName?.trim() || file.name.replace(/\.pdf$/i, '')).replace(/\.pdf$/i, '')}.pdf`
@@ -85,7 +85,7 @@ const UploadDropzone = ({
                     disabled={!canChooseFile}
                 >
                     <span className="material-symbols-outlined">photo_camera</span>
-                    <span>{isRTL ? 'סריקה באמצעות מצלמה' : 'Scan With Camera'}</span>
+                    <span>{t('upload.scanWithCamera')}</span>
                 </button>
             </section>
 
@@ -99,7 +99,7 @@ const UploadDropzone = ({
                 >
                     <h4>
                         <span className="material-symbols-outlined">inventory_2</span>
-                        <span>{isRTL ? 'קבצים שנבחרו' : 'Selected Files'}</span>
+                        <span>{t('upload.selectedFiles')}</span>
                     </h4>
 
                     <div className="upload-modern-file-list">
@@ -117,7 +117,7 @@ const UploadDropzone = ({
                                 <div className="upload-modern-file-main">
                                     <div className="upload-modern-file-row">
                                         <span className="upload-modern-file-name" dir="ltr">{item.name}</span>
-                                        <span className="upload-modern-file-size">{formatFileSize(item.size)}</span>
+                                        <span className="upload-modern-file-size">{formatFileSize(item.size, t)}</span>
                                     </div>
 
                                     <div className="upload-modern-progress-track">
@@ -128,12 +128,12 @@ const UploadDropzone = ({
                                         {item.status === 'uploading' ? (
                                             <span className="upload-modern-status uploading">
                                                 <span className="material-symbols-outlined">sync</span>
-                                                <span>{isRTL ? 'מעלה...' : 'Uploading...'} {Math.round(item.progress)}%</span>
+                                                <span>{t('upload.uploading')} {Math.round(item.progress)}%</span>
                                             </span>
                                         ) : (
                                             <span className="upload-modern-status ready">
                                                 <span className="material-symbols-outlined">check_circle</span>
-                                                <span>{isRTL ? 'מוכן לניתוח' : 'Ready for Analysis'}</span>
+                                                <span>{t('upload.readyForAnalysis')}</span>
                                             </span>
                                         )}
 
@@ -142,7 +142,7 @@ const UploadDropzone = ({
                                             className="upload-modern-delete-btn"
                                             onClick={removeSelectedFile}
                                             disabled={isUploading}
-                                            aria-label={isRTL ? 'מחיקת קובץ' : 'Delete file'}
+                                            aria-label={t('upload.deleteFile')}
                                         >
                                             <span className="material-symbols-outlined">delete</span>
                                         </button>

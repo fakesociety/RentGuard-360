@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getSystemStats } from '../services/api';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { createTheme } from '@mui/material/styles';
 

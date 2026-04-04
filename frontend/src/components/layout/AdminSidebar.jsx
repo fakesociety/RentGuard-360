@@ -1,24 +1,19 @@
-/**
- * ============================================
- *  AdminSidebar
- *  Navigation Sidebar for Admin Panel
- * ============================================
- * 
- * STRUCTURE:
- * - Logo & back link
- * - Navigation items (Dashboard, Users, Analytics)
- * - Language/Theme toggles
- * - User profile & logout
- * 
- * PROPS:
- * - onNavigate: callback for mobile menu close
- * 
- * ============================================
- */
+/* ==========================================================================
+ * TABLE OF CONTENTS
+ * ==========================================================================
+ * 1. Imports
+ * 2. Component Definition & Hooks
+ * 3. Navigation Configuration
+ * 4. Render / JSX
+ * ========================================================================== */
+
+/* ==========================================================================
+ * 1. Imports
+ * ========================================================================== */
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ui/Toggle';
 import LanguageToggle from '../ui/LanguageToggle';
@@ -34,11 +29,17 @@ import {
 } from 'lucide-react';
 import './AdminSidebar.css';
 
+/* ==========================================================================
+ * 2. Component Definition & Hooks
+ * ========================================================================== */
 const AdminSidebar = ({ onNavigate }) => {
     const { userAttributes, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
 
+    /* ======================================================================
+     * 3. Navigation Configuration
+     * ====================================================================== */
     const navItems = [
         {
             path: '/admin',
@@ -63,9 +64,11 @@ const AdminSidebar = ({ onNavigate }) => {
         }
     ];
 
+    /* ======================================================================
+     * 4. Render / JSX
+     * ====================================================================== */
     return (
         <aside className={`admin-sidebar ${isDark ? 'dark' : 'light'}`}>
-            {/* Logo */}
             <div className="sidebar-header">
                 <Link to="/dashboard" className="sidebar-logo" title={t('nav.backToDashboard') || 'Back to Dashboard'}>
                     <Shield className="logo-icon" />
@@ -73,7 +76,6 @@ const AdminSidebar = ({ onNavigate }) => {
                 </Link>
             </div>
 
-            {/* Back to Dashboard Link */}
             <div className="sidebar-back-link">
                 <Link to="/dashboard" className="back-link" onClick={onNavigate}>
                     <ArrowLeft size={16} />
@@ -81,7 +83,6 @@ const AdminSidebar = ({ onNavigate }) => {
                 </Link>
             </div>
 
-            {/* Navigation */}
             <nav className="sidebar-nav">
                 {navItems.map((item) => (
                     <NavLink
@@ -99,19 +100,15 @@ const AdminSidebar = ({ onNavigate }) => {
                 ))}
             </nav>
 
-            {/* Bottom Section */}
             <div className="sidebar-footer">
-                {/* Language Toggle */}
                 <div className="sidebar-control">
                     <LanguageToggle />
                 </div>
 
-                {/* Theme Toggle - Green iOS Style */}
                 <div className="sidebar-control theme-control">
                     <ThemeToggle showLabel={true} />
                 </div>
 
-                {/* User Profile */}
                 <div className="sidebar-user">
                     <div className="user-avatar">
                         {userAttributes?.name?.charAt(0)?.toUpperCase() || 'A'}
@@ -122,7 +119,6 @@ const AdminSidebar = ({ onNavigate }) => {
                     </div>
                 </div>
 
-                {/* Logout */}
                 <button
                     className="sidebar-footer-btn logout-btn"
                     onClick={logout}

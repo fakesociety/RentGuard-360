@@ -32,8 +32,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
-import { useLanguage } from '../../contexts/LanguageContext';
-
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import Navigation from '../../components/layout/Navigation';
 import { Upload, Brain, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Shield, Download, Edit2, Trash2, X, Cloud, Bot, Lock, Zap, Pause, Wallet, House } from 'lucide-react';
 import './LandingPage.css';
@@ -51,31 +50,25 @@ import RegisterPromptModal from './components/RegisterPromptModal';
 const benefits = [
     {
         icon: Shield,
-        titleHe: 'ניתוח AI מתקדם',
-        titleEn: 'Advanced AI Analysis',
-        descHe: 'בינה מלאכותית מתקדמת מזהה סעיפים בעייתיים ומצביעה על סיכונים.',
-        descEn: 'Advanced AI identifies problematic clauses and highlights risks.'
+        titleKey: 'landing.benefitAdvancedAiTitle',
+        descKey: 'landing.benefitAdvancedAiDesc'
     },
     {
         icon: Lock,
-        titleHe: 'פרטיות מלאה',
-        titleEn: 'Full Privacy',
-        descHe: 'המידע האישי שלך מוסתר אוטומטית לפני הניתוח ומוחזר אחריו.',
-        descEn: 'Your personal info is automatically hidden before analysis and restored after.'
+        titleKey: 'landing.benefitPrivacyTitle',
+        descKey: 'landing.benefitPrivacyDesc'
     },
     {
         icon: Zap,
-        titleHe: 'תוצאות בשניות',
-        titleEn: 'Results in Seconds',
-        descHe: 'קבל ניתוח מלא של החוזה תוך פחות מדקה, בלי צורך בעורך דין.',
-        descEn: 'Get full contract analysis in under a minute, no lawyer needed.'
+        titleKey: 'landing.benefitResultsTitle',
+        descKey: 'landing.benefitResultsDesc'
     },
 ];
 
 const LandingPage = () => {
     const { isAuthenticated } = useAuth();
     const { hasSubscription, isLoading: isSubscriptionLoading, isEntitlementKnown } = useSubscription();
-    const { isRTL } = useLanguage();
+    const { t, isRTL } = useLanguage();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -153,10 +146,10 @@ const LandingPage = () => {
             {/* ===== NAVBAR (use shared Navigation component) ===== */}
             <Navigation showAuthControls={!isAuthenticated} onAuthClick={toggleAuth} />
 
-            <AuthModal 
-                view={authModal} 
-                onChangeView={setAuthModal} 
-                onClose={() => setAuthModal(null)} 
+            <AuthModal
+                view={authModal}
+                onChangeView={setAuthModal}
+                onClose={() => setAuthModal(null)}
             />
 
             {/* ===== HERO SECTION ===== */}
@@ -171,20 +164,18 @@ const LandingPage = () => {
                         RentGuard 360
                         <br />
                         <span className="hero-subtitle-line">
-                            {isRTL ? 'ההגנה שלך בחוזה השכירות' : 'Your Rental Contract Guardian'}
+                            {t('landing.heroSubtitleLine')}
                         </span>
                     </motion.h1>
                     <motion.p variants={fadeInUp} className="hero-desc">
-                        {isRTL
-                            ? 'ניתוח חוזים חכם מבוסס AI. פשוט גרור את הקובץ וקבל תמונת מצב משפטית בשניות.'
-                            : 'Smart AI-powered contract analysis. Simply drag your file and get a legal snapshot in seconds.'}
+                        {t('landing.heroDescription')}
                     </motion.p>
                     <motion.div variants={fadeInUp} className="hero-cta">
                         <button className="cta-btn large" onClick={() => toggleAuth('register')}>
-                            {isRTL ? 'התחל ניתוח חינם' : 'Start Free Analysis'}
+                            {t('landing.startFreeAnalysis')}
                         </button>
                         <span className="cta-note highlight">
-                            {isRTL ? 'ללא צורך בכרטיס אשראי' : 'No credit card required'}
+                            {t('landing.noCreditCardRequired')}
                         </span>
                     </motion.div>
                 </motion.div>
@@ -195,7 +186,7 @@ const LandingPage = () => {
                     animate={{ opacity: 1, y: 0, rotateY: 0 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
                 >
-                    <DashboardMockup isRTL={isRTL} onUploadClick={() => setShowRegisterPrompt(true)} />
+                    <DashboardMockup onUploadClick={() => setShowRegisterPrompt(true)} />
                 </motion.div>
             </section>
 
@@ -215,19 +206,19 @@ const LandingPage = () => {
                     <button
                         className="carousel-arrow"
                         onClick={prevSlide}
-                        aria-label="Previous"
+                        aria-label={t('landing.carouselPrevious')}
                     >
                         ‹
                     </button>
                     <div className="carousel-content" key={currentSlide}>
                         <div className="carousel-icon"><CurrentBenefitIcon size={34} strokeWidth={1.9} /></div>
-                        <h4>{isRTL ? benefits[currentSlide].titleHe : benefits[currentSlide].titleEn}</h4>
-                        <p>{isRTL ? benefits[currentSlide].descHe : benefits[currentSlide].descEn}</p>
+                        <h4>{t(benefits[currentSlide].titleKey)}</h4>
+                        <p>{t(benefits[currentSlide].descKey)}</p>
                     </div>
                     <button
                         className="carousel-arrow"
                         onClick={nextSlide}
-                        aria-label="Next"
+                        aria-label={t('landing.carouselNext')}
                     >
                         ›
                     </button>
@@ -252,15 +243,15 @@ const LandingPage = () => {
                     animate={contractsInView ? 'visible' : 'hidden'}
                     variants={fadeInUp}
                 >
-                    <h2>{isRTL ? 'ראה איך זה נראה במציאות' : 'See it in action'}</h2>
-                    <p>{isRTL ? 'דוגמה לניתוח תיק חוזים של משתמש' : 'Example of a user\'s contract portfolio analysis'}</p>
+                    <h2>{t('landing.liveDemoTitle')}</h2>
+                    <p>{t('landing.liveDemoSubtitle')}</p>
                 </motion.div>
                 <motion.div
                     initial={{ opacity: 0, y: 40 }}
                     animate={contractsInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <ContractsGridMockup isRTL={isRTL} onViewClick={() => setShowRegisterPrompt(true)} />
+                    <ContractsGridMockup onViewClick={() => setShowRegisterPrompt(true)} />
                 </motion.div>
             </section>
 
@@ -272,7 +263,7 @@ const LandingPage = () => {
                     animate={featureInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.6 }}
                 >
-                    <ContractViewerMockup isRTL={isRTL} onScoreClick={() => setShowRegisterPrompt(true)} />
+                    <ContractViewerMockup onScoreClick={() => setShowRegisterPrompt(true)} />
                 </motion.div>
 
                 <motion.div
@@ -282,25 +273,23 @@ const LandingPage = () => {
                     variants={staggerChildren}
                 >
                     <motion.h2 variants={fadeInUp}>
-                        {isRTL ? 'זיהוי סעיפים בעייתיים' : 'Identify Problematic Clauses'}
+                        {t('landing.clausesTitle')}
                     </motion.h2>
                     <motion.p variants={fadeInUp}>
-                        {isRTL
-                            ? 'המערכת מזהה אוטומטית סעיפים שעלולים לפגוע בזכויותיך ומספקת הסבר בשפה פשוטה.'
-                            : 'The system automatically identifies clauses that may harm your rights and provides plain-language explanations.'}
+                        {t('landing.clausesDescription')}
                     </motion.p>
                     <motion.ul variants={fadeInUp} className="feature-list">
                         <li>
                             <CheckCircle size={18} />
-                            {isRTL ? 'מבוסס על חוק השכירות 2017' : 'Based on 2017 Rental Law'}
+                            {t('landing.clausesFeatureLaw')}
                         </li>
                         <li>
                             <CheckCircle size={18} />
-                            {isRTL ? 'הצעות תיקון מידיות' : 'Instant fix suggestions'}
+                            {t('landing.clausesFeatureFixSuggestions')}
                         </li>
                         <li>
                             <CheckCircle size={18} />
-                            {isRTL ? 'ציון סיכון לכל קטגוריה' : 'Risk score per category'}
+                            {t('landing.clausesFeatureRiskPerCategory')}
                         </li>
                     </motion.ul>
                 </motion.div>

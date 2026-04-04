@@ -29,7 +29,7 @@
  */
 import React from 'react';
 import { BadgeDollarSign, House, FileText, Wrench, Scale } from 'lucide-react';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import './SidebarAccordions.css';
 
 const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {

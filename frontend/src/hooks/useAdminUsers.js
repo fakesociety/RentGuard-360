@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { getUsers, disableUser, enableUser, deleteUser } from '../services/api';
 import { emitAppToast } from '../utils/toast';
 import { Mail } from 'lucide-react';
@@ -193,6 +193,19 @@ export const useAdminUsers = () => {
 
             setCopiedUsername(username);
             window.setTimeout(() => setCopiedUsername(current => current === username ? null : current), 1500);
+            emitAppToast({
+                type: 'success',
+                title: getLocalizedLabel(
+                    'admin.copySuccessTitle',
+                    'Email copied',
+                    'האימייל הועתק'
+                ),
+                message: getLocalizedLabel(
+                    'admin.copySuccessMessage',
+                    'Email address was copied to clipboard.',
+                    'כתובת האימייל הועתקה ללוח.'
+                ),
+            });
         } catch (err) {
             emitAppToast({
                 type: 'error',
