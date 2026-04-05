@@ -30,7 +30,6 @@ import { useUpload } from '../../hooks/useUpload';
 import UploadDropzone from './components/UploadDropzone';
 import UploadMetadataForm from './components/UploadMetadataForm';
 import UploadSuccessCard from './components/UploadSuccessCard';
-import TermsModal from './components/TermsModal';
 
 import './UploadPage.css';
 
@@ -150,7 +149,6 @@ const UploadPage = () => {
                             setMetadata={setMetadata}
                             termsAccepted={termsAccepted}
                             setTermsAccepted={setTermsAccepted}
-                            setShowTermsModal={setShowTermsModal}
                             handleUpload={handleUpload}
                             hasUploadEntitlement={hasUploadEntitlement}
                             hasScansAvailable={hasScansAvailable}
@@ -158,12 +156,6 @@ const UploadPage = () => {
                     </div>
                 )}
             </div>
-
-            <TermsModal 
-                showTermsModal={showTermsModal}
-                setShowTermsModal={setShowTermsModal}
-                setTermsAccepted={setTermsAccepted}
-            />
 
             <CameraScannerModal
                 open={showScannerModal}

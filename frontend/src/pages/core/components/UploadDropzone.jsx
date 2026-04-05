@@ -42,7 +42,7 @@ const UploadDropzone = ({
             id: 'selected-file',
             name: normalizedDisplayName,
             size: file.size,
-            progress: isUploading || uploadVisualStatus === 'ready' ? uploadProgress : 100,
+            progress: isUploading ? uploadProgress : 0,
             status: uploadVisualStatus === 'ready' ? 'ready' : (isUploading ? 'uploading' : 'ready'),
         },
     ] : [];

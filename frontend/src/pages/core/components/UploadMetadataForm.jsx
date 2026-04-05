@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import Card from '../../../components/ui/Card';
 import Input from '../../../components/ui/Input';
@@ -11,7 +12,6 @@ const UploadMetadataForm = ({
     setMetadata,
     termsAccepted,
     setTermsAccepted,
-    setShowTermsModal,
     handleUpload,
     hasUploadEntitlement,
     hasScansAvailable,
@@ -41,23 +41,27 @@ const UploadMetadataForm = ({
             </Card>
 
             <div className="terms-section animate-slideUp">
-                <label className="terms-checkbox">
+                <div className="terms-checkbox" role="group" aria-labelledby="terms-text">
+                    <label htmlFor="upload-terms-checkbox" className="sr-only">
+                        {t('upload.termsLabel')}
+                    </label>
                     <input
+                        id="upload-terms-checkbox"
                         type="checkbox"
                         checked={termsAccepted}
                         onChange={(e) => setTermsAccepted(e.target.checked)}
                     />
-                    <span className="terms-text">
-                        {t('upload.termsLabel')}{' '}
-                        <button
-                            type="button"
-                            className="terms-link"
-                            onClick={() => setShowTermsModal(true)}
-                        >
-                            {t('upload.termsLink')}
-                        </button>
+                    <span id="terms-text" className="terms-text">
+                        {t('upload.termsLabel')}
+                        <Link to="/terms" className="terms-link">
+                            {t('upload.termsLinkTerms')}
+                        </Link>
+                        {t('upload.termsLinkAnd')}
+                        <Link to="/privacy" className="terms-link">
+                            {t('upload.termsLinkPrivacy')}
+                        </Link>
                     </span>
-                </label>
+                </div>
             </div>
 
             <Button
