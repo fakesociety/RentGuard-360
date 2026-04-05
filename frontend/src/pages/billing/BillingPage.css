@@ -33,6 +33,25 @@
     margin-top: 2rem;
 }
 
+.billing-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+}
+
+.billing-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.billing-header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
 .billing-back-btn {
     display: inline-flex;
     align-items: center;
@@ -99,9 +118,10 @@
 }
 
 .billing-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-    border-color: rgba(0, 105, 82, 0.2);
+    /* Remove prominent lift for informational cards; use subtle highlight instead */
+    transform: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 105, 82, 0.08);
 }
 
 [data-theme="dark"] .billing-card:hover {
@@ -164,7 +184,7 @@
 }
 
 .billing-card:hover .plan-icon-wrapper {
-    transform: scale(1.1) rotate(3deg);
+    transform: scale(1.04) rotate(1deg);
 }
 
 [data-theme="dark"] .plan-icon-wrapper {
@@ -261,7 +281,7 @@
 }
 
 .billing-card:hover .portal-icon-wrapper {
-    transform: scale(1.1) rotate(3deg);
+    transform: scale(1.04) rotate(1deg);
 }
 
 [data-theme="dark"] .portal-icon-wrapper {
@@ -437,7 +457,7 @@
 }
 
 .billing-card:hover .feature-icon-wrapper {
-    transform: scale(1.1) rotate(3deg);
+    transform: scale(1.03) rotate(0deg);
 }
 
 .feature-icon-wrapper.green {

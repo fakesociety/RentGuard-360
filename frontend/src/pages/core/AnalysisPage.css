@@ -108,33 +108,6 @@
     gap: 1rem;
 }
 
-.lf-btn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--bg-card);
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    color: var(--text-primary);
-    font-weight: 700;
-    font-size: 0.875rem;
-    text-decoration: none;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
-}
-
-.lf-btn-back:hover {
-    background: var(--bg-inset);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-[data-theme="dark"] .lf-btn-back {
-    background: rgba(30, 41, 59, 0.5);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
 .lf-tabs-container {
     display: flex;
     justify-content: center;
@@ -959,7 +932,6 @@
 @media (max-width: 768px) {
     .lf-header-content { flex-direction: column; align-items: center; text-align: center; }
     .lf-header-actions { width: 100%; }
-    .lf-btn-back { width: 100%; justify-content: center; }
 
     .lf-bento-grid {
         display: flex;

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import BackButton from '../../../components/ui/BackButton';
 
 const AnalysisHeader = ({
     analysis,
@@ -20,10 +19,7 @@ const AnalysisHeader = ({
                     <p className="lf-subtitle">{result?.summary || t('analysis.analysisComplete')}</p>
                 </div>
                 <div className="lf-header-actions">
-                    <Link to="/contracts" className="lf-btn-back">
-                        {isRTL ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
-                        {t('analysis.backToContracts')}
-                    </Link>
+                    <BackButton to="/contracts" label={t('analysis.backToContracts')} />
                 </div>
             </div>
 

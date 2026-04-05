@@ -5,8 +5,9 @@
  * ============================================
  */
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
+import BackButton from '../../components/ui/BackButton';
 import {
     Calendar,
     ChevronDown,
@@ -18,9 +19,7 @@ import {
     Lock,
     Cookie,
     UserCheck,
-    Mail,
-    ArrowLeft,
-    ArrowRight
+    Mail
 } from 'lucide-react';
 import './LegalPages.css';
 
@@ -33,15 +32,6 @@ const getIconForIndex = (index) => {
 const PrivacyPage = () => {
     const { translations, isRTL, t } = useLanguage();
     const { title, updated, tocTitle, sections, contactPrefix, contactLinkText, contactMiddle } = translations.privacy;
-    const navigate = useNavigate();
-
-    const handleBack = () => {
-        if (window.history.length > 2 || (window.history.state && window.history.state.idx > 0)) {
-            navigate(-1);
-        } else {
-            navigate('/');
-        }
-    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -68,19 +58,18 @@ const PrivacyPage = () => {
             {/* ---------------- Global Header (Spans Full Width) ---------------- */}
             {/* Keep the header outside the two-column layout so it spans full width */}
             <header className="terms-global-header">
-                <button className="legal-back-btn" onClick={handleBack}>
-                    {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-                    {t('nav.backToPrevious')}
-                </button>
-                <div className="terms-header-content">
-                    <h1 className="terms-main-title">{title}</h1>
-                    <div className="terms-meta">
-                        <span className="meta-updated">
-                            <Calendar size={16} /> {updated}
-                        </span>
-                        <span className="meta-dot"></span>
-                        <span className="meta-badge">{t('legal.legalDocument')}</span>
+                <div className="terms-header-container">
+                    <div className="terms-header-content">
+                        <h1 className="terms-main-title">{title}</h1>
+                        <div className="terms-meta">
+                            <span className="meta-updated">
+                                <Calendar size={16} /> {updated}
+                            </span>
+                            <span className="meta-dot"></span>
+                            <span className="meta-badge">{t('legal.legalDocument')}</span>
+                        </div>
                     </div>
+                    <BackButton />
                 </div>
             </header>
 

@@ -24,11 +24,12 @@ import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { createCustomerPortalSession, getTransactions } from '../../services/stripeApi';
 import { emitAppToast } from '../../utils/toast';
+import BackButton from '../../components/ui/BackButton';
 import './BillingPage.css';
 
 const BillingPage = () => {
     const navigate = useNavigate();
-    const { userAttributes, user } = useAuth();
+    const { userAttributes, user, isAdmin } = useAuth();
     const { t, isRTL } = useLanguage();
     const { subscription, isLoading: subLoading } = useSubscription();
 
@@ -190,19 +191,21 @@ const BillingPage = () => {
         }
     };
 
-    const BackArrow = isRTL ? ArrowRight : ArrowLeft;
-
     return (
         <div className="billing-container" dir={isRTL ? 'rtl' : 'ltr'}>
 
             {/* Header */}
             <div className="billing-header">
-                <button className="billing-back-btn" onClick={() => navigate('/settings')}>
-                    <BackArrow size={16} />
-                    {t('billing.backToSettings')}
-                </button>
-                <h1 className="billing-title">{t('billing.title')}</h1>
-                <p className="billing-subtitle">{t('billing.subtitle')}</p>
+                <div className="billing-header-content">
+                    <div className="billing-header-text">
+                        <h1 className="billing-title">{t('billing.title')}</h1>
+                        <p className="billing-subtitle">{t('billing.subtitle')}</p>
+                    </div>
+
+                    <div className="billing-header-actions">
+                        <BackButton to="/settings" label={t('billing.backToSettings')} />
+                    </div>
+                </div>
             </div>
 
             <div className="billing-grid">
@@ -229,12 +232,14 @@ const BillingPage = () => {
                                 </div>
                             </div>
                         </div>
-                        <button
-                            className="plan-upgrade-btn"
-                            onClick={() => navigate('/pricing')}
-                        >
-                            {t('billing.upgradePlan')}
-                        </button>
+                        {!isAdmin && (
+                            <button
+                                className="plan-upgrade-btn"
+                                onClick={() => navigate('/pricing')}
+                            >
+                                {t('billing.upgradePlan')}
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -271,32 +276,7 @@ const BillingPage = () => {
                     </div>
                 </div>
 
-                {/* Feature Cards */}
-                <div className="billing-features">
-                    <div className="billing-card billing-feature-card">
-                        <div className="feature-icon-wrapper green">
-                            <CreditCard size={22} />
-                        </div>
-                        <h4>{t('billing.feature1Title')}</h4>
-                        <p>{t('billing.feature1Desc')}</p>
-                    </div>
-                    <div className="billing-card billing-feature-card">
-                        <div className="feature-icon-wrapper blue">
-                            <FileText size={22} />
-                        </div>
-                        <h4>{t('billing.feature2Title')}</h4>
-                        <p>{t('billing.feature2Desc')}</p>
-                    </div>
-                    <div className="billing-card billing-feature-card">
-                        <div className="feature-icon-wrapper purple">
-                            <History size={22} />
-                        </div>
-                        <h4>{t('billing.feature3Title')}</h4>
-                        <p>{t('billing.feature3Desc')}</p>
-                    </div>
-                </div>
-
-                {/* Transactions History */}
+                {/* Transactions History (moved up above feature cards) */}
                 <div className="billing-card transactions-card">
                     <div className="transactions-header">
                         <h3>{t('billing.historyTitle')}</h3>
@@ -373,6 +353,33 @@ const BillingPage = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Feature Cards */}
+                <div className="billing-features">
+                    <div className="billing-card billing-feature-card">
+                        <div className="feature-icon-wrapper green">
+                            <CreditCard size={22} />
+                        </div>
+                        <h4>{t('billing.feature1Title')}</h4>
+                        <p>{t('billing.feature1Desc')}</p>
+                    </div>
+                    <div className="billing-card billing-feature-card">
+                        <div className="feature-icon-wrapper blue">
+                            <FileText size={22} />
+                        </div>
+                        <h4>{t('billing.feature2Title')}</h4>
+                        <p>{t('billing.feature2Desc')}</p>
+                    </div>
+                    <div className="billing-card billing-feature-card">
+                        <div className="feature-icon-wrapper purple">
+                            <History size={22} />
+                        </div>
+                        <h4>{t('billing.feature3Title')}</h4>
+                        <p>{t('billing.feature3Desc')}</p>
+                    </div>
+                </div>
+
+                
 
                 {/* Security Bar */}
                 <div className="billing-security-bar">

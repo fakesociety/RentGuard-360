@@ -43,33 +43,19 @@
     position: relative;
 }
 
-.legal-back-btn {
-    display: inline-flex;
+.terms-header-container {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: var(--bg-inset);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    font-weight: 500;
-    cursor: pointer;
-    margin-bottom: 2rem;
-    transition: all var(--transition-fast);
-}
-
-.legal-back-btn:hover {
-    background-color: var(--glass-bg);
-    color: var(--text-primary);
-    border-color: var(--accent-primary);
-    transform: translateY(-1px);
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
 .terms-header-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    text-align: start; /* תומך ב-RTL/LTR אוטומטית */
+    text-align: start;
 }
 
 [dir="rtl"] .terms-header-content {
