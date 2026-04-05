@@ -564,7 +564,7 @@ Resources:
       Runtime: python3.11
       Handler: get_upload_url.lambda_handler
       Role: !GetAtt RentGuardLambdaRole.Arn
-      Timeout: 3
+      Timeout: 15
       MemorySize: 128
       Code:
         S3Bucket: !Ref LambdaCodeBucket

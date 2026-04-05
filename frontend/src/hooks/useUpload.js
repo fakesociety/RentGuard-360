@@ -195,6 +195,15 @@ export const useUpload = () => {
 
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    const isRetryableError = (err) => {
+        const msg = (err?.message || '').toLowerCase();
+        return msg.includes('internal server error') ||
+               msg.includes('502') || msg.includes('503') ||
+               msg.includes('bad gateway') ||
+               msg.includes('service unavailable') ||
+               msg.includes('timed out');
+    };
+
     const handleUpload = async () => {
         if (!file || !termsAccepted) return;
 
@@ -216,60 +225,87 @@ export const useUpload = () => {
         startProgressLoop();
         setError('');
 
-        try {
-            const result = await uploadFile(file, (progress) => {
-                actualUploadProgressRef.current = Math.max(actualUploadProgressRef.current, progress);
-            }, {
-                propertyAddress: metadata.propertyAddress,
-                landlordName: metadata.landlordName,
-                customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
-                termsAccepted: true,
-            });
+        const MAX_RETRIES = 2;
+        let lastErr = null;
 
-            const elapsed = Date.now() - uploadStartTimeRef.current;
-            const waitForMinimumDuration = Math.max(0, MIN_PROGRESS_DURATION_MS - elapsed);
-            if (waitForMinimumDuration > 0) {
-                await delay(waitForMinimumDuration);
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                if (attempt > 0) {
+                    console.log(`Upload retry attempt ${attempt}/${MAX_RETRIES}...`);
+                    // Reset progress for retry
+                    actualUploadProgressRef.current = 0;
+                    setUploadProgress(0);
+                    uploadStartTimeRef.current = Date.now();
+                    await delay(2000); // Wait before retry
+                }
+
+                const result = await uploadFile(file, (progress) => {
+                    actualUploadProgressRef.current = Math.max(actualUploadProgressRef.current, progress);
+                }, {
+                    propertyAddress: metadata.propertyAddress,
+                    landlordName: metadata.landlordName,
+                    customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
+                    termsAccepted: true,
+                });
+
+                const elapsed = Date.now() - uploadStartTimeRef.current;
+                const waitForMinimumDuration = Math.max(0, MIN_PROGRESS_DURATION_MS - elapsed);
+                if (waitForMinimumDuration > 0) {
+                    await delay(waitForMinimumDuration);
+                }
+
+                setUploadProgress(100);
+                await delay(COMPLETE_PERCENT_HOLD_MS);
+                setUploadVisualStatus('ready');
+                await delay(250);
+
+                await refreshSubscription();
+
+                setUploadedContractId(result.contractId || '');
+                setUploadSuccess(true);
+                emitAppToast({
+                    type: 'success',
+                    title: t('upload.uploadSuccessTitle'),
+                    message: t('upload.uploadSuccessMessage'),
+                });
+                setFile(null);
+                setTermsAccepted(false);
+                setMetadata({
+                    propertyAddress: '',
+                    landlordName: '',
+                    startDate: '',
+                    monthlyRent: '',
+                });
+                setUploadVisualStatus('idle');
+                setUploadProgress(0);
+                stopProgressLoop();
+                setIsUploading(false);
+                return; // Success — exit the retry loop
+
+            } catch (err) {
+                lastErr = err;
+                if (attempt < MAX_RETRIES && isRetryableError(err)) {
+                    console.warn(`Upload attempt ${attempt + 1} failed with retryable error:`, err.message);
+                    continue; // Retry
+                }
+                break; // Non-retryable or last attempt
             }
-
-            setUploadProgress(100);
-            await delay(COMPLETE_PERCENT_HOLD_MS);
-            setUploadVisualStatus('ready');
-            await delay(250);
-
-            await refreshSubscription();
-
-            setUploadedContractId(result.contractId || '');
-            setUploadSuccess(true);
-            emitAppToast({
-                type: 'success',
-                title: t('upload.uploadSuccessTitle'),
-                message: t('upload.uploadSuccessMessage'),
-            });
-            setFile(null);
-            setTermsAccepted(false);
-            setMetadata({
-                propertyAddress: '',
-                landlordName: '',
-                startDate: '',
-                monthlyRent: '',
-            });
-            setUploadVisualStatus('idle');
-            setUploadProgress(0);
-
-        } catch (err) {
-            console.error('Upload failed:', err);
-            setError(err.message || t('upload.uploadFailed'));
-            setUploadVisualStatus('idle');
-            emitAppToast({
-                type: 'error',
-                title: t('notifications.uploadFailedTitle'),
-                message: err.message || t('upload.uploadFailed'),
-            });
-        } finally {
-            stopProgressLoop();
-            setIsUploading(false);
         }
+
+        // All attempts failed
+        console.error('Upload failed after all attempts:', lastErr);
+        const friendlyMessage = isRetryableError(lastErr)
+            ? t('upload.serverTemporaryError')
+            : (lastErr?.message || t('upload.uploadFailed'));
+        setError(friendlyMessage);
+        setUploadVisualStatus('idle');
+        emitAppToast({
+            type: 'error',
+            title: t('notifications.uploadFailedTitle'),
+            message: friendlyMessage,
+        });
+        stopProgressLoop();
+        setIsUploading(false);
     };
 
     const openFilePicker = () => {

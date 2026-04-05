@@ -378,7 +378,8 @@ export const en = {
         "fileTooLarge": "File size must be less than 5MB",
         "fileTooSmall": "File is too small - may be empty or corrupted",
         "fileNameTooLong": "Filename is too long (max 100 characters)",
-        "uploadFailed": "Upload failed. Please try again."
+        "uploadFailed": "Upload failed. Please try again.",
+        "serverTemporaryError": "The server is temporarily busy. We retried automatically but it didn't work. Please try again in a few seconds."
     },
     "analysis": {
         "title": "Contract Analysis",

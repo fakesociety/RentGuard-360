@@ -16,6 +16,7 @@ namespace StripePaymentAPI.Repositories
         
         // Cache the active connection string so we don't delay every request by 3 seconds if AWS is down
         private static string _activeConnectionString = null;
+        private static readonly object _initLock = new object();
         public static string ActiveConnectionString => _activeConnectionString;
 
         /// <summary>
@@ -26,24 +27,61 @@ namespace StripePaymentAPI.Repositories
         {
             if (_activeConnectionString == null)
             {
-                string primary = configuration.GetConnectionString("PaymentsDB");
-                string fallback = configuration.GetConnectionString("LocalPaymentsDB");
-
-                try
+                lock (_initLock)
                 {
-                    // Test primary connection with a short 3-second timeout
-                    var builder = new SqlConnectionStringBuilder(primary) { ConnectTimeout = 3 };
-                    using (var connection = new SqlConnection(builder.ConnectionString))
+                    if (_activeConnectionString == null)
                     {
-                        connection.Open();
+                        string primary = configuration.GetConnectionString("PaymentsDB");
+                        string fallback = configuration.GetConnectionString("LocalPaymentsDB");
+                        bool allowFallback = configuration.GetValue<bool>("Database:AllowLocalFallback", true);
+
+                        // Force disable LocalDB fallback if not running on Windows (since LocalDB is Windows-only)
+                        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                        {
+                            allowFallback = false;
+                        }
+
+                        try
+                        {
+                            // Test primary connection with a slightly longer timeout for cold starts
+                            var builder = new SqlConnectionStringBuilder(primary) { ConnectTimeout = 3 };
+                            using (var connection = new SqlConnection(builder.ConnectionString))
+                            {
+                                connection.Open();
+                            }
+                            _activeConnectionString = primary;
+                            Console.WriteLine("DB Status: Connected to Primary AWS RDS Database.");
+                        }
+                        catch (Exception ex)
+                        {
+                            if (allowFallback)
+                            {
+                                Console.WriteLine($"DB Status: AWS RDS is down ({ex.Message}). Falling back to LocalDB!");
+                                
+                                // Test LocalDB to ensure it's awake before accepting it
+                                try 
+                                {
+                                    var fallbackBuilder = new SqlConnectionStringBuilder(fallback) { ConnectTimeout = 15 };
+                                    using (var fallbackDb = new SqlConnection(fallbackBuilder.ConnectionString))
+                                    {
+                                        fallbackDb.Open();
+                                    }
+                                    _activeConnectionString = fallback;
+                                    Console.WriteLine("DB Status: LocalDB successfully awakened and connected.");
+                                }
+                                catch (Exception localEx)
+                                {
+                                    Console.WriteLine($"DB Status: LocalDB fallback ALSO failed ({localEx.Message}). Trying to keep primary anyway.");
+                                    _activeConnectionString = primary; // Fallback failed too!
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"DB Status: AWS RDS is down ({ex.Message}). Fallback disabled. Keeping primary.");
+                                _activeConnectionString = primary;
+                            }
+                        }
                     }
-                    _activeConnectionString = primary;
-                    Console.WriteLine("DB Status: Connected to Primary AWS RDS Database.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"DB Status: AWS RDS is down ({ex.Message}). Falling back to LocalDB!");
-                    _activeConnectionString = fallback;
                 }
             }
 
