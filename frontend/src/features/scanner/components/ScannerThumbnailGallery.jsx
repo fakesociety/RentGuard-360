@@ -8,13 +8,11 @@ const ScannerThumbnailGallery = ({
     onExpand,
 }) => {
     
-    // --- 1. Empty State ---
-    // Returns nothing if there are no pages, keeping the UI clean
     if (!pages.length) {
         return null; 
     }
 
-    // --- 2. Horizontal Gallery ---
+    // Horizontal Gallery 
     return (
         <div className="scanner-gallery" aria-label="Scanned pages gallery">
             {pages.map((page, index) => (
@@ -23,7 +21,7 @@ const ScannerThumbnailGallery = ({
                     className={`scanner-thumb ${activePageId === page.id ? 'active' : ''}`}
                     onClick={() => onSelect(page.id)}
                 >
-                    {/* --- 3. Thumbnail Image (Click to Expand) --- */}
+                    {/* Thumbnail Image */}
                     <button
                         type="button"
                         className="scanner-thumb-image-wrap"
@@ -39,7 +37,6 @@ const ScannerThumbnailGallery = ({
                         />
                     </button>
 
-                    {/* --- 4. Delete Action (Floating X Icon) --- */}
                     <button
                         type="button"
                         className="scanner-delete-icon"
