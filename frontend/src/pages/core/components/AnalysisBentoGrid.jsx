@@ -18,7 +18,7 @@ const AnalysisBentoGrid = ({
     showExportMenu,
     setShowExportMenu,
     handleExportWord,
-    handleExportPdf,
+    handleExportContractWord,
     isExporting,
     issuesCount,
     analysis,
@@ -73,14 +73,8 @@ const AnalysisBentoGrid = ({
                             panelClassName="lf-export-menu"
                         >
                             <div className="export-menu-group-title">{t('analysis.exportMenuDownload')}</div>
-                            <button onClick={handleExportWord} disabled={isExporting}>
-                                <FileText size={14} />
-                                <span>{t('analysis.exportMenuWordTitle')}</span>
-                            </button>
-                            <button onClick={handleExportPdf} disabled={isExporting}>
-                                <FileDown size={14} />
-                                <span>{t('analysis.exportMenuPdfTitle')}</span>
-                            </button>
+                            <button onClick={handleExportWord} disabled={isExporting}><FileText size={14}/><span>{t('analysis.exportMenuWordTitle')}</span></button>
+                            <button onClick={handleExportContractWord} disabled={isExporting}><FileText size={14} /><span>{t('analysis.exportMenuFullContractWordTitle')}</span></button>
                         </ActionMenu>
                     </div>
                 </div>

@@ -10,6 +10,7 @@ const UploadMetadataForm = ({
     isUploading,
     metadata,
     setMetadata,
+    customFileName,
     termsAccepted,
     setTermsAccepted,
     handleUpload,
@@ -70,7 +71,7 @@ const UploadMetadataForm = ({
                 fullWidth
                 onClick={handleUpload}
                 className="upload-button animate-slideUp"
-                disabled={!termsAccepted || !hasUploadEntitlement || !hasScansAvailable}
+                disabled={!hasUploadEntitlement || !hasScansAvailable}
             >
                 {t('upload.uploadBtn')}
             </Button>

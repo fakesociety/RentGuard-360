@@ -933,6 +933,24 @@
     padding: 10px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    max-height: 85vh;
+    overflow-y: auto;
+    max-width: min(320px, calc(100vw - 24px));
+}
+
+@media (max-width: 768px) {
+    .users-filter-dropdown {
+        width: min(320px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        left: 0;
+        right: auto;
+        transform: none;
+    }
+    
+    [dir="rtl"] .users-advanced-filter-menu .users-filter-dropdown {
+        left: auto;
+        right: 0;
+    }
 }
 
 [dir="rtl"] .users-filter-dropdown {
@@ -981,6 +999,7 @@
     border-radius: 10px;
     padding: 9px 10px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .users-filter-item:hover {

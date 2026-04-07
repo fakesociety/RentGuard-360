@@ -62,6 +62,26 @@
     align-items: flex-start;
 }
 
+@media (max-width: 768px) {
+    .terms-header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    [dir="rtl"] .terms-header-container {
+        align-items: flex-end;
+    }
+
+    .terms-header-container .global-back-btn {
+        display: none;
+    }
+
+    [dir="rtl"] .terms-header-content {
+        text-align: right;
+    }
+}
+
 .terms-main-title {
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;

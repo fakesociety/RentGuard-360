@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { getAnalysis, createShareLink, getShareLink, revokeShareLink, saveEditedContract } from '../services/api';
-import { exportToWord, exportToPDF } from '../services/ExportService';
+import { exportReportToWord } from '../services/ReportExportService';
+import { showAppToast as emitAppToast } from '../utils/toast';
 import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -227,25 +228,18 @@ export const useAnalysisPage = () => {
 
     const handleExportWord = useCallback(async () => {
         setIsExporting(true);
+        emitAppToast({ type: 'info', message: t('export.started') });
         try {
-            await exportToWord(analysis, analysis?.fileName || t('analysis.defaultReportName'));
-            showExportNotice(t('analysis.exportWordStarted'));
+            await exportReportToWord(analysis, analysis?.fileName || t('export.defaultFilename'));
+            emitAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Export error:', error);
+            emitAppToast({ type: 'error', message: t('export.error') });
         } finally {
             setIsExporting(false);
             setShowExportMenu(false);
         }
-    }, [analysis, showExportNotice, t]);
-
-    const handleExportPdf = useCallback(async () => {
-        setIsExporting(true);
-        try {
-            await exportToPDF(analysis, analysis?.fileName || t('analysis.defaultReportName'));
-            showExportNotice(t('analysis.exportPdfStarted'));
-        } finally {
-            setIsExporting(false);
-            setShowExportMenu(false);
-        }
-    }, [analysis, showExportNotice, t]);
+    }, [analysis, t]);
 
     const focusSharePanel = useCallback(() => {
         setIsSharePanelVisible(true);
@@ -393,7 +387,6 @@ export const useAnalysisPage = () => {
         // Methods
         fetchAnalysis,
         handleExportWord,
-        handleExportPdf,
         handleCopyShareLink,
         handleManualCopyShareLink,
         handleShareLinkViaApps,

@@ -77,8 +77,6 @@
  * ========================================================================== */
 .footer-nav {
     display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
     width: 100%;
     justify-content: flex-start;
 }

@@ -24,7 +24,7 @@
     font-family: 'Calibri', var(--font-sans);
     max-width: 900px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 6rem;
+    padding: 0rem 1.5rem 6rem;
 }
 
 /* --- Header --- */
@@ -76,7 +76,7 @@
     font-family: 'Calibri', 'Plus Jakarta Sans', var(--font-sans);
     font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--accent-primary);
     margin-bottom: 0.5rem;
     letter-spacing: -0.02em;
 }
@@ -256,7 +256,6 @@
 /* --- Portal Card (Main CTA) --- */
 .portal-card {
     border: 2px solid rgba(5, 150, 105, 0.15);
-    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(5, 150, 105, 0.02) 100%);
 }
 
 .portal-card-content {
@@ -680,6 +679,19 @@
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
+    .billing-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [dir="rtl"] .billing-header-content {
+        align-items: flex-end;
+    }
+
+    .billing-header-actions {
+        display: none;
+    }
+
     .billing-features {
         grid-template-columns: 1fr;
     }
@@ -713,22 +725,3 @@
 @keyframes spinBtn {
     to { transform: rotate(360deg); }
 }
-
-/* --- Override Titles to Green in Light Mode requested by user --- */
-[data-theme="light"] .billing-title,
-[data-theme="light"] .billing-subtitle,
-[data-theme="light"] .billing-card h3,
-[data-theme="light"] .billing-feature-card h4,
-[data-theme="light"] .portal-text h3,
-[data-theme="light"] .transactions-header h3 {
-    color: #00694c !important;
-}
-
-[data-theme="light"] .feature-icon-wrapper.blue {
-    background: rgba(5, 150, 105, 0.1) !important;
-    color: #10b981 !important;
-}
-
-
-[data-theme="light"] .portal-btn { background: var(--accent-primary) !important; color: white !important; }
-

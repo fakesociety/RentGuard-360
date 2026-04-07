@@ -1779,3 +1779,85 @@
         font-size: 0.875rem;
     }
 }
+
+@media (hover: none), (pointer: coarse) {
+    .landing-real .landing-cta-btn,
+    .landing-real .landing-cta-btn-large,
+    .landing-real .auth-modal-close,
+    .landing-real .auth-social-btn,
+    .landing-real .mockup-dashboard-real,
+    .landing-real .mock-upload-zone,
+    .landing-real .benefits-carousel,
+    .landing-real .carousel-arrow,
+    .landing-real .carousel-icon,
+    .landing-real .carousel-dot,
+    .landing-real .mock-contract-card,
+    .landing-real .action-link,
+    .landing-real .action-icons svg,
+    .landing-real .mockup-viewer-real,
+    .landing-real .modal-close-btn,
+    .landing-real .mock-score-circle-svg {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .landing-real .landing-cta-btn:hover,
+    .landing-real .landing-cta-btn-large:hover {
+        background-position: 0% 50%;
+        filter: none;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .landing-real .auth-modal-close:hover {
+        background: var(--bg-hover);
+        color: var(--text-secondary);
+    }
+
+    .landing-real .auth-social-btn:hover {
+        background: var(--bg-inset);
+        border-color: var(--glass-border);
+        transform: none;
+    }
+
+    .landing-real .mockup-dashboard-real:hover,
+    [data-theme="dark"] .landing-real .mockup-dashboard-real:hover,
+    .landing-real .mock-upload-zone:hover,
+    [data-theme="dark"] .landing-real .mock-upload-zone:hover,
+    .landing-real .benefits-carousel:hover,
+    [data-theme="dark"] .landing-real .benefits-carousel:hover,
+    .landing-real .mock-contract-card:hover,
+    [data-theme="dark"] .landing-real .mock-contract-card:hover,
+    .landing-real .mockup-viewer-real:hover,
+    [data-theme="dark"] .landing-real .mockup-viewer-real:hover,
+    .landing-real .modal-close-btn:hover,
+    .landing-real .mock-score-circle-svg:hover {
+        transform: none;
+        box-shadow: var(--shadow-md);
+    }
+
+    .landing-real .benefits-carousel:hover .carousel-icon,
+    .landing-real .carousel-arrow:hover,
+    .landing-real .carousel-dot:hover,
+    .landing-real .action-link:hover,
+    .landing-real .action-icons svg:hover {
+        transform: none;
+    }
+
+    .landing-real .action-link:hover {
+        background: var(--accent-primary);
+    }
+
+    .landing-real .action-icons svg:hover {
+        color: var(--text-tertiary);
+        background: transparent;
+    }
+
+    .landing-real .mock-contract-card:hover::after {
+        opacity: 0;
+    }
+
+    [data-theme="dark"] .landing-real .mock-contract-card:hover::before {
+        left: -150%;
+    }
+}

@@ -9,7 +9,6 @@ import {
     ArrowDown, 
     ArrowUp,
     AlertTriangle,
-    Info,
     CheckCircle2,
     Loader2,
     Sparkles,
@@ -26,13 +25,37 @@ import {
 } from 'lucide-react';
 import { processContractClauses } from '../../../utils/contractTextProcessor';
 import { consultClause } from '../../../services/api';
-import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../../../services/ExportService';
+import { exportEditedContractToWord, exportEditedContractToWordBlob } from '../../../services/ContractExportService';
+import { showAppToast } from '../../../utils/toast';
 import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import ContractViewSignatures from './ContractViewSignatures';
 import EditClauseModal from './EditClauseModal';
 import ClauseRow from './ClauseRow';
 import ContractToolbar from './ContractToolbar';
 import './ContractView.css';
+
+const FUZZY_MATCH_STRIP_PATTERN = /[\s\t\r\n.,\-:]+/g;
+const MIN_FUZZY_MATCH_LENGTH = 15;
+
+const normalizeForFuzzyClauseMatch = (text) => {
+    return String(text || '')
+        .toLowerCase()
+        .replace(FUZZY_MATCH_STRIP_PATTERN, '');
+};
+
+const isFuzzyClauseMatch = (issueText, clauseText) => {
+    const normalizedIssue = normalizeForFuzzyClauseMatch(issueText);
+    const normalizedClause = normalizeForFuzzyClauseMatch(clauseText);
+
+    if (!normalizedIssue || !normalizedClause) return false;
+    if (normalizedIssue.length < MIN_FUZZY_MATCH_LENGTH || normalizedClause.length < MIN_FUZZY_MATCH_LENGTH) return false;
+
+    return (
+        normalizedClause === normalizedIssue ||
+        normalizedClause.includes(normalizedIssue) ||
+        normalizedIssue.includes(normalizedClause)
+    );
+};
 
 const ContractView = forwardRef(({
     contractText = '',
@@ -86,12 +109,14 @@ const ContractView = forwardRef(({
             };
 
             const matchedIssue = issues.find(issue => {
-                const issueText = issue.original_text?.toLowerCase() || '';
-                const clauseTextLower = clauseObj.text.toLowerCase();
-                return (
-                    clauseTextLower.includes(issueText.slice(0, 50)) ||
-                    issueText.includes(clauseTextLower.slice(0, 50))
-                );
+                const issueTextCandidate =
+                    issue.original_text ||
+                    issue.original ||
+                    issue.clause_text ||
+                    issue.clause ||
+                    '';
+
+                return isFuzzyClauseMatch(issueTextCandidate, clauseObj.text);
             });
 
             if (matchedIssue) {
@@ -366,15 +391,22 @@ const containerRef = useRef(null);
     };
 
     const handleExport = useCallback(async () => {
-        const currentEdits = editedClausesRef.current || {};
-        const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        await exportEditedContractWithSignatures(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+        try {
+            showAppToast({ type: 'info', message: t('export.started') });
+            const currentEdits = editedClausesRef.current || {};
+            const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
+            await exportEditedContractToWord(clauseTexts, currentEdits, t('export.defaultContractFilename'));
+            showAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Contract export error:', error);
+            showAppToast({ type: 'error', message: t('export.error') });
+        }
     }, [clauses, getClauseTextFromEdits, t]);
 
     const handleGetDocxBlob = useCallback(async () => {
         const currentEdits = editedClausesRef.current || {};
         const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        return await exportEditedContractWithSignaturesBlob(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+        return await exportEditedContractToWordBlob(clauseTexts, currentEdits, t('export.defaultContractFilename'));
     }, [clauses, getClauseTextFromEdits, t]);
 
     const getCurrentEditedPayload = useCallback(() => {
@@ -408,7 +440,7 @@ const containerRef = useRef(null);
     }), [handleExport, handleGetDocxBlob, getCurrentEditedPayload]);
 
     return (
-        <div className="lf-cv-container">
+        <div className="lf-cv-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className={`lf-cv-paper ${isMinimized ? 'minimized' : ''}`} ref={containerRef}>
                 
                 {/* ===== MINIMIZE / MAXIMIZE CONTROLS ===== */}

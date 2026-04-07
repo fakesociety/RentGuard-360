@@ -1,5 +1,6 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Camera, CheckCircle2, FilePenLine, FileText, Files, Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import FileDropZone from '../../../components/ui/FileDropZone';
 
@@ -10,6 +11,8 @@ const formatFileSize = (bytes, t) => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+const stripPdfExtension = (fileName = '') => String(fileName).replace(/\.pdf$/i, '');
 
 const UploadDropzone = ({
     file,
@@ -22,8 +25,8 @@ const UploadDropzone = ({
     openFilePicker,
     blockReason,
     setShowScannerModal,
-    setError,
     customFileName,
+    setCustomFileName,
     isUploading,
     uploadVisualStatus,
     uploadProgress,
@@ -31,10 +34,14 @@ const UploadDropzone = ({
     fileInputRef,
     handleInputChange,
 }) => {
-    const { t } = useLanguage();
+    const { t, isRTL } = useLanguage();
+
+    const editableFileBaseName = file
+        ? (customFileName ?? stripPdfExtension(file.name))
+        : '';
 
     const normalizedDisplayName = file
-        ? `${(customFileName?.trim() || file.name.replace(/\.pdf$/i, '')).replace(/\.pdf$/i, '')}.pdf`
+        ? `${editableFileBaseName}.pdf`
         : '';
 
     const uploadItems = file ? [
@@ -69,22 +76,19 @@ const UploadDropzone = ({
                     onClick={openFilePicker}
                     disabled={!canChooseFile}
                 >
-                    <span className="material-symbols-outlined">upload</span>
+                    <Upload className="upload-modern-action-icon" size={18} strokeWidth={2.2} />
                     <span>{t('upload.selectFile')}</span>
                 </button>
                 <button
                     type="button"
                     className="upload-modern-action-btn scan"
                     onClick={() => {
-                        if (!canChooseFile) {
-                            setError(blockReason);
-                            return;
-                        }
+                        if (!canChooseFile) return;
                         setShowScannerModal(true);
                     }}
                     disabled={!canChooseFile}
                 >
-                    <span className="material-symbols-outlined">photo_camera</span>
+                    <Camera className="upload-modern-action-icon" size={18} strokeWidth={2.2} />
                     <span>{t('upload.scanWithCamera')}</span>
                 </button>
             </section>
@@ -98,7 +102,7 @@ const UploadDropzone = ({
                     exit={{ opacity: 0, height: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
                 >
                     <h4>
-                        <span className="material-symbols-outlined">inventory_2</span>
+                        <Files className="upload-modern-section-icon" size={18} strokeWidth={2.2} />
                         <span>{t('upload.selectedFiles')}</span>
                     </h4>
 
@@ -112,12 +116,39 @@ const UploadDropzone = ({
                                 exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.4, ease: 'easeInOut' } }}
                             >
                                 <div className="upload-modern-file-icon-wrap">
-                                    <span className="material-symbols-outlined">picture_as_pdf</span>
+                                    <FileText size={16} strokeWidth={2.2} />
                                 </div>
                                 <div className="upload-modern-file-main">
                                     <div className="upload-modern-file-row">
-                                        <span className="upload-modern-file-name" dir="ltr">{item.name}</span>
+                                        <span className={`upload-modern-file-name ${isRTL ? 'rtl' : 'ltr'}`}>
+                                            {isRTL && <span className="upload-modern-file-name-ext" dir="ltr">.pdf</span>}
+                                            <span className="upload-modern-file-name-base" dir={isRTL ? 'rtl' : 'ltr'}>{editableFileBaseName}</span>
+                                            {!isRTL && <span className="upload-modern-file-name-ext" dir="ltr">.pdf</span>}
+                                        </span>
                                         <span className="upload-modern-file-size">{formatFileSize(item.size, t)}</span>
+                                    </div>
+
+                                    <div className="upload-modern-file-edit-row">
+                                        <label htmlFor="upload-file-name-input" className="upload-modern-file-edit-label">
+                                            <FilePenLine size={14} strokeWidth={2.2} />
+                                            <span>{t('upload.fileNameLabel')}</span>
+                                        </label>
+
+                                        <div className={`upload-modern-file-edit-input-wrap ${isRTL ? 'rtl' : 'ltr'}`}>
+                                            {isRTL && <span className="upload-modern-file-edit-ext start" dir="ltr">.pdf</span>}
+                                            <input
+                                                id="upload-file-name-input"
+                                                type="text"
+                                                className="upload-modern-file-edit-input"
+                                                value={editableFileBaseName}
+                                                onChange={(e) => setCustomFileName(stripPdfExtension(e.target.value))}
+                                                placeholder={stripPdfExtension(file?.name || '')}
+                                                dir={isRTL ? 'rtl' : 'ltr'}
+                                                disabled={isUploading}
+                                                maxLength={96}
+                                            />
+                                            {!isRTL && <span className="upload-modern-file-edit-ext end" dir="ltr">.pdf</span>}
+                                        </div>
                                     </div>
 
                                     <div className="upload-modern-progress-track">
@@ -127,12 +158,12 @@ const UploadDropzone = ({
                                     <div className="upload-modern-file-row status-row">
                                         {item.status === 'uploading' ? (
                                             <span className="upload-modern-status uploading">
-                                                <span className="material-symbols-outlined">sync</span>
+                                                <Loader2 size={14} strokeWidth={2.4} className="upload-modern-status-icon spin" />
                                                 <span>{t('upload.uploading')} {Math.round(item.progress)}%</span>
                                             </span>
                                         ) : (
                                             <span className="upload-modern-status ready">
-                                                <span className="material-symbols-outlined">check_circle</span>
+                                                <CheckCircle2 size={14} strokeWidth={2.4} className="upload-modern-status-icon" />
                                                 <span>{t('upload.readyForAnalysis')}</span>
                                             </span>
                                         )}
@@ -144,7 +175,7 @@ const UploadDropzone = ({
                                             disabled={isUploading}
                                             aria-label={t('upload.deleteFile')}
                                         >
-                                            <span className="material-symbols-outlined">delete</span>
+                                            <Trash2 size={16} strokeWidth={2.2} />
                                         </button>
                                     </div>
                                 </div>

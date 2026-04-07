@@ -196,6 +196,8 @@
     font-size: 1.05rem;
     line-height: 1.8;
     margin: 0;
+    white-space: pre-wrap;
+    unicode-bidi: plaintext;
 }
 
 /* Actions inside clause */
@@ -508,3 +510,4 @@
         transform: translateY(-36px) translateX(-1rem);
     }
 }
+

@@ -23,7 +23,7 @@ import AnalysisBentoGrid from './components/AnalysisBentoGrid';
 import AnalysisResults from './components/AnalysisResults';
 import AnalysisSidebar from './components/AnalysisSidebar';
 import { SharePanel } from './components/AnalysisModals';
-import { exportEditedContract } from '../../services/ExportService';
+import { exportEditedContract } from '../../services/ContractExportService';
 
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
@@ -56,7 +56,6 @@ const AnalysisPage = () => {
         sharePanelRef,
         fetchAnalysis,
         handleExportWord,
-        handleExportPdf,
         handleCopyShareLink,
         handleManualCopyShareLink,
         handleShareLinkViaApps,
@@ -107,6 +106,71 @@ const AnalysisPage = () => {
         }
         return '';
     };
+
+    const waitForContractExportApi = useCallback(
+        () =>
+            new Promise((resolve) => {
+                let attempts = 0;
+                const maxAttempts = 90;
+
+                const checkReady = () => {
+                    const exportApi = contractViewRef.current?.handleExport;
+                    if (typeof exportApi === 'function') {
+                        resolve(exportApi);
+                        return;
+                    }
+
+                    attempts += 1;
+                    if (attempts >= maxAttempts) {
+                        resolve(null);
+                        return;
+                    }
+
+                    requestAnimationFrame(checkReady);
+                };
+
+                checkReady();
+            }),
+        [contractViewRef]
+    );
+
+    const handleExportContractWord = useCallback(async () => {
+        setShowExportMenu(false);
+
+        if (typeof contractViewRef.current?.handleExport === 'function') {
+            await contractViewRef.current.handleExport();
+            return;
+        }
+
+        const previousTab = activeTab;
+        if (activeTab !== 'contract') {
+            setActiveTab('contract');
+        }
+
+        const exportApi = await waitForContractExportApi();
+
+        if (!exportApi) {
+            showExportNotice(t('analysis.fullContractExportNotReady'));
+            if (previousTab !== 'contract') {
+                setActiveTab(previousTab);
+            }
+            return;
+        }
+
+        await exportApi();
+
+        if (previousTab !== 'contract') {
+            setActiveTab(previousTab);
+        }
+    }, [
+        activeTab,
+        contractViewRef,
+        setActiveTab,
+        setShowExportMenu,
+        t,
+        showExportNotice,
+        waitForContractExportApi,
+    ]);
 
     if (isLoading) {
         return (
@@ -179,7 +243,7 @@ const AnalysisPage = () => {
                     showExportMenu={showExportMenu}
                     setShowExportMenu={setShowExportMenu}
                     handleExportWord={handleExportWord}
-                    handleExportPdf={handleExportPdf}
+                    handleExportContractWord={handleExportContractWord}
                     isExporting={isExporting}
                     issuesCount={issues.length}
                     analysis={analysis}
@@ -258,6 +322,8 @@ const AnalysisPage = () => {
 
                     {/* Right Column: Sticky Sidebar Context */}
                     <AnalysisSidebar
+                        activeTab={activeTab}
+                        isContractDocument={result?.is_contract !== false}
                         riskScore={riskScore}
                         scoreBreakdown={scoreBreakdown}
                         issues={issues}
