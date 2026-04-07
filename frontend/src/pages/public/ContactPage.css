@@ -546,3 +546,29 @@
 [data-theme="light"] .office-bg { filter: brightness(1.05) saturate(0.8); border: none; }
 .brand-image-overlay { background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%); }
 
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .submit-btn:hover {
+        background-color: var(--accent-primary) !important;
+        transform: none;
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    .info-list li:hover .info-icon {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-image-card:hover .office-bg {
+        transform: none;
+    }
+
+    .public-cta-link:hover {
+        opacity: 1;
+    }
+
+    .public-cta-success-link:hover {
+        background-color: var(--accent-primary);
+        text-decoration: none;
+        transform: none;
+    }
+}
+

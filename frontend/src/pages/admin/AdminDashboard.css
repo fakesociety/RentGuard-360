@@ -3221,3 +3221,155 @@
     background: #ffffff;
     color: #1f2937;
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .admin-tabs button:hover {
+        color: var(--admin-text-muted);
+        background: transparent;
+    }
+
+    .summary-card:hover {
+        background: var(--admin-card-bg);
+        border-color: var(--admin-card-border);
+        transform: none;
+        box-shadow: var(--admin-card-highlight);
+    }
+
+    .summary-card:hover .card-icon {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--admin-text-secondary);
+    }
+
+    .admin-dashboard.light .summary-card:hover {
+        background: var(--admin-card-bg);
+        border-color: var(--admin-card-border);
+        box-shadow: var(--admin-card-highlight);
+    }
+
+    .admin-dashboard.light .summary-card:hover .card-icon {
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--admin-text-muted);
+    }
+
+    .chart-card:hover {
+        border-color: var(--admin-card-border);
+        box-shadow: var(--admin-card-highlight), var(--admin-card-glow);
+    }
+
+    .dashboard-chart-card:hover {
+        border-color: var(--admin-card-border);
+    }
+
+    .range-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--admin-text-muted);
+    }
+
+    .sortable-header:hover {
+        background-color: transparent;
+        color: inherit;
+    }
+
+    .sortable-header:hover .sort-icon.inactive {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    .users-filter-clear:hover {
+        color: var(--admin-text-muted);
+    }
+
+    .users-filter-item:hover {
+        background: transparent;
+    }
+
+    .filter-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .users-table tbody tr:hover {
+        background: transparent;
+    }
+
+    .action-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--admin-text-secondary);
+    }
+
+    .action-icon-btn.success:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(74, 222, 128, 0.3);
+        box-shadow: none;
+        color: #4ade80;
+    }
+
+    .action-icon-btn.copy:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(96, 165, 250, 0.3);
+        box-shadow: none;
+        color: #60a5fa;
+    }
+
+    .action-icon-btn.danger:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(248, 113, 113, 0.3);
+        box-shadow: none;
+        color: #f87171;
+    }
+
+    .placeholder-card:hover {
+        border-color: var(--admin-card-border);
+        border-style: dashed;
+    }
+
+    .settings-card:hover {
+        border-color: var(--admin-card-border);
+    }
+
+    .analytics-card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--glass-border);
+    }
+
+    .bar-chart-legend tr:hover td {
+        background: transparent;
+    }
+
+    .admin-modal.light .btn-secondary:hover {
+        background: var(--glass-border, rgba(0, 0, 0, 0.08)) !important;
+    }
+
+    .admin-dashboard.light .action-icon-btn:hover {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 0, 0, 0.1);
+        color: #64748b;
+    }
+
+    .admin-dashboard.light .action-icon-btn.success:hover {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #059669;
+    }
+
+    .admin-dashboard.light .action-icon-btn.danger:hover {
+        background: rgba(0, 0, 0, 0.03);
+        border-color: rgba(220, 38, 38, 0.3);
+        color: #dc2626;
+    }
+
+    .admin-dashboard.light .filter-btn:hover {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .admin-dashboard.light .range-btn:hover {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    .admin-dashboard.light .users-filter-item:hover {
+        background: transparent;
+    }
+}

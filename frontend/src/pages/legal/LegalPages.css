@@ -550,3 +550,24 @@
     -webkit-user-select: text;
     cursor: text;
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .toc-btn:hover {
+        background: transparent;
+    }
+
+    .accordion-trigger:hover .accordion-icon-box {
+        background: rgba(5, 150, 105, 0.08);
+        transform: none;
+    }
+
+    [data-theme="dark"] .accordion-trigger:hover .accordion-icon-box {
+        background: rgba(52, 211, 153, 0.15);
+        transform: none;
+    }
+
+    .help-btn:hover {
+        transform: none;
+        background: #ffffff;
+    }
+}

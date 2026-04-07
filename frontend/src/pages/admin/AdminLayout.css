@@ -265,3 +265,10 @@
         height: 40px;
     }
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .mobile-menu-btn:hover,
+    .admin-layout.dark .mobile-menu-btn:hover {
+        background: transparent;
+    }
+}

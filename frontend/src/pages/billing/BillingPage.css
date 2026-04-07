@@ -725,3 +725,49 @@
 @keyframes spinBtn {
     to { transform: rotate(360deg); }
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .billing-back-btn:hover {
+        color: var(--text-secondary);
+    }
+
+    .billing-card:hover {
+        transform: none;
+        box-shadow: var(--shadow-md);
+        border-color: var(--glass-border);
+    }
+
+    [data-theme="dark"] .billing-card:hover {
+        box-shadow: var(--shadow-xl);
+        border-color: var(--glass-border);
+    }
+
+    [data-theme="dark"] .billing-card:not(.transactions-card):hover::before {
+        transform: translateX(0) skewX(-25deg);
+    }
+
+    .billing-card:hover .plan-icon-wrapper,
+    .billing-card:hover .portal-icon-wrapper,
+    .billing-card:hover .feature-icon-wrapper {
+        transform: none;
+    }
+
+    .plan-upgrade-btn:hover {
+        background: var(--accent-primary);
+        transform: none;
+    }
+
+    .portal-btn:hover:not(:disabled) {
+        transform: none;
+        box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.35);
+    }
+
+    .billing-transactions-filter-trigger:hover {
+        border-color: var(--glass-border);
+        color: var(--text-secondary);
+    }
+
+    .billing-transactions-filter-item:hover {
+        background: transparent;
+    }
+}
