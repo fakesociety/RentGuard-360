@@ -15,6 +15,7 @@ const AnalysisResults = ({
     contractViewRef,
     contractEditState,
     setContractEditState,
+    editedClauses,
     setEditedClauses,
     handleSaveToCloud,
     copyTextToClipboard,
@@ -216,7 +217,7 @@ const AnalysisResults = ({
                     backendClauses={analysis?.clauses_list || analysis?.clauses || []}
                     issues={issues}
                     contractId={analysis?.contractId || contractId}
-                    initialEditedClauses={analysis?.editedClauses}
+                    initialEditedClauses={editedClauses}
                     onClauseChange={(clauseId, text, action, metadata = {}) => {
                         setEditedClauses(prev => {
                             if (action === 'cleared') {
@@ -243,6 +244,7 @@ const AnalysisResults = ({
                             };
                         });
                     }}
+                    onEditedClausesChange={setEditedClauses}
                     onExportEdited={async (editedClausesMap) => {
                         const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
                         const backendClauses = analysis?.clauses_list || analysis?.clauses || [];

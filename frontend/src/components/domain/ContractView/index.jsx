@@ -67,6 +67,7 @@ const ContractView = forwardRef(({
     onClauseChange,
     onSaveToCloud,
     onEditStateChange,
+    onEditedClausesChange,
 }, ref) => {
     const { t, isRTL } = useLanguage();
     const [editedClauses, setEditedClauses] = useState(() => initialEditedClauses || {});
@@ -170,18 +171,21 @@ const containerRef = useRef(null);
     const lastReportedEditStateRef = useRef('');
 
     useEffect(() => {
-        // If initialEditedClauses is provided (e.g. from backend analysis fetch), override local state initially
-        if (initialEditedClauses && Object.keys(initialEditedClauses).length > 0) {
-            // Ensure we don't infinitely re-trigger if it hasn't functionally changed
-            const currentStr = JSON.stringify(editedClausesRef.current);
-            const newStr = JSON.stringify(initialEditedClauses);        
-            if (currentStr !== newStr) {
-                editedClausesRef.current = initialEditedClauses;        
-                setEditedClauses(initialEditedClauses);
-                lastCloudSaveSignatureRef.current = newStr;
-            }
+        if (!initialEditedClauses || typeof initialEditedClauses !== 'object') return;
+
+        // Keep local state aligned with parent source-of-truth, including explicit resets to an empty object.
+        const currentStr = JSON.stringify(editedClausesRef.current || {});
+        const newStr = JSON.stringify(initialEditedClauses);
+        if (currentStr !== newStr) {
+            editedClausesRef.current = initialEditedClauses;
+            setEditedClauses(initialEditedClauses);
+            lastCloudSaveSignatureRef.current = newStr;
         }
     }, [initialEditedClauses]);
+
+    useEffect(() => {
+        onEditedClausesChange?.(editedClauses);
+    }, [editedClauses, onEditedClausesChange]);
 
     useEffect(() => {
         if (readOnly || !contractId) return;
@@ -200,10 +204,14 @@ const containerRef = useRef(null);
     }, [contractId, readOnly]);
 
     useEffect(() => {
-        if (readOnly || !contractId || Object.keys(editedClauses).length === 0) return;
+        if (readOnly || !contractId) return;
         const storageKey = `rentguard_edits_${contractId}`;
         try {
-            localStorage.setItem(storageKey, JSON.stringify(editedClauses));
+            if (Object.keys(editedClauses).length === 0) {
+                localStorage.removeItem(storageKey);
+            } else {
+                localStorage.setItem(storageKey, JSON.stringify(editedClauses));
+            }
         } catch (error) {
             console.warn('Failed to save edits:', error);
         }
@@ -219,8 +227,6 @@ const containerRef = useRef(null);
             lastCloudSaveSignatureRef.current = currentEditsSignature;
             return;
         }
-
-        if (Object.keys(editedClauses).length === 0) return;
 
         if (currentEditsSignature === lastCloudSaveSignatureRef.current) return;
 

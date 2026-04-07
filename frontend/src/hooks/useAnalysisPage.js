@@ -48,6 +48,7 @@ export const useAnalysisPage = () => {
     const sharePanelRef = useRef(null);
     const prevSaveStatusRef = useRef(null);
     const lastSavingToastAtRef = useRef(0);
+    const hydratedEditsContractRef = useRef(null);
 
     const showAppToast = useCallback((title, message, options = {}) => {
         const ttlMs = typeof options === 'number' ? options : (options.ttlMs ?? 2600);
@@ -147,6 +148,32 @@ export const useAnalysisPage = () => {
     }, [contractId, pollCount, t]);
 
     useEffect(() => { fetchAnalysis(); }, [fetchAnalysis]);
+
+    useEffect(() => {
+        const currentRouteContractId = contractId || null;
+        if (!currentRouteContractId) return;
+
+        // Reset editor snapshots when navigating to a different contract.
+        if (hydratedEditsContractRef.current && hydratedEditsContractRef.current !== currentRouteContractId) {
+            hydratedEditsContractRef.current = null;
+            setEditedClauses({});
+            setContractEditState({ editedCount: 0, saveStatus: null });
+        }
+    }, [contractId]);
+
+    useEffect(() => {
+        const resolvedContractId = analysis?.contractId || contractId;
+        if (!analysis || !resolvedContractId) return;
+        if (hydratedEditsContractRef.current === resolvedContractId) return;
+
+        const normalizedEditedClauses =
+            analysis?.editedClauses && typeof analysis.editedClauses === 'object'
+                ? analysis.editedClauses
+                : {};
+
+        setEditedClauses(normalizedEditedClauses);
+        hydratedEditsContractRef.current = resolvedContractId;
+    }, [analysis, contractId]);
 
     useEffect(() => {
         if (error?.type === 'processing' && pollCount < MAX_POLL_ATTEMPTS && !USE_MOCK) {

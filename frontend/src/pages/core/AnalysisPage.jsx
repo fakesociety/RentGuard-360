@@ -288,6 +288,7 @@ const AnalysisPage = () => {
                             contractViewRef={contractViewRef}
                             contractEditState={contractEditState}
                             setContractEditState={setContractEditState}
+                            editedClauses={editedClauses}
                             setEditedClauses={setEditedClauses}
                             handleSaveToCloud={handleSaveToCloud}
                             copyTextToClipboard={copyTextToClipboard}

@@ -2,6 +2,7 @@ import React, { lazy } from 'react';
 import { createHashRouter, Navigate } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import { ProtectedRoute, RequireActivePlanRoute } from './components/layout/RouteGuards';
+import RouterErrorElement from './components/ui/RouterErrorElement';
 import { useAuth } from './contexts/AuthContext';
 import { useSubscription } from './contexts/SubscriptionContext';
 
@@ -58,6 +59,7 @@ export const router = createHashRouter([
   {
     path: "/",
     element: <MainLayout />,
+    errorElement: <RouterErrorElement />,
     children: [
       { index: true, element: <LandingPage /> },
       { path: "index.html", element: <LandingPage /> },
