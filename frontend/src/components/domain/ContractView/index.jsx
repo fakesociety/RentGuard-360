@@ -319,6 +319,7 @@ const containerRef = useRef(null);
             const newEdited = { ...editedClauses };
             delete newEdited[confirmRevertId];
             updateEditedClauses(newEdited);
+            onClauseChange?.(confirmRevertId, '', 'reverted');
             if (selectedClause?.id === confirmRevertId) closeEditor();
             setConfirmRevertId(null);
         }
@@ -341,7 +342,7 @@ const containerRef = useRef(null);
                     originalNumber: originalNumber 
                 }
             }));
-            onClauseChange?.(selectedClause.id, editingText.trim(), 'edited');
+            onClauseChange?.(selectedClause.id, editingText.trim(), 'edited', { originalNumber });
             setSaveStatus(null);
         }
         closeEditor();
@@ -392,6 +393,12 @@ const containerRef = useRef(null);
 
     const handleExport = useCallback(async () => {
         try {
+            showAppToast({
+                type: 'warning',
+                title: t('contractView.ocrDisclaimerTitle'),
+                message: t('contractView.ocrDisclaimerBody2'),
+                ttlMs: 5000,
+            });
             showAppToast({ type: 'info', message: t('export.started') });
             const currentEdits = editedClausesRef.current || {};
             const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
@@ -584,6 +591,7 @@ const containerRef = useRef(null);
                         <div className="lf-cv-modal-footer center-footer">
                             <button className="lf-cv-btn-revert" onClick={() => {
                                 updateEditedClauses({});
+                                onClauseChange?.(null, '', 'cleared');
                                 if (contractId) localStorage.removeItem(`rentguard_edits_${contractId}`);
                                 setSaveStatus(null);
                                 setShowClearAllConfirm(false);

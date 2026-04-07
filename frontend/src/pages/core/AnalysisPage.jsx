@@ -24,6 +24,7 @@ import AnalysisResults from './components/AnalysisResults';
 import AnalysisSidebar from './components/AnalysisSidebar';
 import { SharePanel } from './components/AnalysisModals';
 import { exportEditedContract } from '../../services/ContractExportService';
+import { showAppToast as emitAppToast } from '../../utils/toast';
 
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
@@ -51,6 +52,7 @@ const AnalysisPage = () => {
         contractEditState,
         setContractEditState,
         setEditedClauses,
+        _editedClauses: editedClauses,
         contractId,
         contractViewRef,
         sharePanelRef,
@@ -107,69 +109,47 @@ const AnalysisPage = () => {
         return '';
     };
 
-    const waitForContractExportApi = useCallback(
-        () =>
-            new Promise((resolve) => {
-                let attempts = 0;
-                const maxAttempts = 90;
-
-                const checkReady = () => {
-                    const exportApi = contractViewRef.current?.handleExport;
-                    if (typeof exportApi === 'function') {
-                        resolve(exportApi);
-                        return;
-                    }
-
-                    attempts += 1;
-                    if (attempts >= maxAttempts) {
-                        resolve(null);
-                        return;
-                    }
-
-                    requestAnimationFrame(checkReady);
-                };
-
-                checkReady();
-            }),
-        [contractViewRef]
-    );
-
     const handleExportContractWord = useCallback(async () => {
         setShowExportMenu(false);
 
-        if (typeof contractViewRef.current?.handleExport === 'function') {
-            await contractViewRef.current.handleExport();
-            return;
-        }
+        const exportResult = analysis?.analysis_result || analysis;
+        const exportIssues = exportResult?.issues || [];
+        const contractText =
+            analysis?.sanitizedText ||
+            analysis?.full_text ||
+            analysis?.contractText ||
+            analysis?.extracted_text ||
+            '';
+        const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
 
-        const previousTab = activeTab;
-        if (activeTab !== 'contract') {
-            setActiveTab('contract');
-        }
-
-        const exportApi = await waitForContractExportApi();
-
-        if (!exportApi) {
+        if (!String(contractText).trim() && backendClauses.length === 0) {
             showExportNotice(t('analysis.fullContractExportNotReady'));
-            if (previousTab !== 'contract') {
-                setActiveTab(previousTab);
-            }
             return;
         }
 
-        await exportApi();
+        const baseFileName = `${(analysis?.fileName || t('export.defaultContractFilename')).replace(/\.(pdf|docx)$/i, '')}`;
 
-        if (previousTab !== 'contract') {
-            setActiveTab(previousTab);
+        emitAppToast({
+            type: 'warning',
+            title: t('contractView.ocrDisclaimerTitle'),
+            message: t('contractView.ocrDisclaimerBody2'),
+            ttlMs: 5000,
+        });
+        emitAppToast({ type: 'info', message: t('export.started') });
+
+        try {
+            await exportEditedContract(contractText, editedClauses || {}, exportIssues, baseFileName, backendClauses);
+            emitAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Full contract export error:', error);
+            emitAppToast({ type: 'error', message: t('export.error') });
         }
     }, [
-        activeTab,
-        contractViewRef,
-        setActiveTab,
+        analysis,
+        editedClauses,
         setShowExportMenu,
-        t,
         showExportNotice,
-        waitForContractExportApi,
+        t,
     ]);
 
     if (isLoading) {

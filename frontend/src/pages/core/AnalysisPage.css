@@ -754,50 +754,13 @@
 .lf-share-accordion .lf-action-btn:hover:not(:disabled) {
     transform: none;
 }
-
-.lf-ocr-accordion {
-    border: 1px solid rgba(220, 38, 38, 0.32);
-    background: linear-gradient(145deg, rgba(254, 242, 242, 0.96) 0%, rgba(254, 226, 226, 0.86) 100%);
-    box-shadow: 0 12px 26px rgba(185, 28, 28, 0.12);
+.lf-share-accordion.lf-ocr-accordion {
+    border: 1px solid var(--accent-danger);
 }
 
-.lf-ocr-accordion .methodology-toggle {
-    background: transparent;
-}
-
-.lf-ocr-accordion .methodology-toggle:hover {
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.lf-ocr-accordion .toggle-content,
+.lf-ocr-accordion .lf-ocr-accordion-title,
 .lf-ocr-accordion .methodology-chevron {
-    color: #991b1b;
-}
-
-.lf-ocr-accordion .methodology-content {
-    color: #7f1d1d;
-}
-
-.lf-ocr-accordion .methodology-content p {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.68;
-}
-
-.lf-ocr-accordion .methodology-content p + p {
-    margin-top: 0.65rem;
-}
-
-[data-theme="dark"] .lf-ocr-accordion {
-    border-color: rgba(248, 113, 113, 0.48);
-    background: linear-gradient(145deg, rgba(127, 29, 29, 0.46) 0%, rgba(153, 27, 27, 0.28) 100%);
-    box-shadow: 0 10px 28px rgba(239, 68, 68, 0.2);
-}
-
-[data-theme="dark"] .lf-ocr-accordion .toggle-content,
-[data-theme="dark"] .lf-ocr-accordion .methodology-chevron,
-[data-theme="dark"] .lf-ocr-accordion .methodology-content {
-    color: #fee2e2;
+    color: var(--accent-danger);
 }
 
 /* ============================================
