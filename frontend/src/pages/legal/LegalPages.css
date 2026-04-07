@@ -219,10 +219,6 @@
     font-family: inherit;
 }
 
-.toc-btn:hover {
-    background: rgba(5, 150, 105, 0.05);
-}
-
 .toc-btn.active {
     background: var(--bg-inset);
     color: var(--text-primary);
@@ -344,11 +340,6 @@
 [data-theme="dark"] .accordion-icon-box {
     background: rgba(52, 211, 153, 0.15);
     color: #34d399;
-}
-
-.accordion-trigger:hover .accordion-icon-box {
-    background: rgba(5, 150, 105, 0.15);
-    transform: scale(1.05);
 }
 
 .accordion-title {
@@ -508,11 +499,6 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.help-btn:hover {
-    transform: translateY(-2px);
-    background: #ecfdf5;
-}
-
 .help-email {
     font-size: 0.85rem;
     color: #a7f3d0;
@@ -551,23 +537,18 @@
     cursor: text;
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .toc-btn:hover {
-        background: transparent;
+        background: rgba(5, 150, 105, 0.05);
     }
 
     .accordion-trigger:hover .accordion-icon-box {
-        background: rgba(5, 150, 105, 0.08);
-        transform: none;
-    }
-
-    [data-theme="dark"] .accordion-trigger:hover .accordion-icon-box {
-        background: rgba(52, 211, 153, 0.15);
-        transform: none;
+        background: rgba(5, 150, 105, 0.15);
+        transform: scale(1.05);
     }
 
     .help-btn:hover {
-        transform: none;
-        background: #ffffff;
+        transform: translateY(-2px);
+        background: #ecfdf5;
     }
 }

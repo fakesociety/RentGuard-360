@@ -142,17 +142,9 @@
     transition: transform var(--transition-normal);
 }
 
-.pricing-card-wrapper:hover {
-    transform: translateY(-4px);
-}
-
 .pricing-card-wrapper.popular {
     transform: scale(1.04);
     z-index: 2;
-}
-
-.pricing-card-wrapper.popular:hover {
-    transform: scale(1.04) translateY(-4px);
 }
 
 /* Popular Badge */
@@ -357,10 +349,6 @@
         transform: none;
         order: -1;
     }
-
-    .pricing-card-wrapper.popular:hover {
-        transform: translateY(-4px);
-    }
 }
 
 @media (max-width: 640px) {
@@ -373,14 +361,19 @@
     }
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
-    .pricing-card-wrapper,
-    .pricing-card-wrapper.popular {
-        transform: none;
-    }
-
+@media (hover: hover) and (pointer: fine) {
     .pricing-card-wrapper:hover,
     .pricing-card-wrapper.popular:hover {
-        transform: none;
+        transform: translateY(-4px);
+    }
+
+    .pricing-card-wrapper.popular:hover {
+        transform: scale(1.04) translateY(-4px);
+    }
+}
+
+@media (max-width: 900px) and (hover: hover) and (pointer: fine) {
+    .pricing-card-wrapper.popular:hover {
+        transform: translateY(-4px);
     }
 }

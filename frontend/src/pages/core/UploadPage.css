@@ -98,11 +98,6 @@
     transition: all 0.25s ease;
 }
 
-.upload-modern-dropzone:hover {
-    background: rgba(237, 238, 239, 0.78);
-    border-color: rgba(0, 133, 96, 0.65);
-}
-
 .upload-modern-dropzone.dragging {
     border-color: #008560;
     transform: scale(1.01);
@@ -188,12 +183,6 @@
     cursor: pointer;
     background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
     transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.upload-modern-action-btn:hover {
-    background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent-primary) 26%, transparent);
-    transform: scale(1.02);
 }
 
 .upload-modern-action-btn:active {
@@ -456,11 +445,6 @@
     transition: background 0.2s ease, color 0.2s ease;
 }
 
-.upload-modern-delete-btn:hover {
-    background: rgba(255, 218, 214, 0.6);
-    color: #ba1a1a;
-}
-
 .upload-modern-delete-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -562,11 +546,6 @@
     color: #00be82;
 }
 
-[data-theme="dark"] .upload-modern-dropzone:hover {
-    background: rgba(0, 190, 130, 0.18);
-    border-color: #00be82;
-}
-
 .drop-locked-note {
     margin-top: 6px;
     color: #ef4444;
@@ -657,14 +636,6 @@
     box-shadow: none;
 }
 
-.success-upload-another-btn.btn-secondary:hover:not(:disabled) {
-    background: rgba(0, 133, 96, 0.2);
-    color: #004a35;
-    border-color: rgba(0, 133, 96, 0.42);
-    box-shadow: 0 8px 18px rgba(0, 133, 96, 0.2);
-    transform: translateY(-1px);
-}
-
 .success-upload-another-btn.btn-secondary:active:not(:disabled) {
     background: rgba(0, 133, 96, 0.24);
     transform: translateY(0);
@@ -674,11 +645,6 @@
     background: rgba(0, 190, 130, 0.2);
     color: #d9fff0;
     border: 1px solid rgba(0, 190, 130, 0.46);
-}
-
-[data-theme="dark"] .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
-    background: rgba(0, 190, 130, 0.28);
-    color: #effff8;
 }
 
 /* ============================================
@@ -741,10 +707,6 @@
     font-size: inherit;
     padding: 0;
     font-family: inherit;
-}
-
-.terms-link:hover {
-    color: var(--accent-secondary);
 }
 
 .sr-only {
@@ -813,11 +775,6 @@
     padding: var(--space-xs);
     border-radius: var(--radius-sm);
     transition: all 0.15s ease;
-}
-
-.terms-modal-close:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
 }
 
 .terms-modal-content {
@@ -1020,63 +977,48 @@
     color: rgba(255, 255, 255, 0.85);
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .upload-modern-dropzone:hover {
-        background: rgba(243, 244, 245, 0.52);
-        border-color: rgba(0, 133, 96, 0.38);
-        transform: none;
-        box-shadow: none;
+        background: rgba(237, 238, 239, 0.78);
+        border-color: rgba(0, 133, 96, 0.65);
     }
 
     [data-theme="dark"] .upload-modern-dropzone:hover {
-        background: rgba(0, 190, 130, 0.12);
-        border-color: rgba(0, 190, 130, 0.7);
-        transform: none;
-        box-shadow: none;
+        background: rgba(0, 190, 130, 0.18);
+        border-color: #00be82;
     }
 
     .upload-modern-action-btn:hover {
-        background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-        box-shadow: none;
-        transform: none;
-    }
-
-    .upload-modern-action-btn.upload:hover {
-        background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
-    }
-
-    .upload-modern-action-btn.scan:hover {
-        background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+        background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+        box-shadow: 0 8px 22px color-mix(in srgb, var(--accent-primary) 26%, transparent);
+        transform: scale(1.02);
     }
 
     .upload-modern-delete-btn:hover {
-        background: rgba(255, 255, 255, 0.7);
-        color: var(--text-secondary);
+        background: rgba(255, 218, 214, 0.6);
+        color: #ba1a1a;
     }
 
     .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
-        background: rgba(0, 133, 96, 0.14);
-        color: #005d42;
-        border-color: rgba(0, 133, 96, 0.32);
-        box-shadow: none;
-        transform: none;
+        background: rgba(0, 133, 96, 0.2);
+        color: #004a35;
+        border-color: rgba(0, 133, 96, 0.42);
+        box-shadow: 0 8px 18px rgba(0, 133, 96, 0.2);
+        transform: translateY(-1px);
     }
 
     [data-theme="dark"] .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
-        background: rgba(0, 190, 130, 0.2);
-        color: #d9fff0;
-        border-color: rgba(0, 190, 130, 0.46);
-        box-shadow: none;
-        transform: none;
+        background: rgba(0, 190, 130, 0.28);
+        color: #effff8;
     }
 
     .terms-link:hover {
-        color: var(--accent-primary);
+        color: var(--accent-secondary);
     }
 
     .terms-modal-close:hover {
-        color: var(--text-secondary);
-        background: none;
+        color: var(--text-primary);
+        background: var(--bg-tertiary);
     }
 }
 

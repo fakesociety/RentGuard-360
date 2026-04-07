@@ -109,19 +109,6 @@ main:has(.settings-container) {
 }
 
 /* --- HOVER EFFECTS (Matches Dashboard) --- */
-/* Light Mode Hover: Float up + Green Glow */
-.bento-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-    border-color: rgba(0, 105, 82, 0.2);
-}
-
-/* Dark Mode Hover Base */
-[data-theme="dark"] .bento-card:hover {
-    box-shadow: var(--shadow-xl);
-    border-color: var(--glass-border);
-}
-
 /* Dark Mode Glass Sheen (Invisible beam ready to sweep) */
 [data-theme="dark"] .bento-card::before {
     content: '';
@@ -135,12 +122,6 @@ main:has(.settings-container) {
     transition: left 0.6s ease;
     z-index: 1;
 }
-
-/* Dark Mode Hover Sweep */
-[data-theme="dark"] .bento-card:hover::before {
-    left: 200%;
-}
-
 
 /* --- General Card Elements --- */
 .cube-desc {
@@ -166,10 +147,6 @@ main:has(.settings-container) {
     justify-content: center;
     margin-bottom: 1.5rem;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.bento-card:hover .cube-icon-wrapper {
-    transform: scale(1.1) rotate(3deg);
 }
 
 .icon-primary { background: rgba(5, 150, 105, 0.1); color: var(--accent-primary); }
@@ -327,8 +304,6 @@ main:has(.settings-container) {
     font-family: inherit;
 }
 
-.cube-link-btn:hover { text-decoration: underline; }
-
 /* --- 4. Notifications & Tags --- */
 .notification-tip-box {
     display: flex;
@@ -466,13 +441,11 @@ main:has(.settings-container) {
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
-.btn-primary:hover { background: var(--accent-primary-hover); transform: translateY(-1px); }
 
 .btn-danger {
     background: var(--accent-danger);
     color: #ffffff;
 }
-.btn-danger:hover:not(:disabled) { background: #dc2626; transform: translateY(-1px); }
 .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-outline-danger {
@@ -480,17 +453,12 @@ main:has(.settings-container) {
     color: var(--accent-danger);
     border: 2px solid var(--accent-danger);
 }
-.btn-outline-danger:hover {
-    background: var(--accent-danger);
-    color: #ffffff;
-}
 
 .btn-secondary {
     background: var(--bg-inset);
     color: var(--text-primary);
     border: 1px solid var(--glass-border);
 }
-.btn-secondary:hover:not(:disabled) { background: var(--glass-border); }
 
 
 /* =========================================
@@ -535,8 +503,6 @@ main:has(.settings-container) {
     border-radius: 50%;
     transition: background 0.2s;
 }
-
-.modal-close:hover { background: var(--bg-inset); color: var(--text-primary); }
 
 .modal-icon.danger-icon {
     width: 3.5rem;
@@ -621,11 +587,11 @@ main:has(.settings-container) {
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .bento-card:hover {
-        transform: none;
-        box-shadow: var(--shadow-md);
-        border-color: var(--glass-border);
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
+        border-color: rgba(0, 105, 82, 0.2);
     }
 
     [data-theme="dark"] .bento-card:hover {
@@ -634,38 +600,38 @@ main:has(.settings-container) {
     }
 
     [data-theme="dark"] .bento-card:hover::before {
-        left: -150%;
+        left: 200%;
     }
 
     .bento-card:hover .cube-icon-wrapper {
-        transform: none;
+        transform: scale(1.1) rotate(3deg);
     }
 
     .cube-link-btn:hover {
-        text-decoration: none;
+        text-decoration: underline;
     }
 
     .btn-primary:hover {
-        background: var(--accent-primary);
-        transform: none;
+        background: var(--accent-primary-hover);
+        transform: translateY(-1px);
     }
 
     .btn-danger:hover:not(:disabled) {
-        background: var(--accent-danger);
-        transform: none;
+        background: #dc2626;
+        transform: translateY(-1px);
     }
 
     .btn-outline-danger:hover {
-        background: transparent;
-        color: var(--accent-danger);
+        background: var(--accent-danger);
+        color: #ffffff;
     }
 
     .btn-secondary:hover:not(:disabled) {
-        background: var(--bg-inset);
+        background: var(--glass-border);
     }
 
     .modal-close:hover {
-        background: transparent;
-        color: var(--text-secondary);
+        background: var(--bg-inset);
+        color: var(--text-primary);
     }
 }

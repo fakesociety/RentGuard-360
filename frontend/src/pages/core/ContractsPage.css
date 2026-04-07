@@ -141,11 +141,6 @@
     transition: all 0.3s ease;
 }
 
-.lf-btn-upload-hero:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.4);
-}
-
 /* Abstract Background Orbs */
 .lf-hero-orb {
     position: absolute;
@@ -303,11 +298,6 @@
     gap: 0.4rem;
 }
 
-.lf-chip:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-chip.active {
     background: var(--accent-primary);
     color: white;
@@ -368,11 +358,6 @@
     background: var(--glass-bg);
 }
 
-.lf-contract-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-4px);
-}
-
 [data-theme="dark"] .lf-contract-card::before {
     content: '';
     position: absolute;
@@ -383,10 +368,6 @@
     transition: opacity 0.3s ease;
     border-radius: var(--radius-xl);
     z-index: 10;
-}
-
-[data-theme="dark"] .lf-contract-card:hover::before {
-    opacity: 1;
 }
 
 /* Right border color strip (RTL) / Left border (LTR) */
@@ -492,10 +473,6 @@
     transition: color 0.2s ease;
 }
 
-.lf-contract-card:hover .lf-card-title {
-    color: var(--accent-primary);
-}
-
 .lf-card-date {
     display: flex;
     align-items: center;
@@ -519,11 +496,6 @@
     padding: 0.5rem;
     border-radius: 50%;
     transition: background 0.2s;
-}
-
-.lf-menu-trigger:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
 }
 
 .lf-dropdown-menu {
@@ -578,10 +550,6 @@
     text-align: start;
 }
 
-.lf-menu-item:hover:not(:disabled) {
-    background: var(--bg-inset);
-}
-
 .lf-menu-item:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -595,10 +563,6 @@
 
 .lf-danger-text {
     color: var(--accent-danger) !important;
-}
-
-.lf-danger-text:hover {
-    background: rgba(239, 68, 68, 0.1) !important;
 }
 
 /* ============================================
@@ -816,12 +780,6 @@
     box-shadow: var(--shadow-sm);
 }
 
-.lf-btn-view:hover:not(.disabled) {
-    background: var(--accent-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
 .lf-btn-view.disabled {
     background: var(--bg-inset);
     color: var(--text-tertiary);
@@ -844,11 +802,6 @@
     flex-shrink: 0;
 }
 
-.lf-btn-download:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-btn-edit {
     width: 42px;
     height: 42px;
@@ -862,11 +815,6 @@
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
-}
-
-.lf-btn-edit:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
 }
 
 
@@ -940,10 +888,6 @@
     transition: all 0.2s ease;
 }
 
-.lf-btn-upload-empty:hover {
-    background: var(--bg-inset);
-}
-
 /* ============================================
    PAGINATION
    ============================================ */
@@ -973,11 +917,6 @@
     cursor: pointer;
     font-weight: 800;
     transition: all 0.2s;
-}
-
-.lf-page-btn:hover:not(:disabled) {
-    background: var(--accent-primary);
-    color: white;
 }
 
 .lf-page-btn:disabled {
@@ -1081,11 +1020,6 @@
     border-radius: var(--radius-sm);
 }
 
-.lf-modal-close:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-modal-body {
     padding: 1.5rem;
 }
@@ -1150,10 +1084,6 @@
     transition: background 0.2s;
 }
 
-.lf-btn-primary:hover {
-    background: var(--accent-primary-hover);
-}
-
 .lf-btn-danger {
     flex: 1;
     padding: 0.75rem;
@@ -1164,10 +1094,6 @@
     font-weight: 700;
     cursor: pointer;
     transition: background 0.2s;
-}
-
-.lf-btn-danger:hover {
-    background: rgba(239, 68, 68, 0.2);
 }
 
 .lf-btn-cancel {
@@ -1338,78 +1264,78 @@
         padding: 1rem;
     }
 }
-.lf-contract-card:hover, .lf-contract-card:focus-within { z-index: 50; }
+.lf-contract-card:focus-within { z-index: 50; }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .lf-btn-upload-hero:hover {
-        transform: none;
-        box-shadow: none;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(5, 150, 105, 0.4);
     }
 
     .lf-chip:hover {
-        background: var(--bg-page);
-        color: var(--text-secondary);
-    }
-
-    .lf-contract-card:hover {
-        box-shadow: var(--shadow-sm);
-        transform: none;
-        z-index: auto;
-    }
-
-    [data-theme="dark"] .lf-contract-card:hover::before {
-        opacity: 0;
-    }
-
-    .lf-contract-card:hover .lf-card-title {
-        color: var(--text-primary);
-    }
-
-    .lf-menu-trigger:hover {
-        background: transparent;
-        color: var(--text-tertiary);
-    }
-
-    .lf-menu-item:hover:not(:disabled) {
-        background: transparent;
-    }
-
-    .lf-danger-text:hover {
-        background: transparent !important;
-    }
-
-    .lf-btn-view:hover:not(.disabled) {
-        background: var(--accent-primary);
-        transform: none;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .lf-btn-download:hover,
-    .lf-btn-edit:hover {
-        background: transparent;
-        color: var(--text-secondary);
-    }
-
-    .lf-btn-upload-empty:hover {
-        background: var(--bg-card);
-    }
-
-    .lf-page-btn:hover:not(:disabled) {
         background: var(--bg-inset);
         color: var(--text-primary);
     }
 
+    .lf-contract-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+        z-index: 50;
+    }
+
+    [data-theme="dark"] .lf-contract-card:hover::before {
+        opacity: 1;
+    }
+
+    .lf-contract-card:hover .lf-card-title {
+        color: var(--accent-primary);
+    }
+
+    .lf-menu-trigger:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-menu-item:hover:not(:disabled) {
+        background: var(--bg-inset);
+    }
+
+    .lf-danger-text:hover {
+        background: rgba(239, 68, 68, 0.1) !important;
+    }
+
+    .lf-btn-view:hover:not(.disabled) {
+        background: var(--accent-primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .lf-btn-download:hover,
+    .lf-btn-edit:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-btn-upload-empty:hover {
+        background: var(--bg-inset);
+    }
+
+    .lf-page-btn:hover:not(:disabled) {
+        background: var(--accent-primary);
+        color: white;
+    }
+
     .lf-modal-close:hover {
-        background: none;
-        color: var(--text-tertiary);
+        background: var(--bg-inset);
+        color: var(--text-primary);
     }
 
     .lf-btn-primary:hover {
-        background: var(--accent-primary);
+        background: var(--accent-primary-hover);
     }
 
     .lf-btn-danger:hover {
-        background: rgba(239, 68, 68, 0.1);
+        background: rgba(239, 68, 68, 0.2);
     }
 }
 

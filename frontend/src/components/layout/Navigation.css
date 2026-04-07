@@ -146,16 +146,6 @@
     border-bottom: 2px solid transparent;
 }
 
-.nav-link:hover {
-    color: #24343c;
-    border-bottom-color: rgba(0, 138, 109, 0.32);
-}
-
-[data-theme="dark"] .nav-link:hover {
-    color: #d5e7e4;
-    border-bottom-color: rgba(115, 220, 198, 0.45);
-}
-
 .nav-link.active {
     color: #008A6D;
     border-bottom-color: #008A6D;
@@ -208,11 +198,6 @@
     cursor: pointer;
     transition: transform 0.2s ease, background 0.2s ease;
     direction: ltr;
-}
-
-.scan-badge:hover {
-    transform: scale(1.05);
-    background: #0d6a58;
 }
 
 .scan-badge svg {
@@ -307,20 +292,10 @@
     transition: all var(--transition-fast);
 }
 
-.profile-button:hover {
-    background: #ffffff;
-    border-color: #008A6D;
-}
-
 [data-theme="dark"] .profile-button {
     background: rgba(21, 38, 43, 0.92);
     border-color: rgba(133, 188, 178, 0.28);
     color: #d2e4e1;
-}
-
-[data-theme="dark"] .profile-button:hover {
-    background: rgba(24, 46, 50, 0.98);
-    border-color: rgba(143, 235, 209, 0.42);
 }
 
 .profile-avatar {
@@ -434,16 +409,8 @@
     transition: background var(--transition-fast);
 }
 
-.profile-menu-item:hover {
-    background: var(--bg-tertiary);
-}
-
 [data-theme="dark"] .profile-menu-item {
     color: #d5e8e5;
-}
-
-[data-theme="dark"] .profile-menu-item:hover {
-    background: rgba(130, 183, 176, 0.14);
 }
 
 .profile-menu-item.logout {
@@ -548,11 +515,6 @@
     transition: background var(--transition-fast);
 }
 
-.mobile-menu-link:hover,
-.mobile-menu-link.active {
-    background: var(--bg-tertiary);
-}
-
 .mobile-menu-link.active {
     color: var(--accent-primary);
     background: rgba(16, 185, 129, 0.1);
@@ -562,7 +524,6 @@
     color: #d5e8e5;
 }
 
-[data-theme="dark"] .mobile-menu-link:hover,
 [data-theme="dark"] .mobile-menu-link.active {
     background: rgba(130, 183, 176, 0.16);
     color: #9af3d7;
@@ -602,16 +563,6 @@
     background-size: 220% 100%;
     background-position: 0% 50%;
     border-color: rgba(5, 150, 105, 0.35);
-}
-
-.nav-container.nav-landing.is-public .auth-btn:hover {
-    color: #ffffff;
-    border-color: transparent;
-    background: linear-gradient(120deg, #0d9488 0%, #059669 55%, #16a34a 100%);
-    background-size: 220% 100%;
-    background-position: 100% 50%;
-    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.22);
-    transform: translateY(-1px);
 }
 
 .mobile-auth-btn {
@@ -895,64 +846,57 @@
     }
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .nav-link:hover {
-        color: var(--text-primary);
-        border-bottom-color: transparent;
+        color: #24343c;
+        border-bottom-color: rgba(0, 138, 109, 0.32);
     }
 
     [data-theme="dark"] .nav-link:hover {
-        color: var(--text-primary);
-        border-bottom-color: transparent;
+        color: #d5e7e4;
+        border-bottom-color: rgba(115, 220, 198, 0.45);
     }
 
     .scan-badge:hover {
-        transform: none;
-        background: #008A6D;
+        transform: scale(1.05);
+        background: #0d6a58;
     }
 
     .profile-button:hover {
-        background: rgba(247, 252, 250, 0.9);
-        border-color: rgba(81, 120, 121, 0.17);
+        background: #ffffff;
+        border-color: #008A6D;
     }
 
     [data-theme="dark"] .profile-button:hover {
-        background: rgba(21, 38, 43, 0.92);
-        border-color: rgba(133, 188, 178, 0.28);
+        background: rgba(24, 46, 50, 0.98);
+        border-color: rgba(143, 235, 209, 0.42);
     }
 
     .profile-menu-item:hover,
     [data-theme="dark"] .profile-menu-item:hover {
-        background: none;
+        background: var(--bg-tertiary);
+    }
+
+    [data-theme="dark"] .profile-menu-item:hover {
+        background: rgba(130, 183, 176, 0.14);
     }
 
     .mobile-menu-link:hover:not(.active) {
-        background: none;
-        color: var(--text-primary);
+        background: var(--bg-tertiary);
     }
 
     [data-theme="dark"] .mobile-menu-link:hover:not(.active) {
-        background: none;
-        color: #d5e8e5;
+        background: rgba(130, 183, 176, 0.16);
+        color: #9af3d7;
     }
 
     .nav-container.nav-landing.is-public .auth-btn:hover {
-        color: var(--text-primary);
-        border-color: rgba(5, 150, 105, 0.35);
-        background: transparent;
+        color: #ffffff;
+        border-color: transparent;
+        background: linear-gradient(120deg, #0d9488 0%, #059669 55%, #16a34a 100%);
         background-size: 220% 100%;
-        background-position: 0% 50%;
-        box-shadow: none;
-        transform: none;
-    }
-
-    [data-theme="dark"] .nav-container.nav-landing.is-public .auth-btn:hover {
-        color: #e2e8f0;
-        border-color: rgba(255, 255, 255, 0.1);
-        background: transparent;
-        background-size: 220% 100%;
-        background-position: 0% 50%;
-        box-shadow: none;
-        transform: none;
+        background-position: 100% 50%;
+        box-shadow: 0 8px 20px rgba(5, 150, 105, 0.22);
+        transform: translateY(-1px);
     }
 }

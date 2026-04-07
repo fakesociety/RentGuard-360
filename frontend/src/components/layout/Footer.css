@@ -111,10 +111,6 @@
     transition: color 0.2s ease;
 }
 
-.footer-link:hover {
-    color: #ffffff;
-}
-
 /* ==========================================================================
  * 5. Bottom Section
  * ========================================================================== */
@@ -156,20 +152,12 @@
     font-weight: 600;
 }
 
-.footer-creators a:hover {
-    text-decoration: underline;
-}
-
 .footer-github-link {
     color: rgba(255, 255, 255, 0.7);
     display: flex;
     align-items: center;
     margin-inline-start: 0.5rem;
     transition: color 0.2s ease;
-}
-
-.footer-github-link:hover {
-    color: #ffffff;
 }
 
 .footer-copy {
@@ -191,16 +179,16 @@
     justify-content: flex-start;
 }
 
-@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+@media (hover: hover) and (pointer: fine) {
     .footer-link:hover {
-        color: rgba(255, 255, 255, 0.7);
+        color: #ffffff;
     }
 
     .footer-creators a:hover {
-        text-decoration: none;
+        text-decoration: underline;
     }
 
     .footer-github-link:hover {
-        color: rgba(255, 255, 255, 0.7);
+        color: #ffffff;
     }
 }
