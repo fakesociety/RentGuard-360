@@ -894,3 +894,65 @@
         font-size: 1rem;
     }
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .nav-link:hover {
+        color: var(--text-primary);
+        border-bottom-color: transparent;
+    }
+
+    [data-theme="dark"] .nav-link:hover {
+        color: var(--text-primary);
+        border-bottom-color: transparent;
+    }
+
+    .scan-badge:hover {
+        transform: none;
+        background: #008A6D;
+    }
+
+    .profile-button:hover {
+        background: rgba(247, 252, 250, 0.9);
+        border-color: rgba(81, 120, 121, 0.17);
+    }
+
+    [data-theme="dark"] .profile-button:hover {
+        background: rgba(21, 38, 43, 0.92);
+        border-color: rgba(133, 188, 178, 0.28);
+    }
+
+    .profile-menu-item:hover,
+    [data-theme="dark"] .profile-menu-item:hover {
+        background: none;
+    }
+
+    .mobile-menu-link:hover:not(.active) {
+        background: none;
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .mobile-menu-link:hover:not(.active) {
+        background: none;
+        color: #d5e8e5;
+    }
+
+    .nav-container.nav-landing.is-public .auth-btn:hover {
+        color: var(--text-primary);
+        border-color: rgba(5, 150, 105, 0.35);
+        background: transparent;
+        background-size: 220% 100%;
+        background-position: 0% 50%;
+        box-shadow: none;
+        transform: none;
+    }
+
+    [data-theme="dark"] .nav-container.nav-landing.is-public .auth-btn:hover {
+        color: #e2e8f0;
+        border-color: rgba(255, 255, 255, 0.1);
+        background: transparent;
+        background-size: 220% 100%;
+        background-position: 0% 50%;
+        box-shadow: none;
+        transform: none;
+    }
+}

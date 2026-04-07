@@ -1020,3 +1020,63 @@
     color: rgba(255, 255, 255, 0.85);
 }
 
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .upload-modern-dropzone:hover {
+        background: rgba(243, 244, 245, 0.52);
+        border-color: rgba(0, 133, 96, 0.38);
+        transform: none;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] .upload-modern-dropzone:hover {
+        background: rgba(0, 190, 130, 0.12);
+        border-color: rgba(0, 190, 130, 0.7);
+        transform: none;
+        box-shadow: none;
+    }
+
+    .upload-modern-action-btn:hover {
+        background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+        box-shadow: none;
+        transform: none;
+    }
+
+    .upload-modern-action-btn.upload:hover {
+        background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+    }
+
+    .upload-modern-action-btn.scan:hover {
+        background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    }
+
+    .upload-modern-delete-btn:hover {
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
+    }
+
+    .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
+        background: rgba(0, 133, 96, 0.14);
+        color: #005d42;
+        border-color: rgba(0, 133, 96, 0.32);
+        box-shadow: none;
+        transform: none;
+    }
+
+    [data-theme="dark"] .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
+        background: rgba(0, 190, 130, 0.2);
+        color: #d9fff0;
+        border-color: rgba(0, 190, 130, 0.46);
+        box-shadow: none;
+        transform: none;
+    }
+
+    .terms-link:hover {
+        color: var(--accent-primary);
+    }
+
+    .terms-modal-close:hover {
+        color: var(--text-secondary);
+        background: none;
+    }
+}
+

@@ -620,3 +620,52 @@ main:has(.settings-container) {
     from { opacity: 0; transform: translateY(20px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .bento-card:hover {
+        transform: none;
+        box-shadow: var(--shadow-md);
+        border-color: var(--glass-border);
+    }
+
+    [data-theme="dark"] .bento-card:hover {
+        box-shadow: var(--shadow-xl);
+        border-color: var(--glass-border);
+    }
+
+    [data-theme="dark"] .bento-card:hover::before {
+        left: -150%;
+    }
+
+    .bento-card:hover .cube-icon-wrapper {
+        transform: none;
+    }
+
+    .cube-link-btn:hover {
+        text-decoration: none;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-primary);
+        transform: none;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+        background: var(--accent-danger);
+        transform: none;
+    }
+
+    .btn-outline-danger:hover {
+        background: transparent;
+        color: var(--accent-danger);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--bg-inset);
+    }
+
+    .modal-close:hover {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+}

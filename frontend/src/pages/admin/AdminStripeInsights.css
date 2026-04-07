@@ -549,3 +549,14 @@
     }
 
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .stripe-kpi-card:hover {
+        border-color: var(--admin-card-border);
+        transform: none;
+    }
+
+    .table-wrap tbody tr:hover {
+        background: transparent;
+    }
+}

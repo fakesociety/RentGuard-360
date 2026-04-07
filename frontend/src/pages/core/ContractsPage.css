@@ -1340,3 +1340,76 @@
 }
 .lf-contract-card:hover, .lf-contract-card:focus-within { z-index: 50; }
 
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .lf-btn-upload-hero:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .lf-chip:hover {
+        background: var(--bg-page);
+        color: var(--text-secondary);
+    }
+
+    .lf-contract-card:hover {
+        box-shadow: var(--shadow-sm);
+        transform: none;
+        z-index: auto;
+    }
+
+    [data-theme="dark"] .lf-contract-card:hover::before {
+        opacity: 0;
+    }
+
+    .lf-contract-card:hover .lf-card-title {
+        color: var(--text-primary);
+    }
+
+    .lf-menu-trigger:hover {
+        background: transparent;
+        color: var(--text-tertiary);
+    }
+
+    .lf-menu-item:hover:not(:disabled) {
+        background: transparent;
+    }
+
+    .lf-danger-text:hover {
+        background: transparent !important;
+    }
+
+    .lf-btn-view:hover:not(.disabled) {
+        background: var(--accent-primary);
+        transform: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .lf-btn-download:hover,
+    .lf-btn-edit:hover {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+
+    .lf-btn-upload-empty:hover {
+        background: var(--bg-card);
+    }
+
+    .lf-page-btn:hover:not(:disabled) {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-modal-close:hover {
+        background: none;
+        color: var(--text-tertiary);
+    }
+
+    .lf-btn-primary:hover {
+        background: var(--accent-primary);
+    }
+
+    .lf-btn-danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+}
+

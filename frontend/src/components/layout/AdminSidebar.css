@@ -423,3 +423,28 @@
         padding: 12px 10px;
     }
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .sidebar-logo:hover {
+        opacity: 1;
+    }
+
+    .back-link:hover,
+    .admin-sidebar.light .back-link:hover {
+        background: transparent;
+        color: var(--text-tertiary);
+    }
+
+    .sidebar-nav-item:hover,
+    .admin-sidebar.light .sidebar-nav-item:hover {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+
+    .sidebar-footer-btn:hover,
+    .admin-sidebar.light .sidebar-footer-btn:hover,
+    .sidebar-footer-btn.logout-btn:hover {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+}

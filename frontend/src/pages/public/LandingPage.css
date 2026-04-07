@@ -887,7 +887,6 @@
 .card-gauge svg {
     width: 100%;
     height: 100%;
-    transform: rotate(-90deg);
 }
 
 .card-gauge span {
@@ -1780,7 +1779,7 @@
     }
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
     .landing-real .landing-cta-btn,
     .landing-real .landing-cta-btn-large,
     .landing-real .auth-modal-close,
@@ -1806,34 +1805,80 @@
         background-position: 0% 50%;
         filter: none;
         transform: none;
+    }
+
+    .landing-real .landing-cta-btn:hover {
         box-shadow: none;
     }
 
+    .landing-real .landing-cta-btn-large:hover {
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+    }
+
     .landing-real .auth-modal-close:hover {
-        background: var(--bg-hover);
-        color: var(--text-secondary);
+        background: var(--bg-inset);
+        border-color: var(--glass-border);
+        color: var(--text-tertiary);
     }
 
     .landing-real .auth-social-btn:hover {
-        background: var(--bg-inset);
+        background: var(--bg-tertiary);
         border-color: var(--glass-border);
         transform: none;
     }
 
-    .landing-real .mockup-dashboard-real:hover,
-    [data-theme="dark"] .landing-real .mockup-dashboard-real:hover,
-    .landing-real .mock-upload-zone:hover,
-    [data-theme="dark"] .landing-real .mock-upload-zone:hover,
-    .landing-real .benefits-carousel:hover,
-    [data-theme="dark"] .landing-real .benefits-carousel:hover,
+    .landing-real .mockup-dashboard-real:hover {
+        transform: rotateY(-3deg) rotateX(2deg);
+        box-shadow: 0 20px 50px rgba(25, 28, 29, 0.08);
+    }
+
+    [data-theme="dark"] .landing-real .mockup-dashboard-real:hover {
+        transform: rotateY(-3deg) rotateX(2deg);
+        box-shadow: 0 20px 50px rgba(25, 28, 29, 0.08);
+    }
+
+    .landing-real .mock-upload-zone:hover {
+        border-color: rgba(0, 133, 96, 0.38);
+        background: rgba(243, 244, 245, 0.52);
+        transform: none;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] .landing-real .mock-upload-zone:hover {
+        border-color: rgba(0, 190, 130, 0.7);
+        background: rgba(0, 190, 130, 0.12);
+        transform: none;
+        box-shadow: none;
+    }
+
+    .landing-real .benefits-carousel:hover {
+        border-color: var(--glass-border);
+        box-shadow: var(--shadow-lg);
+        transform: none;
+    }
+
+    [data-theme="dark"] .landing-real .benefits-carousel:hover {
+        border-color: var(--glass-border);
+        box-shadow: var(--shadow-lg);
+        transform: none;
+    }
+
     .landing-real .mock-contract-card:hover,
     [data-theme="dark"] .landing-real .mock-contract-card:hover,
     .landing-real .mockup-viewer-real:hover,
     [data-theme="dark"] .landing-real .mockup-viewer-real:hover,
-    .landing-real .modal-close-btn:hover,
     .landing-real .mock-score-circle-svg:hover {
         transform: none;
-        box-shadow: var(--shadow-md);
+    }
+
+    .landing-real .mock-contract-card:hover,
+    [data-theme="dark"] .landing-real .mock-contract-card:hover {
+        box-shadow: none;
+    }
+
+    .landing-real .mockup-viewer-real:hover,
+    [data-theme="dark"] .landing-real .mockup-viewer-real:hover {
+        box-shadow: 0 20px 50px rgba(25, 28, 29, 0.08);
     }
 
     .landing-real .benefits-carousel:hover .carousel-icon,
@@ -1853,11 +1898,29 @@
         background: transparent;
     }
 
+    .landing-real .carousel-arrow:hover {
+        background: var(--bg-inset);
+        color: var(--text-secondary);
+        border-color: var(--glass-border);
+    }
+
+    .landing-real .carousel-dot:hover {
+        background: var(--text-quaternary);
+    }
+
     .landing-real .mock-contract-card:hover::after {
-        opacity: 0;
+        width: 0;
     }
 
     [data-theme="dark"] .landing-real .mock-contract-card:hover::before {
         left: -150%;
+    }
+
+    .landing-real .modal-close-btn:hover {
+        background: var(--bg-inset);
+        color: var(--text-secondary);
+        border-color: var(--glass-border);
+        transform: none;
+        box-shadow: none;
     }
 }

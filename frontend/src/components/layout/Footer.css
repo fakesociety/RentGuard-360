@@ -190,3 +190,17 @@
 [dir="rtl"] .footer-nav {
     justify-content: flex-start;
 }
+
+@media (hover: none), (any-hover: none), (pointer: coarse), (any-pointer: coarse) {
+    .footer-link:hover {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .footer-creators a:hover {
+        text-decoration: none;
+    }
+
+    .footer-github-link:hover {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
