@@ -7,7 +7,8 @@ import {
     Sparkles,
     Pen,
     ChevronDown,
-    ChevronLeft
+    ChevronLeft,
+    Undo2
 } from 'lucide-react';
 import RecommendationCard from '../RecommendationCard';
 
@@ -36,6 +37,9 @@ const ClauseRow = ({
         }
     };
 
+    const isRecommendationApplied = !!editedClauses[clause.id] && 
+        (editedClauses[clause.id].action === 'accepted' || editedClauses[clause.id].text === clause.issue?.suggested_fix);
+
     return (
         <div className="lf-cv-clause-row">
             {/* Issue indicator */}
@@ -51,25 +55,23 @@ const ClauseRow = ({
                 className={`lf-cv-clause-box ${clause.hasIssue ? 'has-issue' : ''} ${clause.isEdited ? 'is-edited' : ''} ${readOnly ? 'read-only' : ''}`}
                 onClick={readOnly ? undefined : () => openEditor(clause)}
             >
-                <div className="lf-cv-clause-text-area">
+                <div className="lf-cv-clause-text-area" dir="rtl">
                     <p className="lf-cv-clause-text" dir="rtl">
                         {getClauseText(clause)}
                     </p>
 
-                    {!readOnly && (
+                    {!readOnly && !clauseExplanations[clause.id] && (
                         <div className="lf-cv-clause-actions no-print">
-                            {!clauseExplanations[clause.id] && (
-                                <button
-                                    className="lf-cv-action-btn consult-btn"
-                                    onClick={(e) => handleConsultClause(clause, e)}
-                                    disabled={consultingClauseId === clause.id}
-                                    title={t('contractView.getClauseExplanation')}
-                                >
-                                    {consultingClauseId === clause.id 
-                                        ? <Loader2 className="spin" size={16} /> 
-                                        : <Sparkles size={16} />}
-                                </button>
-                            )}
+                            <button
+                                className="lf-cv-action-btn consult-btn"
+                                onClick={(e) => handleConsultClause(clause, e)}
+                                disabled={consultingClauseId === clause.id}
+                                title={t('contractView.getClauseExplanation')}
+                            >
+                                {consultingClauseId === clause.id 
+                                    ? <Loader2 className="spin" size={16} /> 
+                                    : <Sparkles size={16} />}
+                            </button>
                         </div>
                     )}
                 </div>
@@ -78,6 +80,20 @@ const ClauseRow = ({
                 {!readOnly && (
                     <div className="lf-cv-hover-hint no-print">
                         <Pen size={14} /> {t('contractView.edit')}
+                    </div>
+                )}
+
+                {/* Manual Edit Footer Actions */}
+                {!readOnly && clause.isEdited && !isRecommendationApplied && (
+                    <div className="lf-cv-clause-edit-footer no-print">
+                        <button
+                            className="lf-cv-action-btn revert-btn"
+                            onClick={(e) => requestRevert(clause.id, e)}
+                            title={t('contractView.revertToOriginal')}
+                        >
+                            <Undo2 size={16} />
+                            <span>{t('contractView.revertToOriginal')}</span>
+                        </button>
                     </div>
                 )}
             </div>
@@ -107,7 +123,7 @@ const ClauseRow = ({
                     <RecommendationCard
                         title={t('contractView.fixSuggestion')}
                         suggestion={clause.issue.suggested_fix}
-                        isApplied={!!editedClauses[clause.id]}
+                        isApplied={isRecommendationApplied}
                         onApply={() => {
                             updateEditedClauses(prev => ({
                                 ...prev,

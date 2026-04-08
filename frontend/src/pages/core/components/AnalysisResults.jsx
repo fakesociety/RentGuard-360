@@ -219,30 +219,7 @@ const AnalysisResults = ({
                     contractId={analysis?.contractId || contractId}
                     initialEditedClauses={editedClauses}
                     onClauseChange={(clauseId, text, action, metadata = {}) => {
-                        setEditedClauses(prev => {
-                            if (action === 'cleared') {
-                                return {};
-                            }
-
-                            if (action === 'reverted') {
-                                if (!clauseId) return prev;
-                                const next = { ...prev };
-                                delete next[clauseId];
-                                return next;
-                            }
-
-                            if (!clauseId) return prev;
-
-                            return {
-                                ...prev,
-                                [clauseId]: {
-                                    ...(prev?.[clauseId] || {}),
-                                    ...metadata,
-                                    text,
-                                    action,
-                                },
-                            };
-                        });
+                        // State updates are handled upstream via onEditedClausesChange.
                     }}
                     onEditedClausesChange={setEditedClauses}
                     onExportEdited={async (editedClausesMap) => {

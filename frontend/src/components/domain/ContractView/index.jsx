@@ -169,9 +169,13 @@ const containerRef = useRef(null);
     const saveStatusTimeoutRef = useRef(null);
     const lastCloudSaveSignatureRef = useRef('');
     const lastReportedEditStateRef = useRef('');
+    const lastPushedEditsRef = useRef(initialEditedClauses);
 
     useEffect(() => {
         if (!initialEditedClauses || typeof initialEditedClauses !== 'object') return;
+
+        // If the parent is passing back exactly what we just emitted, ignore it to prevent infinite loops.
+        if (initialEditedClauses === lastPushedEditsRef.current) return;
 
         // Keep local state aligned with parent source-of-truth, including explicit resets to an empty object.
         const currentStr = JSON.stringify(editedClausesRef.current || {});
@@ -184,6 +188,7 @@ const containerRef = useRef(null);
     }, [initialEditedClauses]);
 
     useEffect(() => {
+        lastPushedEditsRef.current = editedClauses;
         onEditedClausesChange?.(editedClauses);
     }, [editedClauses, onEditedClausesChange]);
 
