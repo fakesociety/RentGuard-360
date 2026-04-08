@@ -204,10 +204,9 @@
 .lf-cv-clause-actions {
     display: flex;
     gap: 0.5rem;
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.2s ease;
 }
-.lf-cv-clause-box:hover .lf-cv-clause-actions { opacity: 1; }
 
 .lf-cv-action-btn {
     width: 32px;
@@ -223,6 +222,31 @@
 .lf-cv-action-btn.consult-btn { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
 .lf-cv-action-btn.consult-btn:hover:not(:disabled) { background: #0ea5e9; color: white; transform: scale(1.1); }
 .lf-cv-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.lf-cv-action-btn.revert-btn {
+    width: auto;
+    border-radius: var(--radius-full);
+    padding: 0 0.8rem;
+    gap: 0.4rem;
+    background: rgba(239, 68, 68, 0.08); /* Light red */
+    color: var(--accent-danger, #ef4444);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.lf-cv-action-btn.revert-btn:hover:not(:disabled) {
+    background: var(--accent-danger, #ef4444);
+    color: white;
+    transform: scale(1.05);
+}
+
+.lf-cv-clause-edit-footer {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px dashed rgba(16, 185, 129, 0.4); /* Green dashed divider */
+    direction: rtl; /* Lock to match contract text direction */
+}
 
 /* Hover Edit Hint */
 .lf-cv-hover-hint {
@@ -241,7 +265,10 @@
     pointer-events: none;
 }
 [dir="rtl"] .lf-cv-hover-hint { right: auto; left: -4rem; }
-.lf-cv-clause-box:hover .lf-cv-hover-hint { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) {
+    .lf-cv-clause-box:hover .lf-cv-hover-hint { opacity: 1; }
+}
 
 /* ===== AI Explanation Box ===== */
 .lf-cv-ai-explanation {
@@ -590,7 +617,6 @@
         margin-bottom: 1rem;
     }
     
-    /* Fix Scroll FAB going off screen */
     .lf-cv-scroll-fab {
         margin-left: 0;
         margin-right: 0;
