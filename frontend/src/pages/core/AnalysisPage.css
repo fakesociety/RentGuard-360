@@ -1305,12 +1305,20 @@
     }
 
     [dir="rtl"] .lf-header-content {
-        align-items: flex-end;
+        align-items: stretch;
         text-align: right;
     }
 
+    .lf-header-text {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
     .lf-header-actions {
-        display: none;
+        width: 100%;
+        justify-content: flex-start;
+        margin-bottom: 0.5rem;
+        order: -1; /* Keep back button at the top on mobile */
     }
 
     .lf-bento-grid {

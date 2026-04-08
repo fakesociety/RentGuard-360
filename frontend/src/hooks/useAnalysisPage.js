@@ -333,22 +333,30 @@ export const useAnalysisPage = () => {
 
     const handleShareLinkViaApps = useCallback(async () => {
         if (!shareLink) return;
+        if (window._isSharingModalOpen) return;
+        window._isSharingModalOpen = true;
+
+        const resetLock = () => { setTimeout(() => { window._isSharingModalOpen = false; }, 800); };
+
         if (!navigator?.share) {
             await handleManualCopyShareLink();
+            resetLock();
             return;
         }
-        setIsSharingLink(true);
         try {
-            await navigator.share({ title: t('analysis.shareNativeTitle'), text: t('analysis.shareNativeText'), url: shareLink });
+            await navigator.share({
+                title: t('analysis.shareNativeTitle') || 'Contract Analysis',
+                url: shareLink
+            });
+            resetLock();
         } catch (err) {
+            resetLock();
             if (err?.name !== 'AbortError') {
                 console.error('Failed to share link via apps', err);
-                showExportNotice(t('analysis.shareFailed'));
+                await handleManualCopyShareLink();
             }
-        } finally {
-            setIsSharingLink(false);
         }
-    }, [handleManualCopyShareLink, shareLink, showExportNotice, t]);
+    }, [handleManualCopyShareLink, shareLink, t]);
 
     const handleRevokeShareLink = useCallback(async () => {
         const shareContractId = analysis?.contractId || contractId;
