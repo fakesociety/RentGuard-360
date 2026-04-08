@@ -106,6 +106,13 @@ main:has(.settings-container) {
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .bento-card h3 {
+        text-align: start;
+    }
 }
 
 /* --- HOVER EFFECTS (Matches Dashboard) --- */
@@ -129,12 +136,20 @@ main:has(.settings-container) {
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .cube-desc {
+        text-align: start;
+    }
 }
 
 .flex-between {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    height: 100%;
 }
 
 /* --- Icons --- */
@@ -145,8 +160,14 @@ main:has(.settings-container) {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    margin: 0 auto 1.5rem auto;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 768px) {
+    .cube-icon-wrapper {
+        margin: 0 0 1.5rem 0;
+    }
 }
 
 .icon-primary { background: rgba(5, 150, 105, 0.1); color: var(--accent-primary); }
@@ -166,10 +187,22 @@ main:has(.settings-container) {
     gap: 2rem;
 }
 
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
 @media (min-width: 768px) {
     .profile-cube {
         flex-direction: row;
-        text-align: inherit; 
+        text-align: start;
+    }
+
+    .profile-actions {
+        justify-content: flex-start;
     }
 }
 
@@ -258,12 +291,19 @@ main:has(.settings-container) {
 .fake-credit-card {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     background: var(--bg-inset);
     padding: 1rem;
     border-radius: var(--radius-md);
     margin-top: 1rem;
     border: 1px solid var(--glass-border);
+}
+
+@media (min-width: 768px) {
+    .fake-credit-card {
+        justify-content: flex-start;
+    }
 }
 
 [data-theme="dark"] .fake-credit-card {
@@ -299,15 +339,24 @@ main:has(.settings-container) {
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0;
     font-family: inherit;
+}
+
+@media (min-width: 768px) {
+    .cube-link-btn {
+        justify-content: flex-start;
+    }
 }
 
 /* --- 4. Notifications & Tags --- */
 .notification-tip-box {
     display: flex;
     align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 8px;
     font-size: 0.85rem;
     color: var(--accent-primary);
@@ -317,12 +366,26 @@ main:has(.settings-container) {
     margin-top: 1rem;
 }
 
+@media (min-width: 768px) {
+    .notification-tip-box {
+        justify-content: flex-start;
+        text-align: start;
+    }
+}
+
 [data-theme="dark"] .notification-tip-box { color: #6ee7b7; background: rgba(52, 211, 153, 0.15); }
 
 .cube-tags {
     display: flex;
+    justify-content: center;
     gap: 8px;
     margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .cube-tags {
+        justify-content: flex-start;
+    }
 }
 
 .tag {
@@ -386,6 +449,8 @@ main:has(.settings-container) {
     border: 1px solid rgba(239, 68, 68, 0.2);
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 2rem;
 }
 
@@ -394,13 +459,22 @@ main:has(.settings-container) {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+        text-align: start;
     }
 }
 
 .danger-info {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .danger-info {
+        flex-direction: row;
+        gap: 1.5rem;
+    }
 }
 
 .danger-title {
@@ -418,6 +492,13 @@ main:has(.settings-container) {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .danger-actions {
+        justify-content: flex-start;
+    }
 }
 
 /* --- Standard Buttons inside Bento --- */

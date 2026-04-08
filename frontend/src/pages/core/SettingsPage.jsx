@@ -114,7 +114,7 @@ const SettingsPage = () => {
         <p className="profile-email">{userAttributes?.email}</p>
         
         {/* ADDED LOGOUT HERE */}
-        <div className="profile-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'inherit' }}>
+        <div className="profile-actions">
             <button className="btn-secondary" onClick={handleLogout}>
                 <LogOut size={16} />
                 {t('nav.logout')}

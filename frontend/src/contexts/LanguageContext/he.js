@@ -201,55 +201,55 @@ export const he = {
         "registerPromptButton": "הרשמה חינם",
         "registerPromptNoCard": "ללא צורך בכרטיס אשראי"
     },
-            mockups: {
-            dashboard: {
-                navDashboard: 'לוח בקרה',
-                navContracts: 'חוזים',
-                uploadTitle: 'העלאת חוזה שכירות',
-                uploadHint: 'פורמט PDF, עד 10MB',
-                selectFile: 'בחירת קובץ',
-                recentContracts: 'פעילות חוזים אחרונה',
-                fileNameApartment: 'חוזה_דירה_תל_אביב.pdf',
-                fileNameOffice: 'חוזה_משרד.pdf',
-                scoreApartment: '92',
-                scoreOffice: '58'
-            },
-            contracts: {
-                analyzedPrefix: 'נותח:',
-                lowRisk: 'סיכון נמוך',
-                mediumRisk: 'סיכון בינוני',
-                highRisk: 'סיכון גבוה',
-                propertyAddressLabel: 'כתובת הנכס:',
-                landlordNameLabel: 'שם המשכיר:',
-                viewAnalysis: 'צפה בניתוח',
-                fileNameSafe: 'חוזה_שכירות_תל_אביב.pdf',
-                fileNameRisky: 'חוזה_ללא_הגנה.pdf',
-                fileNameMedium: 'חידוש_חוזה_2025.pdf',
-                addressSafe: 'דיזנגוף 100, תל אביב',
-                landlordSafe: 'ישראל ישראלי',
-                addressRisky: 'הרצל 45, רמת גן',
-                landlordRisky: 'משה כהן',
-                addressMedium: 'הנשיא 10, חיפה',
-                landlordMedium: 'דוד לוי',
-                dateSafe: '22.12.2025',
-                dateRisky: '20.12.2025',
-                dateMedium: '18.12.2025'
-            },
-            viewer: {
-                mediumRisk: 'סיכון בינוני',
-                contractTitle: 'חוזה שכירות לא מוגן',
-                clauseRentalPeriod: 'תקופת השכירות',
-                okBadge: 'תקין',
-                highRisk: 'סיכון גבוה',
-                clauseLatePaymentPenalty: 'קנס איחור בתשלום',
-                originalClauseText: 'איחור של עד 7 ימים בתשלום שכר הדירה יגרור קנס מיידי של 500 ש"ח לכל יום איחור.',
-                legalExplanation: 'הסבר משפטי',
-                penaltyExplanation: 'קנס זה גבוה במיוחד וחורג מהמקובל. בתי משפט עשויים לפסול אותו בגין חוסר מידתיות.',
-                suggestionLabel: 'הצעה לתיקון: ',
-                suggestionText: 'הגבל את הקנס לריבית פיגורים סטנדרטית מיום האיחור הראשון.',
-                clauseRentAmount: 'דמי שכירות והצמדה'
-            }
+    mockups: {
+        dashboard: {
+            navDashboard: 'לוח בקרה',
+            navContracts: 'חוזים',
+            uploadTitle: 'העלאת חוזה שכירות',
+            uploadHint: 'פורמט PDF, עד 10MB',
+            selectFile: 'בחירת קובץ',
+            recentContracts: 'פעילות חוזים אחרונה',
+            fileNameApartment: 'חוזה_דירה_תל_אביב.pdf',
+            fileNameOffice: 'חוזה_משרד.pdf',
+            scoreApartment: '92',
+            scoreOffice: '58'
         },
+        contracts: {
+            analyzedPrefix: 'נותח:',
+            lowRisk: 'סיכון נמוך',
+            mediumRisk: 'סיכון בינוני',
+            highRisk: 'סיכון גבוה',
+            propertyAddressLabel: 'כתובת הנכס:',
+            landlordNameLabel: 'שם המשכיר:',
+            viewAnalysis: 'צפה בניתוח',
+            fileNameSafe: 'חוזה_שכירות_תל_אביב.pdf',
+            fileNameRisky: 'חוזה_ללא_הגנה.pdf',
+            fileNameMedium: 'חידוש_חוזה_2025.pdf',
+            addressSafe: 'דיזנגוף 100, תל אביב',
+            landlordSafe: 'ישראל ישראלי',
+            addressRisky: 'הרצל 45, רמת גן',
+            landlordRisky: 'משה כהן',
+            addressMedium: 'הנשיא 10, חיפה',
+            landlordMedium: 'דוד לוי',
+            dateSafe: '22.12.2025',
+            dateRisky: '20.12.2025',
+            dateMedium: '18.12.2025'
+        },
+        viewer: {
+            mediumRisk: 'סיכון בינוני',
+            contractTitle: 'חוזה שכירות לא מוגן',
+            clauseRentalPeriod: 'תקופת השכירות',
+            okBadge: 'תקין',
+            highRisk: 'סיכון גבוה',
+            clauseLatePaymentPenalty: 'קנס איחור בתשלום',
+            originalClauseText: 'איחור של עד 7 ימים בתשלום שכר הדירה יגרור קנס מיידי של 500 ש"ח לכל יום איחור.',
+            legalExplanation: 'הסבר משפטי',
+            penaltyExplanation: 'קנס זה גבוה במיוחד וחורג מהמקובל. בתי משפט עשויים לפסול אותו בגין חוסר מידתיות.',
+            suggestionLabel: 'הצעה לתיקון: ',
+            suggestionText: 'הגבל את הקנס לריבית פיגורים סטנדרטית מיום האיחור הראשון.',
+            clauseRentAmount: 'דמי שכירות והצמדה'
+        }
+    },
     "contracts": {
         "deleteSuccessTitle": "מחיקת חוזה הושלמה",
         "deleteSuccess": "החוזה נמחק מהמערכת בהצלחה.",
@@ -376,6 +376,11 @@ export const he = {
         "serverTemporaryError": "השרת עמוס כרגע. המערכת ניסתה שוב אוטומטית ולא הצליחה. נסו שוב בעוד כמה שניות."
     },
     "analysis": {
+        "shareExpiryDays": "פג תוקף בעוד {days} ימים",
+        "shareExpiryDaysOne": "פג תוקף בעוד יום",
+        "shareExpiryDaysMany": "פג תוקף בעוד {days} ימים",
+        "untitledClause": "סעיף ללא כותרת",
+        "noDetailedContent": "לא סופק תוכן מפורט",
         "title": "ניתוח חוזה",
         "backToContracts": "חזרה לחוזים",
         "summary": "סיכום",
@@ -897,7 +902,7 @@ export const he = {
         "currentPlanBtn": "החבילה הנוכחית",
         "getStarted": "התחילו בחינם",
         "subscribe": "רכישה",
-        "buyMoreScans": "קנה עוד סריקות",
+        "buyMoreScans": "קנה עוד סריקה",
         "free": "חינם",
         "single": "חד פעמית",
         "basic": "בסיס",
@@ -1165,6 +1170,6 @@ export const he = {
             }
         ]
     }
-,
+    ,
     "checkingYourPlan": "בודק את פרטי החבילה שלך..."
 };

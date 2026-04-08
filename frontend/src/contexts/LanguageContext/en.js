@@ -376,6 +376,11 @@ export const en = {
         "serverTemporaryError": "The server is temporarily busy. We retried automatically but it didn't work. Please try again in a few seconds."
     },
     "analysis": {
+        "shareExpiryDays": "Expires in {days} days",
+        "shareExpiryDaysOne": "Expires in 1 day",
+        "shareExpiryDaysMany": "Expires in {days} days",
+        "untitledClause": "Untitled Clause",
+        "noDetailedContent": "No detailed content provided",
         "title": "Contract Analysis",
         "backToContracts": "Back to Contracts",
         "summary": "Summary",

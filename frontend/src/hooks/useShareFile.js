@@ -117,8 +117,16 @@ const useShareFile = () => {
     ) => {
         const { fallbackMode = 'download', fileNameMode = 'auto', includeTitle = false } = options;
         const safeFileName = resolveShareFileName(fileName, fileNameMode);
+
+        if (window._isFileSharingModalOpen) {
+            return { success: false, method: 'cancelled' };
+        }
+        window._isFileSharingModalOpen = true;
+        const resetLock = () => { setTimeout(() => { window._isFileSharingModalOpen = false; }, 1000); };
+
         try {
             if (!navigator?.share) {
+                resetLock();
                 if (fallbackMode === 'download') {
                     downloadFallback(blob, safeFileName);
                     return { success: true, method: 'download' };
@@ -129,68 +137,35 @@ const useShareFile = () => {
             const primaryFile = new File([blob], safeFileName, { type: mimeType });
             const relaxedFile = new File([blob], safeFileName);
 
-            // Try strict type first (works best when MIME is supported).
             if (canShareFiles(primaryFile)) {
-                const shareData = {
-                    files: [primaryFile],
-                };
-                if (includeTitle) {
-                    shareData.title = safeFileName;
-                }
-                await navigator.share({
-                    ...shareData,
-                });
+                await navigator.share({ files: [primaryFile], title: includeTitle ? safeFileName : undefined });
+                resetLock();
                 return { success: true, method: 'share' };
             }
-
-            // Some browsers reject certain MIME types in canShare; retry without explicit type.
             if (canShareFiles(relaxedFile)) {
-                const shareData = {
-                    files: [relaxedFile],
-                };
-                if (includeTitle) {
-                    shareData.title = safeFileName;
-                }
-                await navigator.share({
-                    ...shareData,
-                });
+                await navigator.share({ files: [relaxedFile], title: includeTitle ? safeFileName : undefined });
+                resetLock();
                 return { success: true, method: 'share' };
             }
-
-            // Final native attempt for environments where canShare is overly strict.
-            const shareData = {
-                files: [primaryFile],
-            };
-            if (includeTitle) {
-                shareData.title = safeFileName;
-            }
-            await navigator.share({
-                ...shareData,
-            });
+            await navigator.share({ files: [primaryFile], title: includeTitle ? safeFileName : undefined });
+            resetLock();
             return { success: true, method: 'share' };
 
         } catch (err) {
+            resetLock();
             if (err.name === 'AbortError') {
                 console.log('Share cancelled by user');
                 return { success: false, method: 'cancelled' };
             }
             console.error('Share failed:', err);
-
             if (fallbackMode === 'download') {
-                // Final fallback
                 try {
                     downloadFallback(blob, safeFileName);
                     return { success: true, method: 'download' };
                 } catch (downloadErr) {
-                    console.error('Download fallback also failed:', downloadErr);
                     return { success: false, method: 'error', error: downloadErr };
                 }
             }
-
-            if (err.name === 'TypeError' || err.name === 'NotAllowedError') {
-                return { success: false, method: 'unsupported' };
-            }
-
             return { success: false, method: 'error', error: err };
         }
     }, []);
@@ -199,7 +174,6 @@ const useShareFile = () => {
      * Share plain text as a .txt file.
      */
     const shareTextAsFile = useCallback(async (textContent, fileName = 'document.txt') => {
-        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
         return shareFile(blob, fileName, 'text/plain;charset=utf-8');
     }, [shareFile]);
 

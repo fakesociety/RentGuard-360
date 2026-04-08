@@ -377,3 +377,8 @@
         transform: translateY(-4px);
     }
 }
+.pricing-card-wrapper.current.popular .current-badge {
+    top: -46px;
+    z-index: 2;
+}
+
