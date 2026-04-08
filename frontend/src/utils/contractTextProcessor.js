@@ -32,31 +32,43 @@ const isNoiseLine = (line) => {
 const fixClauseNumbering = (clause) => {
     if (!clause || typeof clause !== 'string') return clause;
 
-    let text = clause.trim();
+    const normalizeLine = (rawLine) => {
+        let line = rawLine.trim();
+        if (!line) return line;
 
-    // Pattern 1: Number at end like "...text .3" or "...text 3.1"
-    // Match: space + optional period + number(s) at end
-    const endNumberPattern = /^(.+?)\s+(\.?\d+(?:\.\d+)*)\s*$/;
-    const match = text.match(endNumberPattern);
+        // Pattern 1: Number at end like "...text .3" or "...text 3.1"
+        // Restrict to clause-like numbers to avoid moving years/values.
+        const endNumberPattern = /^(.+?)\s+(\.?\d{1,2}(?:\.\d{1,2}){0,2})\s*$/u;
+        const match = line.match(endNumberPattern);
 
-    if (match) {
-        const content = match[1].trim();
-        let number = match[2].trim();
+        if (match) {
+            const content = match[1].trim();
+            let number = match[2].trim();
+            const hasHebrew = /[\u0590-\u05FF]/.test(content);
+            const alreadyNumbered = /^\d{1,2}(?:\.\d{1,2})*\.?\s/.test(content);
 
-        // Clean up the number (remove leading period, add trailing period if needed)
-        number = number.replace(/^\./, '');
-        if (!number.includes('.') && !number.endsWith('.')) {
-            number = number + '.';
+            if (hasHebrew && !alreadyNumbered) {
+                number = number.replace(/^\./, '');
+                if (!number.endsWith('.')) {
+                    number = `${number}.`;
+                }
+                line = `${number} ${content}`;
+            }
         }
 
-        // Move number to beginning
-        text = `${number} ${content}`;
-    }
+        // Pattern 2: Fix ".3 text" to "3. text" (period before number)
+        line = line.replace(/^\.(\d{1,2}(?:\.\d{1,2}){0,2})\s+/, '$1. ');
 
-    // Pattern 2: Fix ".3 text" to "3. text" (period before number)
-    text = text.replace(/^\.(\d+)\s+/, '$1. ');
+        return line;
+    };
 
-    return text;
+    return clause
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .map(normalizeLine)
+        .join('\n')
+        .trim();
 };
 
 /**

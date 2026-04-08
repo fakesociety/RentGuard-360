@@ -263,38 +263,6 @@
 }
 
 
-/* --- THE HOVER TRIGGERS --- */
-
-/* 1. Global Hover: Card floats up and Icon pops & tilts */
-.status-card:hover {
-  transform: translateY(-8px);
-  /* Light mode specific glow */
-  box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-  border-color: rgba(0, 105, 82, 0.2);
-}
-
-.status-card:hover .status-icon {
-  transform: scale(1.15) rotate(5deg);
-}
-
-/* 2. Light Mode Hover: Glowing line expands to 100% width */
-.status-card:hover::after {
-  width: 100%;
-}
-
-/* 3. Dark Mode Hover Overrides */
-[data-theme="dark"] .status-card:hover {
-  box-shadow: var(--shadow-xl);
-  /* Standard dark shadow */
-  border-color: var(--glass-border);
-  /* Standard dark border */
-}
-
-/* 4. Dark Mode Hover: Sweeps the glass sheen across the card */
-[data-theme="dark"] .status-card:hover::before {
-  left: 200%;
-}
-
 /* =========================================
    DECORATIVE WAVES
    ========================================= */
@@ -394,10 +362,6 @@
   box-shadow: var(--shadow-md);
 }
 
-.action-card-new:hover {
-  box-shadow: var(--shadow-xl);
-}
-
 .action-bg-effect {
   position: absolute;
   top: -3rem;
@@ -407,10 +371,6 @@
   border-radius: 50%;
   transition: transform 0.7s ease;
   z-index: 0;
-}
-
-.action-card-new:hover .action-bg-effect {
-  transform: scale(1.5);
 }
 
 .action-card-new>*:not(.action-bg-effect) {
@@ -502,10 +462,6 @@
   transition: gap var(--transition-normal);
 }
 
-.action-card-new:hover .action-link-text {
-  gap: 1rem;
-}
-
 
 /* =========================================
    HOW TO START SECTION
@@ -559,11 +515,6 @@
   cursor: default; /* Change to 'pointer' if these steps are clickable links */
 }
 
-/* Lifts the entire step slightly up */
-.how-to-start-section .step-item:hover {
-  transform: translateY(-5px);
-}
-
 /* NEW: Added transition for the smooth scaling effect */
 .how-to-start-section .step-number {
   width: 5rem;
@@ -587,27 +538,30 @@
 }
 
 /* NEW: Makes the round badge pop, scale, and cast a bigger shadow when hovered! */
-.how-to-start-section .step-item:hover .step-number {
-  transform: scale(1.15); /* Grows the circle by 15% */
-  box-shadow: var(--shadow-xl); /* Matches the shadow of action cards */
-  background-color: var(--bg-card); /* Brightens the circle slightly */
-  border-color: var(--accent-primary); /* Highlights the border with your theme color */
-  color: var(--accent-primary); /* Highlights the number */
-}
-
 .how-to-start-section .step-line {
-  display: none;
+  display: block;
   position: absolute;
-  top: 2.5rem;
-  left: -50%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(to right, transparent, var(--glass-border), transparent);
+  top: -3.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 3.25rem;
+  background: linear-gradient(to bottom, transparent, var(--glass-border), transparent);
 }
 
 @media (min-width: 1024px) {
   .how-to-start-section .step-line {
-    display: block;
+    top: 2.5rem;
+    left: -50%;
+    transform: none;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--glass-border), transparent);
+  }
+
+  [dir="rtl"] .how-to-start-section .step-line {
+    left: auto;
+    right: -50%;
   }
 }
 
@@ -761,11 +715,6 @@
   background-image: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
 }
 
-.why-image-wrapper:hover {
-  transform: rotate(0deg) translateY(-10px);
-  box-shadow: var(--shadow-2xl);
-}
-
 .why-image-container {
   width: 100%;
   max-width: 450px;
@@ -782,11 +731,6 @@
   transform-origin: bottom center;
 }
 
-/* Makes Saul zoom in slightly when hovering the card */
-.why-image-wrapper:hover .why-image-container img {
-  transform: scale(1.05);
-}
-
 /* Hide Legacy Elements */
 .image-overlay,
 .quote-box {
@@ -796,12 +740,6 @@
 /* =========================================
    RTL (RIGHT-TO-LEFT) OVERRIDES
    ========================================= */
-
-/* Fix timeline connection lines */
-[dir="rtl"] .how-to-start-section .step-line {
-  left: auto;
-  right: -50%;
-}
 
 /* Move decorative background circle to left side of cards */
 [dir="rtl"] .action-bg-effect {
@@ -818,6 +756,65 @@
 [dir="rtl"] .action-large-icon {
   display: inline-block;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .status-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
+    border-color: rgba(0, 105, 82, 0.2);
+  }
+
+  .status-card:hover .status-icon {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  .status-card:hover::after {
+    width: 100%;
+  }
+
+  [data-theme="dark"] .status-card:hover {
+    box-shadow: var(--shadow-xl);
+    border-color: var(--glass-border);
+  }
+
+  [data-theme="dark"] .status-card:hover::before {
+    left: 200%;
+  }
+
+  .action-card-new:hover {
+    box-shadow: var(--shadow-xl);
+  }
+
+  .action-card-new:hover .action-bg-effect {
+    transform: scale(1.5);
+  }
+
+  .action-card-new:hover .action-link-text {
+    gap: 1rem;
+  }
+
+  .how-to-start-section .step-item:hover {
+    transform: translateY(-5px);
+  }
+
+  .how-to-start-section .step-item:hover .step-number {
+    transform: scale(1.15);
+    box-shadow: var(--shadow-xl);
+    background-color: var(--bg-card);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .why-image-wrapper:hover {
+    transform: rotate(0deg) translateY(-10px);
+    box-shadow: var(--shadow-2xl);
+  }
+
+  .why-image-wrapper:hover .why-image-container img {
+    transform: scale(1.05);
+  }
+}
+
 [data-theme="dark"] .view-effect { background-color: rgba(16, 185, 129, 0.25); }
 [data-theme="dark"] .upload-effect { background-color: rgba(255, 255, 255, 0.25); }
 [data-theme="dark"] .sub-effect { background-color: rgba(59, 130, 246, 0.25); }

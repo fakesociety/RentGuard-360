@@ -69,23 +69,11 @@
     text-decoration: none;
 }
 
-.landing-cta-btn:hover {
-    background-position: 100% 50%;
-    filter: saturate(1.08);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(5, 150, 105, 0.25);
-}
-
 .landing-cta-btn-large {
     padding: 0.875rem 2rem;
     font-size: 1rem;
     box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
     font-weight: 700;
-}
-
-.landing-cta-btn-large:hover {
-    box-shadow: 0 12px 28px rgba(5, 150, 105, 0.35);
-    transform: translateY(-3px);
 }
 
 /* ===== AUTH MODAL ===== */
@@ -121,7 +109,7 @@
 .auth-modal-close {
     position: absolute;
     top: 0.75rem;
-    right: 0.75rem;
+    inset-inline-end: 0.75rem;
     width: 32px;
     height: 32px;
     display: flex;
@@ -133,17 +121,6 @@
     color: var(--text-tertiary);
     cursor: pointer;
     transition: all var(--transition-fast);
-}
-
-.auth-modal-close:hover {
-    background: var(--accent-danger);
-    border-color: var(--accent-danger);
-    color: white;
-}
-
-[dir="rtl"] .auth-modal-close {
-    right: auto;
-    left: 0.75rem;
 }
 
 .auth-form {
@@ -181,11 +158,6 @@
     position: absolute;
     inset-inline-start: 0.875rem;
     flex-shrink: 0;
-}
-
-.auth-social-btn:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-inset);
 }
 
 .auth-social-btn:disabled {
@@ -341,8 +313,6 @@
 /* ===== DASHBOARD MOCKUP ===== */
 .mockup-dashboard-real {
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 1.5rem;
     box-shadow: 0 20px 50px rgba(25, 28, 29, 0.08);
@@ -355,15 +325,6 @@
 [data-theme="dark"] .mockup-dashboard-real {
     background: rgba(15, 23, 42, 0.78);
     border-color: rgba(148, 163, 184, 0.25);
-}
-
-.mockup-dashboard-real:hover {
-    transform: rotateY(0deg) rotateX(0deg);
-    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-}
-
-[data-theme="dark"] .mockup-dashboard-real:hover {
-    box-shadow: var(--shadow-xl);
 }
 
 .mock-header {
@@ -416,16 +377,6 @@
 [data-theme="dark"] .mock-upload-zone {
     background: rgba(0, 190, 130, 0.12);
     border-color: rgba(0, 190, 130, 0.7);
-}
-
-.mock-upload-zone:hover {
-    border-color: rgba(0, 133, 96, 0.65);
-    background: rgba(237, 238, 239, 0.78);
-}
-
-[data-theme="dark"] .mock-upload-zone:hover {
-    background: rgba(0, 190, 130, 0.18);
-    border-color: #00be82;
 }
 
 .mock-upload-icon {
@@ -548,16 +499,6 @@
     background: rgba(15, 23, 42, 0.78);
 }
 
-.benefits-carousel:hover {
-    border-color: var(--accent-primary);
-    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-    transform: translateY(-4px);
-}
-
-[data-theme="dark"] .benefits-carousel:hover {
-    box-shadow: var(--shadow-xl);
-}
-
 .carousel-paused {
     position: absolute;
     top: 0.75rem;
@@ -592,12 +533,6 @@
     justify-content: center;
 }
 
-.carousel-arrow:hover {
-    background: var(--accent-primary);
-    color: white;
-    border-color: var(--accent-primary);
-}
-
 .carousel-content {
     flex: 1;
     text-align: center;
@@ -630,10 +565,6 @@
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.benefits-carousel:hover .carousel-icon {
-    transform: scale(1.15) rotate(5deg);
-}
-
 .carousel-content h4 {
     color: var(--accent-primary);
     font-size: 1.5rem;
@@ -664,10 +595,6 @@
     background: var(--text-quaternary);
     cursor: pointer;
     transition: all var(--transition-fast);
-}
-
-.carousel-dot:hover {
-    background: var(--text-tertiary);
 }
 
 .carousel-dot.active {
@@ -786,15 +713,6 @@
     background: var(--glass-bg);
 }
 
-.mock-contract-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-4px);
-}
-
-[data-theme="dark"] .mock-contract-card:hover {
-    box-shadow: var(--shadow-xl);
-}
-
 /* Light mode: expanding glow line at bottom */
 .mock-contract-card::after {
     content: '';
@@ -807,10 +725,6 @@
     background-color: var(--accent-primary);
     transition: width 0.4s ease-out;
     z-index: 3;
-}
-
-.mock-contract-card:hover::after {
-    width: 100%;
 }
 
 [data-theme="dark"] .mock-contract-card::after {
@@ -829,10 +743,6 @@
     transform: skewX(-25deg);
     transition: left 0.6s ease;
     z-index: 1;
-}
-
-[data-theme="dark"] .mock-contract-card:hover::before {
-    left: 200%;
 }
 
 .mock-contract-card > * {
@@ -882,7 +792,6 @@
 .card-gauge svg {
     width: 100%;
     height: 100%;
-    transform: rotate(-90deg);
 }
 
 .card-gauge span {
@@ -989,11 +898,6 @@
     transition: all 0.2s ease;
 }
 
-.action-link:hover {
-    background: var(--accent-primary-hover);
-    transform: translateY(-1px);
-}
-
 .action-icons {
     display: flex;
     gap: 0.5rem;
@@ -1009,11 +913,6 @@
     border-radius: 50%;
     border: 1px solid var(--glass-border);
     background: transparent;
-}
-
-.action-icons svg:hover {
-    color: var(--text-primary);
-    background: var(--bg-inset);
 }
 
 /* ===== FEATURE SECTION ===== */
@@ -1087,15 +986,6 @@
 [data-theme="dark"] .mockup-viewer-real {
     background: rgba(15, 23, 42, 0.78);
     border-color: rgba(148, 163, 184, 0.25);
-}
-
-.mockup-viewer-real:hover {
-    box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
-    transform: translateY(-4px);
-}
-
-[data-theme="dark"] .mockup-viewer-real:hover {
-    box-shadow: var(--shadow-xl);
 }
 
 /* Sidebar */
@@ -1385,7 +1275,7 @@
 .modal-close-btn {
     position: absolute;
     top: 1rem;
-    right: 1rem;
+    inset-inline-end: 1rem;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -1397,17 +1287,6 @@
     align-items: center;
     justify-content: center;
     transition: all var(--transition-fast);
-}
-
-[dir="rtl"] .modal-close-btn {
-    right: auto;
-    left: 1rem;
-}
-
-.modal-close-btn:hover {
-    background: var(--accent-danger);
-    color: white;
-    border-color: var(--accent-danger);
 }
 
 .modal-icon {
@@ -1448,10 +1327,6 @@
     height: 90px;
     position: relative;
     transition: transform var(--transition-fast);
-}
-
-.mock-score-circle-svg:hover {
-    transform: scale(1.05);
 }
 
 .mock-score-circle-svg .circular-progress {
@@ -1735,12 +1610,8 @@
         font-size: 0.65rem;
         padding: 0.25rem 0.5rem;
         gap: 0.5rem;
-    }
-
-    .mockup-viewer-real .mock-risk-badge {
         white-space: normal;
         height: auto;
-        padding: 0.25rem 0.5rem;
         max-width: 100%;
     }
 
@@ -1772,5 +1643,119 @@
 
     .section-header p {
         font-size: 0.875rem;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .landing-cta-btn:hover {
+        background-position: 100% 50%;
+        filter: saturate(1.08);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(5, 150, 105, 0.25);
+    }
+
+    .landing-cta-btn-large:hover {
+        box-shadow: 0 12px 28px rgba(5, 150, 105, 0.35);
+        transform: translateY(-3px);
+    }
+
+    .auth-modal-close:hover {
+        background: var(--accent-danger);
+        border-color: var(--accent-danger);
+        color: white;
+    }
+
+    .auth-social-btn:hover {
+        border-color: var(--accent-primary);
+        background: var(--bg-inset);
+    }
+
+    .mockup-dashboard-real:hover {
+        transform: rotateY(0deg) rotateX(0deg);
+        box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
+    }
+
+    [data-theme="dark"] .mockup-dashboard-real:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .mock-upload-zone:hover {
+        border-color: rgba(0, 133, 96, 0.65);
+        background: rgba(237, 238, 239, 0.78);
+    }
+
+    [data-theme="dark"] .mock-upload-zone:hover {
+        background: rgba(0, 190, 130, 0.18);
+        border-color: #00be82;
+    }
+
+    .benefits-carousel:hover {
+        border-color: var(--accent-primary);
+        box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
+        transform: translateY(-4px);
+    }
+
+    [data-theme="dark"] .benefits-carousel:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .carousel-arrow:hover {
+        background: var(--accent-primary);
+        color: white;
+        border-color: var(--accent-primary);
+    }
+
+    .benefits-carousel:hover .carousel-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+
+    .carousel-dot:hover {
+        background: var(--text-tertiary);
+    }
+
+    .mock-contract-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+    }
+
+    [data-theme="dark"] .mock-contract-card:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .mock-contract-card:hover::after {
+        width: 100%;
+    }
+
+    [data-theme="dark"] .mock-contract-card:hover::before {
+        left: 200%;
+    }
+
+    .action-link:hover {
+        background: var(--accent-primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .action-icons svg:hover {
+        color: var(--text-primary);
+        background: var(--bg-inset);
+    }
+
+    .mockup-viewer-real:hover {
+        box-shadow: 0 20px 40px -15px rgba(0, 105, 82, 0.15);
+        transform: translateY(-4px);
+    }
+
+    [data-theme="dark"] .mockup-viewer-real:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .modal-close-btn:hover {
+        background: var(--accent-danger);
+        color: white;
+        border-color: var(--accent-danger);
+    }
+
+    .mock-score-circle-svg:hover {
+        transform: scale(1.05);
     }
 }

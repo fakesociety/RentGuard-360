@@ -205,7 +205,26 @@ export const useUpload = () => {
     };
 
     const handleUpload = async () => {
-        if (!file || !termsAccepted) return;
+        if (!file) return;
+
+        const normalizedCustomFileName = String(customFileName || '')
+            .replace(/\.pdf$/i, '')
+            .trim();
+
+        const validationErrors = [];
+        if (!termsAccepted) validationErrors.push(t('upload.termsRequired'));
+        if (!normalizedCustomFileName) validationErrors.push(t('upload.fileNameRequired'));
+
+        if (validationErrors.length > 0) {
+            const message = validationErrors.join(' ');
+            setError(message);
+            emitAppToast({
+                type: 'error',
+                title: t('upload.validationToastTitle'),
+                message,
+            });
+            return;
+        }
 
         if (!isAdmin && !hasSubscription) {
             setError(t('subscription.noActivePlanMessage'));
@@ -244,7 +263,7 @@ export const useUpload = () => {
                 }, {
                     propertyAddress: metadata.propertyAddress,
                     landlordName: metadata.landlordName,
-                    customFileName: customFileName.trim() || file.name.replace(/\.pdf$/i, ''),
+                    customFileName: normalizedCustomFileName,
                     termsAccepted: true,
                 });
 

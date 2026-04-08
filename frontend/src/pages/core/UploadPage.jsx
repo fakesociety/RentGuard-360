@@ -48,6 +48,7 @@ const UploadPage = () => {
         metadata,
         setMetadata,
         customFileName,
+        setCustomFileName,
         termsAccepted,
         setTermsAccepted,
         showTermsModal,
@@ -132,6 +133,7 @@ const UploadPage = () => {
                             blockReason={blockReason}
                             setShowScannerModal={setShowScannerModal}
                             customFileName={customFileName}
+                            setCustomFileName={setCustomFileName}
                             isUploading={isUploading}
                             uploadVisualStatus={uploadVisualStatus}
                             uploadProgress={uploadProgress}
@@ -147,6 +149,7 @@ const UploadPage = () => {
                             isUploading={isUploading}
                             metadata={metadata}
                             setMetadata={setMetadata}
+                            customFileName={customFileName}
                             termsAccepted={termsAccepted}
                             setTermsAccepted={setTermsAccepted}
                             handleUpload={handleUpload}

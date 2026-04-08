@@ -23,7 +23,8 @@ import AnalysisBentoGrid from './components/AnalysisBentoGrid';
 import AnalysisResults from './components/AnalysisResults';
 import AnalysisSidebar from './components/AnalysisSidebar';
 import { SharePanel } from './components/AnalysisModals';
-import { exportEditedContract } from '../../services/ExportService';
+import { exportEditedContract } from '../../services/ContractExportService';
+import { showAppToast as emitAppToast } from '../../utils/toast';
 
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
@@ -51,12 +52,12 @@ const AnalysisPage = () => {
         contractEditState,
         setContractEditState,
         setEditedClauses,
+        _editedClauses: editedClauses,
         contractId,
         contractViewRef,
         sharePanelRef,
         fetchAnalysis,
         handleExportWord,
-        handleExportPdf,
         handleCopyShareLink,
         handleManualCopyShareLink,
         handleShareLinkViaApps,
@@ -107,6 +108,49 @@ const AnalysisPage = () => {
         }
         return '';
     };
+
+    const handleExportContractWord = useCallback(async () => {
+        setShowExportMenu(false);
+
+        const exportResult = analysis?.analysis_result || analysis;
+        const exportIssues = exportResult?.issues || [];
+        const contractText =
+            analysis?.sanitizedText ||
+            analysis?.full_text ||
+            analysis?.contractText ||
+            analysis?.extracted_text ||
+            '';
+        const backendClauses = analysis?.clauses_list || analysis?.clauses || [];
+
+        if (!String(contractText).trim() && backendClauses.length === 0) {
+            showExportNotice(t('analysis.fullContractExportNotReady'));
+            return;
+        }
+
+        const baseFileName = `${(analysis?.fileName || t('export.defaultContractFilename')).replace(/\.(pdf|docx)$/i, '')}`;
+
+        emitAppToast({
+            type: 'warning',
+            title: t('contractView.ocrDisclaimerTitle'),
+            message: t('contractView.ocrDisclaimerBody2'),
+            ttlMs: 5000,
+        });
+        emitAppToast({ type: 'info', message: t('export.started') });
+
+        try {
+            await exportEditedContract(contractText, editedClauses || {}, exportIssues, baseFileName, backendClauses);
+            emitAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Full contract export error:', error);
+            emitAppToast({ type: 'error', message: t('export.error') });
+        }
+    }, [
+        analysis,
+        editedClauses,
+        setShowExportMenu,
+        showExportNotice,
+        t,
+    ]);
 
     if (isLoading) {
         return (
@@ -179,7 +223,7 @@ const AnalysisPage = () => {
                     showExportMenu={showExportMenu}
                     setShowExportMenu={setShowExportMenu}
                     handleExportWord={handleExportWord}
-                    handleExportPdf={handleExportPdf}
+                    handleExportContractWord={handleExportContractWord}
                     isExporting={isExporting}
                     issuesCount={issues.length}
                     analysis={analysis}
@@ -244,6 +288,7 @@ const AnalysisPage = () => {
                             contractViewRef={contractViewRef}
                             contractEditState={contractEditState}
                             setContractEditState={setContractEditState}
+                            editedClauses={editedClauses}
                             setEditedClauses={setEditedClauses}
                             handleSaveToCloud={handleSaveToCloud}
                             copyTextToClipboard={copyTextToClipboard}
@@ -258,6 +303,8 @@ const AnalysisPage = () => {
 
                     {/* Right Column: Sticky Sidebar Context */}
                     <AnalysisSidebar
+                        activeTab={activeTab}
+                        isContractDocument={result?.is_contract !== false}
                         riskScore={riskScore}
                         scoreBreakdown={scoreBreakdown}
                         issues={issues}

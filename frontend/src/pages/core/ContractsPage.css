@@ -44,7 +44,7 @@
    ============================================ */
 .lf-wave-divider {
     position: relative;
-    margin-top: -3.5rem;
+    margin-top: -1.6rem;
     z-index: 5;
     line-height: 0;
 }
@@ -139,11 +139,6 @@
     gap: 0.5rem;
     text-decoration: none;
     transition: all 0.3s ease;
-}
-
-.lf-btn-upload-hero:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.4);
 }
 
 /* Abstract Background Orbs */
@@ -303,11 +298,6 @@
     gap: 0.4rem;
 }
 
-.lf-chip:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-chip.active {
     background: var(--accent-primary);
     color: white;
@@ -349,7 +339,7 @@
 }
 
 .lf-contract-card {
-    background: rgba(255, 255, 255, 0.65);
+    background: var(--bg-card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
@@ -362,16 +352,10 @@
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
     position: relative;
-    /* Removed overflow:hidden to allow absolute menus to open downwards */
 }
 
 [data-theme="dark"] .lf-contract-card {
     background: var(--glass-bg);
-}
-
-.lf-contract-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-4px);
 }
 
 [data-theme="dark"] .lf-contract-card::before {
@@ -384,10 +368,6 @@
     transition: opacity 0.3s ease;
     border-radius: var(--radius-xl);
     z-index: 10;
-}
-
-[data-theme="dark"] .lf-contract-card:hover::before {
-    opacity: 1;
 }
 
 /* Right border color strip (RTL) / Left border (LTR) */
@@ -493,10 +473,6 @@
     transition: color 0.2s ease;
 }
 
-.lf-contract-card:hover .lf-card-title {
-    color: var(--accent-primary);
-}
-
 .lf-card-date {
     display: flex;
     align-items: center;
@@ -520,11 +496,6 @@
     padding: 0.5rem;
     border-radius: 50%;
     transition: background 0.2s;
-}
-
-.lf-menu-trigger:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
 }
 
 .lf-dropdown-menu {
@@ -579,10 +550,6 @@
     text-align: start;
 }
 
-.lf-menu-item:hover:not(:disabled) {
-    background: var(--bg-inset);
-}
-
 .lf-menu-item:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -596,10 +563,6 @@
 
 .lf-danger-text {
     color: var(--accent-danger) !important;
-}
-
-.lf-danger-text:hover {
-    background: rgba(239, 68, 68, 0.1) !important;
 }
 
 /* ============================================
@@ -817,12 +780,6 @@
     box-shadow: var(--shadow-sm);
 }
 
-.lf-btn-view:hover:not(.disabled) {
-    background: var(--accent-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
 .lf-btn-view.disabled {
     background: var(--bg-inset);
     color: var(--text-tertiary);
@@ -845,11 +802,6 @@
     flex-shrink: 0;
 }
 
-.lf-btn-download:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-btn-edit {
     width: 42px;
     height: 42px;
@@ -863,11 +815,6 @@
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
-}
-
-.lf-btn-edit:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
 }
 
 
@@ -941,10 +888,6 @@
     transition: all 0.2s ease;
 }
 
-.lf-btn-upload-empty:hover {
-    background: var(--bg-inset);
-}
-
 /* ============================================
    PAGINATION
    ============================================ */
@@ -974,11 +917,6 @@
     cursor: pointer;
     font-weight: 800;
     transition: all 0.2s;
-}
-
-.lf-page-btn:hover:not(:disabled) {
-    background: var(--accent-primary);
-    color: white;
 }
 
 .lf-page-btn:disabled {
@@ -1082,11 +1020,6 @@
     border-radius: var(--radius-sm);
 }
 
-.lf-modal-close:hover {
-    background: var(--bg-inset);
-    color: var(--text-primary);
-}
-
 .lf-modal-body {
     padding: 1.5rem;
 }
@@ -1151,10 +1084,6 @@
     transition: background 0.2s;
 }
 
-.lf-btn-primary:hover {
-    background: var(--accent-primary-hover);
-}
-
 .lf-btn-danger {
     flex: 1;
     padding: 0.75rem;
@@ -1165,10 +1094,6 @@
     font-weight: 700;
     cursor: pointer;
     transition: background 0.2s;
-}
-
-.lf-btn-danger:hover {
-    background: rgba(239, 68, 68, 0.2);
 }
 
 .lf-btn-cancel {
@@ -1288,6 +1213,10 @@
     .lf-wave-divider svg {
         height: 3rem;
     }
+
+    .lf-wave-divider {
+        margin-top: -1rem;
+    }
 }
 
 @media (max-width: 560px) {
@@ -1335,5 +1264,78 @@
         padding: 1rem;
     }
 }
-.lf-contract-card:hover, .lf-contract-card:focus-within { z-index: 50; }
+.lf-contract-card:focus-within { z-index: 50; }
+
+@media (hover: hover) and (pointer: fine) {
+    .lf-btn-upload-hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(5, 150, 105, 0.4);
+    }
+
+    .lf-chip:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-contract-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+        z-index: 50;
+    }
+
+    [data-theme="dark"] .lf-contract-card:hover::before {
+        opacity: 1;
+    }
+
+    .lf-contract-card:hover .lf-card-title {
+        color: var(--accent-primary);
+    }
+
+    .lf-menu-trigger:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-menu-item:hover:not(:disabled) {
+        background: var(--bg-inset);
+    }
+
+    .lf-danger-text:hover {
+        background: rgba(239, 68, 68, 0.1) !important;
+    }
+
+    .lf-btn-view:hover:not(.disabled) {
+        background: var(--accent-primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .lf-btn-download:hover,
+    .lf-btn-edit:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-btn-upload-empty:hover {
+        background: var(--bg-inset);
+    }
+
+    .lf-page-btn:hover:not(:disabled) {
+        background: var(--accent-primary);
+        color: white;
+    }
+
+    .lf-modal-close:hover {
+        background: var(--bg-inset);
+        color: var(--text-primary);
+    }
+
+    .lf-btn-primary:hover {
+        background: var(--accent-primary-hover);
+    }
+
+    .lf-btn-danger:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+}
 

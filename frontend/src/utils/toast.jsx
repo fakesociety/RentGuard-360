@@ -3,6 +3,23 @@ import toast from 'react-hot-toast';
 import './toast.css';
 
 const TOAST_TYPES = new Set(['success', 'error', 'warning', 'info']);
+const TOAST_BURST_WINDOW_MS = 480;
+const TOAST_STAGGER_STEP_MS = 80;
+const TOAST_MAX_STAGGER_STEPS = 3;
+
+let toastBurstIndex = 0;
+let lastToastAt = 0;
+
+function getStaggerDelayMs() {
+    const now = Date.now();
+    if (now - lastToastAt > TOAST_BURST_WINDOW_MS) {
+        toastBurstIndex = 0;
+    } else {
+        toastBurstIndex += 1;
+    }
+    lastToastAt = now;
+    return Math.min(toastBurstIndex, TOAST_MAX_STAGGER_STEPS) * TOAST_STAGGER_STEP_MS;
+}
 
 function normalizeType(input) {
     return TOAST_TYPES.has(input) ? input : 'success';
@@ -33,6 +50,9 @@ export function showAppToast(payload) {
     const duration = typeof detail.duration === 'number'
         ? detail.duration
         : (typeof detail.ttlMs === 'number' ? detail.ttlMs : 5500);
+    const staggerMs = typeof detail.staggerMs === 'number'
+        ? Math.max(0, detail.staggerMs)
+        : getStaggerDelayMs();
     const direction = getDocumentDirection();
 
     return toast.custom(
@@ -41,6 +61,10 @@ export function showAppToast(payload) {
             return (
                 <div 
                     className={`rg-hot-toast rg-hot-toast--${type} ${isVisible ? 'rg-hot-toast--visible' : 'rg-hot-toast--hidden'}`} 
+                    style={{
+                        '--rg-toast-stagger-ms': `${staggerMs}ms`,
+                        '--rg-toast-exit-stagger-ms': `${Math.round(staggerMs * 0.5)}ms`,
+                    }}
                     dir={direction} 
                     role="status" 
                     aria-live={type === 'error' ? 'assertive' : 'polite'}
@@ -70,6 +94,7 @@ export function showAppToast(payload) {
             id: detail.id,
             duration,
             position: detail.position || 'top-right',
+            removeDelay: typeof detail.removeDelay === 'number' ? detail.removeDelay : 850,
         }
     );
 }

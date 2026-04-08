@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { CloudUpload } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext/LanguageContext';
 
 const FileDropZone = ({
@@ -24,7 +25,7 @@ const FileDropZone = ({
             onClick={openFilePicker}
         >
             <div className="upload-modern-icon-wrap">
-                <span className="material-symbols-outlined upload-modern-icon">cloud_upload</span>
+                <CloudUpload className="upload-modern-icon" size={34} strokeWidth={2.2} />
             </div>
             <h3>{t('upload.dragDrop')}</h3>
             <p>{t('upload.maxSize')}</p>

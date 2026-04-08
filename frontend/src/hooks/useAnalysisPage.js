@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { getAnalysis, createShareLink, getShareLink, revokeShareLink, saveEditedContract } from '../services/api';
-import { exportToWord, exportToPDF } from '../services/ExportService';
+import { exportReportToWord } from '../services/ReportExportService';
+import { showAppToast as emitAppToast } from '../utils/toast';
 import { useLanguage } from '../contexts/LanguageContext/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -47,6 +48,7 @@ export const useAnalysisPage = () => {
     const sharePanelRef = useRef(null);
     const prevSaveStatusRef = useRef(null);
     const lastSavingToastAtRef = useRef(0);
+    const hydratedEditsContractRef = useRef(null);
 
     const showAppToast = useCallback((title, message, options = {}) => {
         const ttlMs = typeof options === 'number' ? options : (options.ttlMs ?? 2600);
@@ -148,6 +150,32 @@ export const useAnalysisPage = () => {
     useEffect(() => { fetchAnalysis(); }, [fetchAnalysis]);
 
     useEffect(() => {
+        const currentRouteContractId = contractId || null;
+        if (!currentRouteContractId) return;
+
+        // Reset editor snapshots when navigating to a different contract.
+        if (hydratedEditsContractRef.current && hydratedEditsContractRef.current !== currentRouteContractId) {
+            hydratedEditsContractRef.current = null;
+            setEditedClauses({});
+            setContractEditState({ editedCount: 0, saveStatus: null });
+        }
+    }, [contractId]);
+
+    useEffect(() => {
+        const resolvedContractId = analysis?.contractId || contractId;
+        if (!analysis || !resolvedContractId) return;
+        if (hydratedEditsContractRef.current === resolvedContractId) return;
+
+        const normalizedEditedClauses =
+            analysis?.editedClauses && typeof analysis.editedClauses === 'object'
+                ? analysis.editedClauses
+                : {};
+
+        setEditedClauses(normalizedEditedClauses);
+        hydratedEditsContractRef.current = resolvedContractId;
+    }, [analysis, contractId]);
+
+    useEffect(() => {
         if (error?.type === 'processing' && pollCount < MAX_POLL_ATTEMPTS && !USE_MOCK) {
             const delay = pollCount === 0 ? INITIAL_DELAY : POLL_INTERVAL;
             const pollTimer = setTimeout(() => {
@@ -227,25 +255,18 @@ export const useAnalysisPage = () => {
 
     const handleExportWord = useCallback(async () => {
         setIsExporting(true);
+        emitAppToast({ type: 'info', message: t('export.started') });
         try {
-            await exportToWord(analysis, analysis?.fileName || t('analysis.defaultReportName'));
-            showExportNotice(t('analysis.exportWordStarted'));
+            await exportReportToWord(analysis, analysis?.fileName || t('export.defaultFilename'));
+            emitAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Export error:', error);
+            emitAppToast({ type: 'error', message: t('export.error') });
         } finally {
             setIsExporting(false);
             setShowExportMenu(false);
         }
-    }, [analysis, showExportNotice, t]);
-
-    const handleExportPdf = useCallback(async () => {
-        setIsExporting(true);
-        try {
-            await exportToPDF(analysis, analysis?.fileName || t('analysis.defaultReportName'));
-            showExportNotice(t('analysis.exportPdfStarted'));
-        } finally {
-            setIsExporting(false);
-            setShowExportMenu(false);
-        }
-    }, [analysis, showExportNotice, t]);
+    }, [analysis, t]);
 
     const focusSharePanel = useCallback(() => {
         setIsSharePanelVisible(true);
@@ -393,7 +414,6 @@ export const useAnalysisPage = () => {
         // Methods
         fetchAnalysis,
         handleExportWord,
-        handleExportPdf,
         handleCopyShareLink,
         handleManualCopyShareLink,
         handleShareLinkViaApps,

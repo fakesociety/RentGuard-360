@@ -228,11 +228,8 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
                         panelClassName={`lf-dropdown-menu export-menu ${isRTL ? 'rtl' : 'ltr'}`}
                     >
                         <div className="lf-menu-title">{t('contracts.menuDownloadTitle')}</div>
-                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'word'); setActiveMenu(null); }} disabled={!isAnalyzed}>
+                        <button className="lf-menu-item" onClick={() => { onExport(contract); setActiveMenu(null); }} disabled={!isAnalyzed}>
                             <FileText size={16} /> <span>{t('contracts.menuExportWordTitle')}</span>
-                        </button>
-                        <button className="lf-menu-item" onClick={() => { onExport(contract, 'pdf'); setActiveMenu(null); }} disabled={!isAnalyzed}>
-                            <Download size={16} /> <span>{t('contracts.menuExportPdfTitle')}</span>
                         </button>
                     </ActionMenu>
                 </div>

@@ -77,8 +77,6 @@
  * ========================================================================== */
 .footer-nav {
     display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
     width: 100%;
     justify-content: flex-start;
 }
@@ -111,10 +109,6 @@
     font-size: 0.875rem;
     font-weight: 500;
     transition: color 0.2s ease;
-}
-
-.footer-link:hover {
-    color: #ffffff;
 }
 
 /* ==========================================================================
@@ -158,20 +152,12 @@
     font-weight: 600;
 }
 
-.footer-creators a:hover {
-    text-decoration: underline;
-}
-
 .footer-github-link {
     color: rgba(255, 255, 255, 0.7);
     display: flex;
     align-items: center;
     margin-inline-start: 0.5rem;
     transition: color 0.2s ease;
-}
-
-.footer-github-link:hover {
-    color: #ffffff;
 }
 
 .footer-copy {
@@ -191,4 +177,18 @@
 
 [dir="rtl"] .footer-nav {
     justify-content: flex-start;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .footer-link:hover {
+        color: #ffffff;
+    }
+
+    .footer-creators a:hover {
+        text-decoration: underline;
+    }
+
+    .footer-github-link:hover {
+        color: #ffffff;
+    }
 }

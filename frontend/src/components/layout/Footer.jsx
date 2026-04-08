@@ -23,7 +23,7 @@ import './Footer.css';
 const Footer = () => {
     const { t, isRTL } = useLanguage();
     const { theme } = useTheme();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isAdmin } = useAuth();
     const currentYear = new Date().getFullYear();
 
     /* ======================================================================
@@ -44,16 +44,14 @@ const Footer = () => {
                             <div className="footer-col">
                                 <h4 className="footer-col-title">{t('footer.contactSectionTitle')}</h4>
                                 <Link to="/contact" className="footer-link">{t('nav.contact')}</Link>
-                                <a href="mailto:RENTGUARD360@GMAIL.COM" className="footer-link" dir="ltr" style={{ textTransform: 'lowercase' }}>rentguard360@gmail.com</a>
                             </div>
                         ) : (
                             <>
                                 <div className="footer-col">
                                     <h4 className="footer-col-title">{t('footer.quickLinksTitle')}</h4>
                                     <Link to="/" className="footer-link">{t('nav.home')}</Link>
-                                    <Link to="/pricing" className="footer-link">{t('nav.pricing')}</Link>
+                                    {!isAdmin && <Link to="/pricing" className="footer-link">{t('nav.pricing')}</Link>}
                                     <Link to="/contact" className="footer-link">{t('nav.contact')}</Link>
-                                    <a href="mailto:RENTGUARD360@GMAIL.COM" className="footer-link" dir="ltr" style={{ textTransform: 'lowercase' }}>rentguard360@gmail.com</a>
                                 </div>
                                 <div className="footer-col">
                                     <h4 className="footer-col-title">{t('footer.personalAreaTitle')}</h4>

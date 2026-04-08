@@ -201,7 +201,6 @@ const BillingPage = () => {
                         <h1 className="billing-title">{t('billing.title')}</h1>
                         <p className="billing-subtitle">{t('billing.subtitle')}</p>
                     </div>
-
                     <div className="billing-header-actions">
                         <BackButton to="/settings" label={t('billing.backToSettings')} />
                     </div>

@@ -9,7 +9,6 @@ import {
     ArrowDown, 
     ArrowUp,
     AlertTriangle,
-    Info,
     CheckCircle2,
     Loader2,
     Sparkles,
@@ -26,13 +25,37 @@ import {
 } from 'lucide-react';
 import { processContractClauses } from '../../../utils/contractTextProcessor';
 import { consultClause } from '../../../services/api';
-import { exportEditedContractWithSignatures, exportEditedContractWithSignaturesBlob } from '../../../services/ExportService';
+import { exportEditedContractToWord, exportEditedContractToWordBlob } from '../../../services/ContractExportService';
+import { showAppToast } from '../../../utils/toast';
 import { useLanguage } from '../../../contexts/LanguageContext/LanguageContext';
 import ContractViewSignatures from './ContractViewSignatures';
 import EditClauseModal from './EditClauseModal';
 import ClauseRow from './ClauseRow';
 import ContractToolbar from './ContractToolbar';
 import './ContractView.css';
+
+const FUZZY_MATCH_STRIP_PATTERN = /[\s\t\r\n.,\-:]+/g;
+const MIN_FUZZY_MATCH_LENGTH = 15;
+
+const normalizeForFuzzyClauseMatch = (text) => {
+    return String(text || '')
+        .toLowerCase()
+        .replace(FUZZY_MATCH_STRIP_PATTERN, '');
+};
+
+const isFuzzyClauseMatch = (issueText, clauseText) => {
+    const normalizedIssue = normalizeForFuzzyClauseMatch(issueText);
+    const normalizedClause = normalizeForFuzzyClauseMatch(clauseText);
+
+    if (!normalizedIssue || !normalizedClause) return false;
+    if (normalizedIssue.length < MIN_FUZZY_MATCH_LENGTH || normalizedClause.length < MIN_FUZZY_MATCH_LENGTH) return false;
+
+    return (
+        normalizedClause === normalizedIssue ||
+        normalizedClause.includes(normalizedIssue) ||
+        normalizedIssue.includes(normalizedClause)
+    );
+};
 
 const ContractView = forwardRef(({
     contractText = '',
@@ -44,6 +67,7 @@ const ContractView = forwardRef(({
     onClauseChange,
     onSaveToCloud,
     onEditStateChange,
+    onEditedClausesChange,
 }, ref) => {
     const { t, isRTL } = useLanguage();
     const [editedClauses, setEditedClauses] = useState(() => initialEditedClauses || {});
@@ -86,12 +110,14 @@ const ContractView = forwardRef(({
             };
 
             const matchedIssue = issues.find(issue => {
-                const issueText = issue.original_text?.toLowerCase() || '';
-                const clauseTextLower = clauseObj.text.toLowerCase();
-                return (
-                    clauseTextLower.includes(issueText.slice(0, 50)) ||
-                    issueText.includes(clauseTextLower.slice(0, 50))
-                );
+                const issueTextCandidate =
+                    issue.original_text ||
+                    issue.original ||
+                    issue.clause_text ||
+                    issue.clause ||
+                    '';
+
+                return isFuzzyClauseMatch(issueTextCandidate, clauseObj.text);
             });
 
             if (matchedIssue) {
@@ -145,18 +171,21 @@ const containerRef = useRef(null);
     const lastReportedEditStateRef = useRef('');
 
     useEffect(() => {
-        // If initialEditedClauses is provided (e.g. from backend analysis fetch), override local state initially
-        if (initialEditedClauses && Object.keys(initialEditedClauses).length > 0) {
-            // Ensure we don't infinitely re-trigger if it hasn't functionally changed
-            const currentStr = JSON.stringify(editedClausesRef.current);
-            const newStr = JSON.stringify(initialEditedClauses);        
-            if (currentStr !== newStr) {
-                editedClausesRef.current = initialEditedClauses;        
-                setEditedClauses(initialEditedClauses);
-                lastCloudSaveSignatureRef.current = newStr;
-            }
+        if (!initialEditedClauses || typeof initialEditedClauses !== 'object') return;
+
+        // Keep local state aligned with parent source-of-truth, including explicit resets to an empty object.
+        const currentStr = JSON.stringify(editedClausesRef.current || {});
+        const newStr = JSON.stringify(initialEditedClauses);
+        if (currentStr !== newStr) {
+            editedClausesRef.current = initialEditedClauses;
+            setEditedClauses(initialEditedClauses);
+            lastCloudSaveSignatureRef.current = newStr;
         }
     }, [initialEditedClauses]);
+
+    useEffect(() => {
+        onEditedClausesChange?.(editedClauses);
+    }, [editedClauses, onEditedClausesChange]);
 
     useEffect(() => {
         if (readOnly || !contractId) return;
@@ -175,10 +204,14 @@ const containerRef = useRef(null);
     }, [contractId, readOnly]);
 
     useEffect(() => {
-        if (readOnly || !contractId || Object.keys(editedClauses).length === 0) return;
+        if (readOnly || !contractId) return;
         const storageKey = `rentguard_edits_${contractId}`;
         try {
-            localStorage.setItem(storageKey, JSON.stringify(editedClauses));
+            if (Object.keys(editedClauses).length === 0) {
+                localStorage.removeItem(storageKey);
+            } else {
+                localStorage.setItem(storageKey, JSON.stringify(editedClauses));
+            }
         } catch (error) {
             console.warn('Failed to save edits:', error);
         }
@@ -194,8 +227,6 @@ const containerRef = useRef(null);
             lastCloudSaveSignatureRef.current = currentEditsSignature;
             return;
         }
-
-        if (Object.keys(editedClauses).length === 0) return;
 
         if (currentEditsSignature === lastCloudSaveSignatureRef.current) return;
 
@@ -294,6 +325,7 @@ const containerRef = useRef(null);
             const newEdited = { ...editedClauses };
             delete newEdited[confirmRevertId];
             updateEditedClauses(newEdited);
+            onClauseChange?.(confirmRevertId, '', 'reverted');
             if (selectedClause?.id === confirmRevertId) closeEditor();
             setConfirmRevertId(null);
         }
@@ -316,7 +348,7 @@ const containerRef = useRef(null);
                     originalNumber: originalNumber 
                 }
             }));
-            onClauseChange?.(selectedClause.id, editingText.trim(), 'edited');
+            onClauseChange?.(selectedClause.id, editingText.trim(), 'edited', { originalNumber });
             setSaveStatus(null);
         }
         closeEditor();
@@ -366,15 +398,28 @@ const containerRef = useRef(null);
     };
 
     const handleExport = useCallback(async () => {
-        const currentEdits = editedClausesRef.current || {};
-        const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        await exportEditedContractWithSignatures(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+        try {
+            showAppToast({
+                type: 'warning',
+                title: t('contractView.ocrDisclaimerTitle'),
+                message: t('contractView.ocrDisclaimerBody2'),
+                ttlMs: 5000,
+            });
+            showAppToast({ type: 'info', message: t('export.started') });
+            const currentEdits = editedClausesRef.current || {};
+            const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
+            await exportEditedContractToWord(clauseTexts, currentEdits, t('export.defaultContractFilename'));
+            showAppToast({ type: 'success', message: t('export.success') });
+        } catch (error) {
+            console.error('Contract export error:', error);
+            showAppToast({ type: 'error', message: t('export.error') });
+        }
     }, [clauses, getClauseTextFromEdits, t]);
 
     const handleGetDocxBlob = useCallback(async () => {
         const currentEdits = editedClausesRef.current || {};
         const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        return await exportEditedContractWithSignaturesBlob(clauseTexts, currentEdits, t('contractView.editedContractFileName'));
+        return await exportEditedContractToWordBlob(clauseTexts, currentEdits, t('export.defaultContractFilename'));
     }, [clauses, getClauseTextFromEdits, t]);
 
     const getCurrentEditedPayload = useCallback(() => {
@@ -408,7 +453,7 @@ const containerRef = useRef(null);
     }), [handleExport, handleGetDocxBlob, getCurrentEditedPayload]);
 
     return (
-        <div className="lf-cv-container">
+        <div className="lf-cv-container" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className={`lf-cv-paper ${isMinimized ? 'minimized' : ''}`} ref={containerRef}>
                 
                 {/* ===== MINIMIZE / MAXIMIZE CONTROLS ===== */}
@@ -552,6 +597,7 @@ const containerRef = useRef(null);
                         <div className="lf-cv-modal-footer center-footer">
                             <button className="lf-cv-btn-revert" onClick={() => {
                                 updateEditedClauses({});
+                                onClauseChange?.(null, '', 'cleared');
                                 if (contractId) localStorage.removeItem(`rentguard_edits_${contractId}`);
                                 setSaveStatus(null);
                                 setShowClearAllConfirm(false);

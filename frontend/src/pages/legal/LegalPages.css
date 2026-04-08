@@ -62,6 +62,26 @@
     align-items: flex-start;
 }
 
+@media (max-width: 768px) {
+    .terms-header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    [dir="rtl"] .terms-header-container {
+        align-items: flex-end;
+    }
+
+    .terms-header-container .global-back-btn {
+        display: none;
+    }
+
+    [dir="rtl"] .terms-header-content {
+        text-align: right;
+    }
+}
+
 .terms-main-title {
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
@@ -199,10 +219,6 @@
     font-family: inherit;
 }
 
-.toc-btn:hover {
-    background: rgba(5, 150, 105, 0.05);
-}
-
 .toc-btn.active {
     background: var(--bg-inset);
     color: var(--text-primary);
@@ -324,11 +340,6 @@
 [data-theme="dark"] .accordion-icon-box {
     background: rgba(52, 211, 153, 0.15);
     color: #34d399;
-}
-
-.accordion-trigger:hover .accordion-icon-box {
-    background: rgba(5, 150, 105, 0.15);
-    transform: scale(1.05);
 }
 
 .accordion-title {
@@ -488,11 +499,6 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.help-btn:hover {
-    transform: translateY(-2px);
-    background: #ecfdf5;
-}
-
 .help-email {
     font-size: 0.85rem;
     color: #a7f3d0;
@@ -529,4 +535,20 @@
     user-select: text;
     -webkit-user-select: text;
     cursor: text;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .toc-btn:hover {
+        background: rgba(5, 150, 105, 0.05);
+    }
+
+    .accordion-trigger:hover .accordion-icon-box {
+        background: rgba(5, 150, 105, 0.15);
+        transform: scale(1.05);
+    }
+
+    .help-btn:hover {
+        transform: translateY(-2px);
+        background: #ecfdf5;
+    }
 }

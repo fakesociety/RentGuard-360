@@ -96,10 +96,6 @@
     transition: opacity var(--transition-fast);
 }
 
-.sidebar-logo:hover {
-    opacity: 0.8;
-}
-
 .sidebar-logo .logo-icon {
     width: 32px;
     height: 32px;
@@ -145,15 +141,6 @@
     transition: all var(--transition-fast);
     white-space: nowrap;
     overflow: hidden;
-}
-
-.back-link:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-primary);
-}
-
-.admin-sidebar.light .back-link:hover {
-    background: var(--bg-tertiary);
 }
 
 .back-link svg {
@@ -203,15 +190,6 @@
     transition: all var(--transition-fast);
     white-space: nowrap;
     overflow: hidden;
-}
-
-.sidebar-nav-item:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-primary);
-}
-
-.admin-sidebar.light .sidebar-nav-item:hover {
-    background: var(--bg-tertiary);
 }
 
 .sidebar-nav-item.active {
@@ -266,20 +244,6 @@
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
-}
-
-.sidebar-footer-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-primary);
-}
-
-.admin-sidebar.light .sidebar-footer-btn:hover {
-    background: var(--bg-tertiary);
-}
-
-.sidebar-footer-btn.logout-btn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--accent-danger);
 }
 
 .sidebar-footer-btn svg {
@@ -384,10 +348,6 @@
     .admin-sidebar .sidebar-header {
         display: none;
     }
-
-    .admin-sidebar:hover {
-        width: var(--sidebar-width);
-    }
 }
 
 @media (max-width: 600px) {
@@ -421,5 +381,49 @@
 
     .sidebar-footer {
         padding: 12px 10px;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sidebar-logo:hover {
+        opacity: 0.8;
+    }
+
+    .back-link:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+    }
+
+    .admin-sidebar.light .back-link:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .sidebar-nav-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+    }
+
+    .admin-sidebar.light .sidebar-nav-item:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .sidebar-footer-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+    }
+
+    .admin-sidebar.light .sidebar-footer-btn:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .sidebar-footer-btn.logout-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--accent-danger);
+    }
+}
+
+@media (max-width: 1024px) and (hover: hover) and (pointer: fine) {
+    .admin-sidebar:hover {
+        width: var(--sidebar-width);
     }
 }

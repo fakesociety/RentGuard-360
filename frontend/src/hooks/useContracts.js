@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getContracts, deleteContract, getAnalysis, updateContract } from '../services/api';
-import { exportToWord, exportToPDF, exportToPDFBlob } from '../services/ExportService';
+import { exportReportToWord, exportReportToWordBlob } from '../services/ReportExportService';
+import { showAppToast } from '../utils/toast';
 import useShareFile from './useShareFile';
 
 const DEFAULT_ANALYSIS_TIMEOUT_MS = 3 * 60 * 1000;
@@ -155,31 +156,28 @@ export const useContracts = (userId, t, isRTL) => {
         }
     };
 
-    const handleExport = async (contract, type) => {
+    const handleExport = async (contract) => {
         try {
             const analysis = await getAnalysis(contract.contractId);
-            if (type === 'pdf') {
-                await exportToPDF(analysis, contract.fileName || 'Report');
-                showActionNotice(t('contracts.exportPdfStarted'));
-            } else {
-                await exportToWord(analysis, contract.fileName || 'Report');
-                showActionNotice(t('contracts.exportWordStarted'));
-            }
+            showAppToast({ type: 'info', message: t('export.started') });
+            await exportReportToWord(analysis, contract.fileName || t('export.defaultFilename'));
+            showAppToast({ type: 'success', message: t('export.success') });
         } catch {
-            alert(t('contracts.exportFailed'));
+            showAppToast({ type: 'error', message: t('export.error') });
         }
     };
 
     const handleShare = async (contract) => {
         try {
             const analysis = await getAnalysis(contract.contractId);
-            const baseFileName = `${(contract.fileName || 'Report').replace(/\.(pdf|docx)$/i, '')}`;
-            const blob = await exportToPDFBlob(analysis, baseFileName);
-            await shareFile(blob, `${baseFileName}.pdf`, 'application/pdf');
-            showActionNotice(t('contracts.shareSheetOpened'));
+            const baseFileName = `${(contract.fileName || t('export.defaultFilename')).replace(/\.(pdf|docx)$/i, '')}`;
+            showAppToast({ type: 'info', message: t('export.started') });
+            const blob = await exportReportToWordBlob(analysis, baseFileName);
+            await shareFile(blob, `${baseFileName}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            showAppToast({ type: 'success', message: t('export.success') });
         } catch (err) {
             console.error('Share failed:', err);
-            alert(t('contracts.shareFailed'));
+            showAppToast({ type: 'error', message: t('export.error') });
         }
     };
 

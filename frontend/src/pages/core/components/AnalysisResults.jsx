@@ -15,6 +15,7 @@ const AnalysisResults = ({
     contractViewRef,
     contractEditState,
     setContractEditState,
+    editedClauses,
     setEditedClauses,
     handleSaveToCloud,
     copyTextToClipboard,
@@ -216,10 +217,34 @@ const AnalysisResults = ({
                     backendClauses={analysis?.clauses_list || analysis?.clauses || []}
                     issues={issues}
                     contractId={analysis?.contractId || contractId}
-                    initialEditedClauses={analysis?.editedClauses}
-                    onClauseChange={(clauseId, text, action) => {
-                        setEditedClauses(prev => ({ ...prev, [clauseId]: { text, action } }));
+                    initialEditedClauses={editedClauses}
+                    onClauseChange={(clauseId, text, action, metadata = {}) => {
+                        setEditedClauses(prev => {
+                            if (action === 'cleared') {
+                                return {};
+                            }
+
+                            if (action === 'reverted') {
+                                if (!clauseId) return prev;
+                                const next = { ...prev };
+                                delete next[clauseId];
+                                return next;
+                            }
+
+                            if (!clauseId) return prev;
+
+                            return {
+                                ...prev,
+                                [clauseId]: {
+                                    ...(prev?.[clauseId] || {}),
+                                    ...metadata,
+                                    text,
+                                    action,
+                                },
+                            };
+                        });
                     }}
+                    onEditedClausesChange={setEditedClauses}
                     onExportEdited={async (editedClausesMap) => {
                         const contractText = analysis?.sanitizedText || analysis?.full_text || analysis?.contractText || '';
                         const backendClauses = analysis?.clauses_list || analysis?.clauses || [];

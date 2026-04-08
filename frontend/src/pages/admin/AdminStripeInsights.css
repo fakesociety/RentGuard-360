@@ -79,11 +79,6 @@
     min-width: 0;
 }
 
-.stripe-kpi-card:hover {
-    border-color: var(--admin-card-border-hover);
-    transform: translateY(-1px);
-}
-
 .stripe-kpi-card.revenue {
     background: linear-gradient(180deg, var(--admin-card-bg), rgba(16, 185, 129, 0.06));
 }
@@ -455,10 +450,6 @@
     transition: background 0.2s ease;
 }
 
-.table-wrap tbody tr:hover {
-    background: rgba(56, 189, 248, 0.06);
-}
-
 .status-pill {
     padding: 4px 8px;
     border-radius: 999px;
@@ -548,4 +539,15 @@
         padding: 14px;
     }
 
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .stripe-kpi-card:hover {
+        border-color: var(--admin-card-border-hover);
+        transform: translateY(-1px);
+    }
+
+    .table-wrap tbody tr:hover {
+        background: rgba(56, 189, 248, 0.06);
+    }
 }
