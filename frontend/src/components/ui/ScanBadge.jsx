@@ -23,18 +23,14 @@ const ScanBadge = () => {
       title={(isAdmin || isUnlimited) ? t('nav.unlimited') : `${scansRemaining} ${t('nav.scansLeft')}`}
     >
       {(isAdmin || isUnlimited) ? (
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}> 
+        <span className="material-symbols-outlined" style={{ fontSize: '22px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           all_inclusive
         </span>
       ) : (
-        <Search size={18} />
-      )}
-
-      {(isAdmin || isUnlimited) ? (
-        <span className="scan-badge-unlimited">
-        </span>
-      ) : (
-        <span>{scansRemaining}</span>
+        <>
+          <Search size={18} />
+          <span>{scansRemaining}</span>
+        </>
       )}
     </button>
   );

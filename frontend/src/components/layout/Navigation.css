@@ -204,6 +204,14 @@
     opacity: 0.7;
 }
 
+.scan-badge .material-symbols-outlined {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transform: translateY(-1px);
+}
+
 .scan-badge-unlimited {
     display: inline-flex;
     align-items: center;
