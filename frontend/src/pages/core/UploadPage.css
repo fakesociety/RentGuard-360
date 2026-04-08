@@ -242,15 +242,22 @@
 }
 
 .upload-modern-file-icon-wrap {
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: 0.55rem;
-    background: rgba(255, 218, 214, 0.25);
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 0.7rem;
+    background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 34%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ba1a1a;
+    color: var(--accent-primary);
     flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.upload-modern-file-icon-wrap svg {
+    width: 1.05rem;
+    height: 1.05rem;
 }
 
 .upload-modern-file-main {
@@ -416,7 +423,7 @@
 }
 
 .upload-modern-status.ready {
-    color: #00694c;
+    color: var(--accent-primary);
 }
 
 .upload-modern-status.uploading {
@@ -432,17 +439,23 @@
 }
 
 .upload-modern-delete-btn {
-    border: none;
+    border: 1px solid var(--glass-border);
     border-radius: 9999px;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2rem;
+    height: 2rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.7);
+    background: color-mix(in srgb, var(--bg-inset) 76%, transparent);
     color: var(--text-secondary);
+    box-shadow: var(--shadow-xs);
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.upload-modern-delete-btn svg {
+    width: 1rem;
+    height: 1rem;
 }
 
 .upload-modern-delete-btn:disabled {
@@ -540,6 +553,19 @@
 [data-theme="dark"] .upload-modern-file-size,
 [data-theme="dark"] .upload-modern-status.uploading {
     color: #e2e8f0;
+}
+
+[data-theme="dark"] .upload-modern-file-icon-wrap {
+    background: color-mix(in srgb, var(--accent-primary) 24%, rgba(15, 23, 42, 1));
+    border-color: color-mix(in srgb, var(--accent-primary) 52%, rgba(148, 163, 184, 0.3));
+    color: #8ff4cf;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .upload-modern-delete-btn {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #cbd5e1;
 }
 
 [data-theme="dark"] .upload-modern-icon {
@@ -995,8 +1021,16 @@
     }
 
     .upload-modern-delete-btn:hover {
-        background: rgba(255, 218, 214, 0.6);
-        color: #ba1a1a;
+        background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+        border-color: color-mix(in srgb, var(--accent-danger) 36%, transparent);
+        color: var(--accent-danger);
+        transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .upload-modern-delete-btn:hover {
+        background: color-mix(in srgb, var(--accent-danger) 22%, rgba(15, 23, 42, 1));
+        border-color: color-mix(in srgb, var(--accent-danger) 52%, rgba(148, 163, 184, 0.36));
+        color: #fecaca;
     }
 
     .success-upload-another-btn.btn-secondary:hover:not(:disabled) {
