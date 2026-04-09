@@ -76,7 +76,6 @@ const ContractsPage = () => {
             <div className="contracts-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="contracts-loading-state">
                     <GlobalSpinner size={40} />
-                    <p>{t('contracts.loading')}</p>
                 </div>
             </div>
         );

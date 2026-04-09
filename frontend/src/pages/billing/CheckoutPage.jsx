@@ -264,7 +264,6 @@ const CheckoutPage = () => {
             <div className="checkout-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="checkout-loading">
                     <GlobalSpinner size={30} />
-                    <p>{t('common.loading')}</p>
                 </div>
             </div>
         );

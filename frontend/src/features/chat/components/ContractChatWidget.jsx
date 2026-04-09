@@ -159,7 +159,6 @@ const ContractChatWidget = () => {
                     <div className="chat-widget-messages" role="log" aria-live="polite" ref={messagesContainerRef}>
                         {selectedContractId && isHistoryLoading && (
                             <div className="chat-widget-empty">
-                                {`${t('common.loading')}...`}
                             </div>
                         )}
 

@@ -65,7 +65,6 @@ const AdminAnalytics = () => {
                 {loading ? (
                     <div className="loading-state">
                         <GlobalSpinner size={40} />
-                        <p>{t('common.loading')}</p>
                     </div>
                 ) : (
                     <ThemeProvider theme={chartTheme}>

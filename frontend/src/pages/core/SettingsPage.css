@@ -109,12 +109,6 @@ main:has(.settings-container) {
     text-align: center;
 }
 
-@media (min-width: 768px) {
-    .bento-card h3 {
-        text-align: start;
-    }
-}
-
 /* --- HOVER EFFECTS (Matches Dashboard) --- */
 /* Dark Mode Glass Sheen (Invisible beam ready to sweep) */
 [data-theme="dark"] .bento-card::before {
@@ -139,16 +133,11 @@ main:has(.settings-container) {
     text-align: center;
 }
 
-@media (min-width: 768px) {
-    .cube-desc {
-        text-align: start;
-    }
-}
-
 .flex-between {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 1.5rem;
     height: 100%;
 }
 
@@ -164,12 +153,6 @@ main:has(.settings-container) {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@media (min-width: 768px) {
-    .cube-icon-wrapper {
-        margin: 0 0 1.5rem 0;
-    }
-}
-
 .icon-primary { background: rgba(5, 150, 105, 0.1); color: var(--accent-primary); }
 .icon-secondary { background: rgba(8, 145, 178, 0.1); color: var(--accent-secondary); }
 .icon-tertiary { background: rgba(59, 130, 246, 0.1); color: var(--accent-info); }
@@ -183,8 +166,10 @@ main:has(.settings-container) {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    height: 100%;
     text-align: center;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 .profile-actions {
@@ -193,17 +178,6 @@ main:has(.settings-container) {
     gap: 1rem;
     justify-content: center;
     margin-top: 1rem;
-}
-
-@media (min-width: 768px) {
-    .profile-cube {
-        flex-direction: row;
-        text-align: start;
-    }
-
-    .profile-actions {
-        justify-content: flex-start;
-    }
 }
 
 .profile-avatar-wrapper {
@@ -300,12 +274,6 @@ main:has(.settings-container) {
     border: 1px solid var(--glass-border);
 }
 
-@media (min-width: 768px) {
-    .fake-credit-card {
-        justify-content: flex-start;
-    }
-}
-
 [data-theme="dark"] .fake-credit-card {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
@@ -345,12 +313,6 @@ main:has(.settings-container) {
     font-family: inherit;
 }
 
-@media (min-width: 768px) {
-    .cube-link-btn {
-        justify-content: flex-start;
-    }
-}
-
 /* --- 4. Notifications & Tags --- */
 .notification-tip-box {
     display: flex;
@@ -366,13 +328,6 @@ main:has(.settings-container) {
     margin-top: 1rem;
 }
 
-@media (min-width: 768px) {
-    .notification-tip-box {
-        justify-content: flex-start;
-        text-align: start;
-    }
-}
-
 [data-theme="dark"] .notification-tip-box { color: #6ee7b7; background: rgba(52, 211, 153, 0.15); }
 
 .cube-tags {
@@ -380,12 +335,6 @@ main:has(.settings-container) {
     justify-content: center;
     gap: 8px;
     margin-top: 1.5rem;
-}
-
-@media (min-width: 768px) {
-    .cube-tags {
-        justify-content: flex-start;
-    }
 }
 
 .tag {
@@ -479,6 +428,7 @@ main:has(.settings-container) {
 
 .danger-title {
     color: var(--accent-danger) !important;
+    text-align: start !important;
 }
 
 .danger-desc {
@@ -486,6 +436,7 @@ main:has(.settings-container) {
     max-width: 400px;
     font-size: 0.95rem;
     line-height: 1.5;
+    text-align: start;
 }
 
 .danger-actions {

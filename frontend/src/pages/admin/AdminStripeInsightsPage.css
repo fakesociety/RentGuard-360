@@ -184,12 +184,6 @@
     gap: 4px;
 }
 
-.admin-dashboard.dark .status-pill.succeeded {
-    color: #dcfce7;
-    background: rgba(22, 163, 74, 0.28);
-    border: 1px solid rgba(74, 222, 128, 0.45);
-}
-
 .currency-list {
     display: flex;
     flex-direction: column;
@@ -256,14 +250,6 @@
     border-radius: 999px;
 }
 
-.status-mix-fill.ok {
-    background: linear-gradient(90deg, #4ade80, #22c55e);
-}
-
-.status-mix-fill.bad {
-    background: linear-gradient(90deg, #fb7185, #ef4444);
-}
-
 .status-mix-fill.neutral {
     background: linear-gradient(90deg, #94a3b8, #64748b);
 }
@@ -325,11 +311,6 @@
 .status-pill.failed {
     color: #991b1b;
     background: rgba(239, 68, 68, 0.2);
-}
-
-.status-pill.pending {
-    color: #92400e;
-    background: rgba(245, 158, 11, 0.2);
 }
 
 .currency-summary {

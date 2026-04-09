@@ -165,7 +165,6 @@ const AnalysisPage = () => {
             <div className="lf-page-wrapper" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="lf-loading-state">
                     <GlobalSpinner size={40} />
-                    <p>{t('analysis.loading')}</p>
                 </div>
             </div>
         );

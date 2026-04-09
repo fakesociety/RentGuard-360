@@ -122,7 +122,7 @@ const SettingsPage = () => {
             <div className="bento-grid">
                 
                 {/* 1. Profile Cube */}
-<div className="bento-card bento-col-4 profile-cube">
+<div className="bento-card bento-col-2 profile-cube">
     <div className="profile-avatar-wrapper">
         <div className="profile-avatar-giant">{userInitial}</div>
     </div>

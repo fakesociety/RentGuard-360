@@ -171,7 +171,6 @@ const AdminUsers = () => {
                 {loading ? (
                     <div className="loading-state">
                         <GlobalSpinner size={40} />
-                        <p>{t('common.loading')}</p>
                     </div>
                 ) : (
                     <div className="users-tab">

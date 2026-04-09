@@ -684,7 +684,6 @@ export const en = {
         }
     },
     "common": {
-        "loading": "Loading...",
         "error": "Error",
         "success": "Success",
         "user": "User",

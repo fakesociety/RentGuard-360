@@ -123,7 +123,6 @@ const PricingPublic = () => {
             <div className="pricing-page page-container" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="pricing-loading">
                     <GlobalSpinner size={30} />
-                    <p>{t('common.loading')}</p>
                 </div>
             </div>
         );

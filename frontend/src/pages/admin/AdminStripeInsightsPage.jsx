@@ -115,7 +115,7 @@ const AdminStripeInsights = () => {
                 {loading ? (
                     <div className="loading-state stripe-insights-loading">
                         <GlobalSpinner size={40} />
-                        <p>{t('common.loading')}</p>
+
                     </div>
                 ) : (
                     <div className="stats-dashboard stripe-stats-dashboard">

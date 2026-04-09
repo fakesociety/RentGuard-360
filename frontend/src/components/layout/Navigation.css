@@ -376,20 +376,27 @@
 .profile-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .profile-name {
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .profile-email {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    word-break: break-all;
-    white-space: normal;
-    line-height: 1.4;
+    unicode-bidi: isolate;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: ltr;
 }
 
 .profile-divider {
@@ -908,3 +915,7 @@
         transform: translateY(-1px);
     }
 }
+[dir="rtl"] .profile-name, [dir="rtl"] .profile-email { text-align: right; }
+[dir="ltr"] .profile-name, [dir="ltr"] .profile-email { text-align: left; }
+[dir='rtl'] .profile-name, [dir='rtl'] .profile-email { text-align: right; }
+[dir='ltr'] .profile-name, [dir='ltr'] .profile-email { text-align: left; }

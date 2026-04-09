@@ -325,7 +325,7 @@ const BillingPage = () => {
                     {transactionsLoading && (
                         <div className="transactions-loading">
                             <Loader2 size={16} className="spin" />
-                            <span>{t('common.loading')}</span>
+
                         </div>
                     )}
 

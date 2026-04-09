@@ -683,7 +683,6 @@ export const he = {
         }
     },
     "common": {
-        "loading": "טוען...",
         "error": "שגיאה",
         "success": "הצלחה",
         "user": "משתמש",

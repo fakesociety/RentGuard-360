@@ -95,7 +95,6 @@ const AdminDashboard = () => {
                 {!accessDenied && loading ? (
                     <div className="loading-state">
                         <GlobalSpinner size={40} />
-                        <p>{t('common.loading')}</p>
                     </div>
                 ) : !accessDenied && stats && (
                     <ThemeProvider theme={chartTheme}>
