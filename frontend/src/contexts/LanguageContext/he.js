@@ -206,7 +206,7 @@ export const he = {
             navDashboard: 'לוח בקרה',
             navContracts: 'חוזים',
             uploadTitle: 'העלאת חוזה שכירות',
-            uploadHint: 'פורמט PDF, עד 10MB',
+            uploadHint: 'פורמט PDF, עד 5MB',
             selectFile: 'בחירת קובץ',
             recentContracts: 'פעילות חוזים אחרונה',
             fileNameApartment: 'חוזה_דירה_תל_אביב.pdf',

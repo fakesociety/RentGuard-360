@@ -201,55 +201,55 @@ export const en = {
         "registerPromptButton": "Register Free",
         "registerPromptNoCard": "No credit card required"
     },
-            mockups: {
-            dashboard: {
-                navDashboard: 'Dashboard',
-                navContracts: 'Contracts',
-                uploadTitle: 'Upload Lease Contract',
-                uploadHint: 'PDF format, up to 10MB',
-                selectFile: 'Select File',
-                recentContracts: 'Recent Contracts',
-                fileNameApartment: 'apartment_tlv.pdf',
-                fileNameOffice: 'office_contract.pdf',
-                scoreApartment: '92',
-                scoreOffice: '58'
-            },
-            contracts: {
-                analyzedPrefix: 'Analyzed:',
-                lowRisk: 'Low Risk',
-                mediumRisk: 'Medium Risk',
-                highRisk: 'High Risk',
-                propertyAddressLabel: 'Property Address:',
-                landlordNameLabel: 'Landlord Name:',
-                viewAnalysis: 'View Analysis',
-                fileNameSafe: 'rental_telaviv.pdf',
-                fileNameRisky: 'unprotected_lease.pdf',
-                fileNameMedium: 'renewal_2025.pdf',
-                addressSafe: '100 Dizengoff, Tel Aviv',
-                landlordSafe: 'Israel Israeli',
-                addressRisky: '45 Herzl, Ramat Gan',
-                landlordRisky: 'Moshe Cohen',
-                addressMedium: '10 HaNassi, Haifa',
-                landlordMedium: 'David Levi',
-                dateSafe: '22.12.2025',
-                dateRisky: '20.12.2025',
-                dateMedium: '18.12.2025'
-            },
-            viewer: {
-                mediumRisk: 'Medium Risk',
-                contractTitle: 'Unprotected Lease Agreement',
-                clauseRentalPeriod: 'Rental Period',
-                okBadge: 'OK',
-                highRisk: 'High Risk',
-                clauseLatePaymentPenalty: 'Late Payment Penalty',
-                originalClauseText: 'A delay of up to 7 days in rent payment will result in an immediate penalty of 500 NIS per day.',
-                legalExplanation: 'Legal Explanation',
-                penaltyExplanation: 'This penalty is exceptionally high and deviates from standard practice. Courts may invalidate it for being disproportionate.',
-                suggestionLabel: 'Suggested Fix: ',
-                suggestionText: 'Limit penalty to standard interest rates or cap at 10% of monthly rent.',
-                clauseRentAmount: 'Rent Amount & Indexation'
-            }
+    mockups: {
+        dashboard: {
+            navDashboard: 'Dashboard',
+            navContracts: 'Contracts',
+            uploadTitle: 'Upload Lease Contract',
+            uploadHint: 'PDF format, up to 5MB',
+            selectFile: 'Select File',
+            recentContracts: 'Recent Contracts',
+            fileNameApartment: 'apartment_tlv.pdf',
+            fileNameOffice: 'office_contract.pdf',
+            scoreApartment: '92',
+            scoreOffice: '58'
         },
+        contracts: {
+            analyzedPrefix: 'Analyzed:',
+            lowRisk: 'Low Risk',
+            mediumRisk: 'Medium Risk',
+            highRisk: 'High Risk',
+            propertyAddressLabel: 'Property Address:',
+            landlordNameLabel: 'Landlord Name:',
+            viewAnalysis: 'View Analysis',
+            fileNameSafe: 'rental_telaviv.pdf',
+            fileNameRisky: 'unprotected_lease.pdf',
+            fileNameMedium: 'renewal_2025.pdf',
+            addressSafe: '100 Dizengoff, Tel Aviv',
+            landlordSafe: 'Israel Israeli',
+            addressRisky: '45 Herzl, Ramat Gan',
+            landlordRisky: 'Moshe Cohen',
+            addressMedium: '10 HaNassi, Haifa',
+            landlordMedium: 'David Levi',
+            dateSafe: '22.12.2025',
+            dateRisky: '20.12.2025',
+            dateMedium: '18.12.2025'
+        },
+        viewer: {
+            mediumRisk: 'Medium Risk',
+            contractTitle: 'Unprotected Lease Agreement',
+            clauseRentalPeriod: 'Rental Period',
+            okBadge: 'OK',
+            highRisk: 'High Risk',
+            clauseLatePaymentPenalty: 'Late Payment Penalty',
+            originalClauseText: 'A delay of up to 7 days in rent payment will result in an immediate penalty of 500 NIS per day.',
+            legalExplanation: 'Legal Explanation',
+            penaltyExplanation: 'This penalty is exceptionally high and deviates from standard practice. Courts may invalidate it for being disproportionate.',
+            suggestionLabel: 'Suggested Fix: ',
+            suggestionText: 'Limit penalty to standard interest rates or cap at 10% of monthly rent.',
+            clauseRentAmount: 'Rent Amount & Indexation'
+        }
+    },
     "contracts": {
         "deleteSuccessTitle": "Contract Deleted",
         "deleteSuccess": "The contract was successfully deleted from the system.",
@@ -1171,6 +1171,6 @@ export const en = {
             }
         ]
     }
-,
+    ,
     "checkingYourPlan": "Checking your plan..."
 };
