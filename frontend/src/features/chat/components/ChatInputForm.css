@@ -1,0 +1,85 @@
+.chat-widget-contract-picker {
+  position: relative;
+  z-index: 5;
+  overflow: visible;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--chat-border-soft);
+  background: color-mix(in oklab, var(--chat-bg-card) 94%, #f8fafc 6%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.chat-widget-contract-picker label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #334155;
+  font-weight: 600;
+}
+.chat-widget-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--chat-border-soft);
+  background: #ffffff;
+}
+.chat-widget-input-row textarea {
+  flex: 1;
+  border: 1px solid var(--chat-bg-inset);
+  border-radius: var(--chat-radius-md);
+  background: #ffffff;
+  color: var(--chat-field-text);
+  padding: 10px 12px;
+  min-height: 42px;
+  max-height: 130px;
+  resize: none;
+  overflow-y: hidden;
+  line-height: 1.45;
+  font-family: inherit;
+}
+.chat-widget-input-row textarea::placeholder {
+  color: var(--chat-field-placeholder);
+}
+.chat-widget-input-row button {
+  width: 38px;
+  border: 1px solid rgba(5, 150, 105, 0.45);
+  border-radius: var(--chat-radius-md);
+  background: var(--chat-primary);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.chat-widget-input-row button:hover:not(:disabled) {
+  background: var(--chat-primary-hover);
+}
+.chat-widget-input-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+[data-theme="dark"] .chat-widget-contract-picker,
+[data-theme="dark"] .chat-widget-input-row,
+[data-theme="dark"] .chat-widget-tip {
+  background: #162031;
+}
+[data-theme="dark"] .chat-widget-contract-picker label,
+[data-theme="dark"] .chat-msg p,
+[data-theme="dark"] .chat-msg-copy,
+[data-theme="dark"] .chat-msg-role,
+[data-theme="dark"] .chat-msg-time {
+  color: #dbe7f3;
+}
+[data-theme="dark"] .chat-contract-trigger,
+[data-theme="dark"] .chat-widget-input-row textarea,
+[data-theme="dark"] .chat-msg-copy {
+  background: #1f2b3d;
+  border-color: #33465f;
+}
+[data-theme="dark"] .chat-contract-trigger,
+[data-theme="dark"] .chat-widget-input-row textarea {
+  color: var(--chat-field-text);
+}
+[data-theme="dark"] .chat-widget-input-row textarea::placeholder {
+  color: var(--chat-field-placeholder);
+}

@@ -1,0 +1,50 @@
+}
+
+[data-theme="dark"] .success-upload-another-btn.btn-secondary {
+    background: rgba(0, 190, 130, 0.2);
+    color: #d9fff0;
+    border: 1px solid rgba(0, 190, 130, 0.46);
+}
+
+/* ============================================
+    10. ERROR MESSAGE
+    ============================================ */
+
+.error-message {
+    padding: var(--space-md);
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid var(--accent-danger);
+    border-radius: var(--radius-md);
+    color: var(--accent-danger);
+    text-align: center;
+}
+
+/* ============================================
+   11. TERMS SECTION
+   ============================================ */
+
+.terms-section {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    border: 1px solid var(--glass-border);
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    cursor: default;
+    line-height: 1.5;
+}
+
+.terms-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent-primary);
+    cursor: pointer !important;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Ensure pointer appears when hovering the checkbox area even if parent sets default */

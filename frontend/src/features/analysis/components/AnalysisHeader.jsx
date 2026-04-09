@@ -14,6 +14,7 @@
  */
 import React from 'react';
 import BackButton from '@/components/ui/BackButton';
+import './AnalysisHeader.css';
 
 const AnalysisHeader = ({
     analysis,

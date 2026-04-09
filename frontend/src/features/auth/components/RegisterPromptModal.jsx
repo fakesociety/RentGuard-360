@@ -15,6 +15,7 @@
 import React from 'react';
 import { X, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
+import './RegisterPromptModal.css';
 
 const RegisterPromptModal = ({ isOpen, onClose, onRegister }) => {
     const { t } = useLanguage();

@@ -14,6 +14,7 @@
  */
 import React from 'react';
 import { Send } from 'lucide-react';
+import './ChatInputForm.css';
 
 const ChatInputForm = ({
     t,

@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Camera, CheckCircle2, FilePenLine, FileText, Files, Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import FileDropZone from '@/components/ui/FileDropZone';
+import './UploadDropzone.css';
 
 const formatFileSize = (bytes, t) => {
     if (bytes === 0) return `0 ${t('upload.fileSizeByte')}`;

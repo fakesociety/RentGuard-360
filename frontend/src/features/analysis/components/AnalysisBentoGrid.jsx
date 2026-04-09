@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import ActionMenu from '@/components/ui/ActionMenu';
 import MapComponent from '@/components/ui/MapComponent';
+import './AnalysisBentoGrid.css';
 
 const AnalysisBentoGrid = ({
     activeTab,

@@ -18,6 +18,9 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { X, Eye, EyeOff } from 'lucide-react';
+import './AuthModal.css';
+
+import './AuthModal.css';
 
 const AuthModal = ({ view, onChangeView, onClose, initialEmail = '' }) => {
     const { login, socialLogin, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword, checkUserStatus } = useAuth();

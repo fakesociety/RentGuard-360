@@ -18,6 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import './UploadMetadataForm.css';
 
 const UploadMetadataForm = ({
     file,

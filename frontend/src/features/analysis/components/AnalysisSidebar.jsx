@@ -17,6 +17,7 @@ import { Info, ChevronDown } from 'lucide-react';
 import ScoreBreakdown from '@/features/analysis/components/ScoreBreakdown';
 import ScoreMethodology from '@/features/analysis/components/ScoreMethodology';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
+import './AnalysisSidebar.css';
 
 const AnalysisSidebar = ({
     activeTab,

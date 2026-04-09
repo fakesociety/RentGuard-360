@@ -14,6 +14,7 @@
  */
 import React from 'react';
 import { X } from 'lucide-react';
+import './ChatHeader.css';
 
 const ChatHeader = ({ t, closePanel }) => {
     return (

@@ -1,0 +1,215 @@
+/* ============================================
+   7. SIDEBAR ACTIONS (Right Column)
+   ============================================ */
+.lf-sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 6rem;
+    padding-bottom: 1rem;
+    font-family: 'Calibri', var(--font-sans);
+}
+
+.lf-sidebar-column * {
+    font-family: inherit;
+}
+
+.lf-glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .lf-glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.lf-sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.lf-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-inset);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+.lf-existing-components {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+[data-theme="dark"] .lf-existing-components .score-breakdown,
+[data-theme="dark"] .lf-existing-components .score-methodology {
+    background: var(--glass-bg);
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+/* Contract tab action row */
+.lf-contract-actions-wrapper {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto 0.75rem;
+}
+
+.lf-contract-export-bar {
+    margin-top: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.lf-contract-export-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.lf-contract-export-btn,
+.lf-contract-reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lf-contract-export-btn {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+    flex: 1;
+}
+
+.lf-contract-reset-btn {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--accent-danger);
+}
+
+.lf-contract-reset-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.lf-contract-reset-counter {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.7);
+    color: #9f1239;
+}
+
+/* Share Panel Redesign */
+.lf-share-panel {
+    background: linear-gradient(145deg, rgba(236, 253, 245, 0.9) 0%, rgba(209, 250, 229, 0.5) 100%);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+[data-theme="dark"] .lf-share-panel {
+    background: rgba(5, 150, 105, 0.1);
+}
+
+.lf-share-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.lf-share-expiry {
+    background: rgba(5, 150, 105, 0.1);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.lf-share-input {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    direction: ltr;
+}
+
+.lf-share-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.lf-share-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+
+.lf-share-btn-icon {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--accent-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lf-share-btn-icon.danger {
+    color: var(--accent-danger);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Collapsible share section: base accordion visuals/hover are inherited from SidebarAccordions.css */
+.lf-share-accordion.lf-ocr-accordion {
+    border: 1px solid var(--accent-danger);
+}
+
+.lf-ocr-accordion .lf-ocr-accordion-title,
+.lf-ocr-accordion .methodology-chevron {
+    color: var(--accent-danger);
+}
+

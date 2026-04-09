@@ -15,6 +15,7 @@
 import React from 'react';
 import { ChevronDown, AlertTriangle, Wand2, Copy, Check, Lightbulb } from 'lucide-react';
 import ContractView from '@/features/analysis/components/ContractView';
+import './AnalysisResults.css';
 
 const AnalysisResults = ({
     activeTab,

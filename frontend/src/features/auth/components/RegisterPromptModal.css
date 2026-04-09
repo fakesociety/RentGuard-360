@@ -1,0 +1,42 @@
+/* ===== REGISTRATION PROMPT MODAL ===== */
+.register-prompt-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+.register-prompt-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    animation: scaleIn 0.3s ease-out;
+}
+.register-prompt-modal h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+.register-prompt-modal p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+.register-prompt-modal .modal-note {
+    font-size: 0.875rem;
+    color: var(--accent-primary);
+    margin-top: 1rem;
+    margin-bottom: 0;
+}
