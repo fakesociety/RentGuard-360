@@ -277,6 +277,13 @@ export const he = {
         }
     },
     "contracts": {
+        "generatingShareLink": "מייצר קישור לחלוקה...",
+        "menuShareTitle": "שיתוף חוזה",
+        "menuShareTrigger": "שיתוף הניתוח",
+        "linkCopied": "הקישור הועתק בהצלחה!",
+        "linkCopiedFallback": "הקישור הועתק ללוח העריכה בכדי שתוכל לשתף!",
+        "shareFailedSpecific": "השיתוף נכשל (אולי בגלל בעיית רשת).",
+        "shareFailed": "נכשל השיתוף.",
         "deleteSuccessTitle": "מחיקת חוזה הושלמה",
         "deleteSuccess": "החוזה נמחק מהמערכת בהצלחה.",
 

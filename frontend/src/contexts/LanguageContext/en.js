@@ -277,6 +277,13 @@ export const en = {
         }
     },
     "contracts": {
+        "generatingShareLink": "Generating secure link...",
+        "menuShareTitle": "Share Contract",
+        "menuShareTrigger": "Share Analysis",
+        "linkCopied": "Link copied successfully!",
+        "linkCopiedFallback": "Link copied to clipboard!",
+        "shareFailedSpecific": "Share failed. Please check your network connection.",
+        "shareFailed": "Failed to share.",
         "deleteSuccessTitle": "Contract Deleted",
         "deleteSuccess": "The contract was successfully deleted from the system.",
 

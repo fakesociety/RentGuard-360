@@ -2,8 +2,7 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 
 export const API_URL = import.meta.env.VITE_API_ENDPOINT;
 const CHECK_USER_API_KEY = import.meta.env.VITE_CHECK_USER_API_KEY;
-const IS_LOCAL_DEV = Boolean(import.meta.env.DEV) && typeof window !== 'undefined'
-    && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const IS_LOCAL_DEV = Boolean(import.meta.env.DEV);
 const EFFECTIVE_API_BASE_URL = IS_LOCAL_DEV ? '/__rg_api__' : API_URL;
 
 if (!API_URL) {
