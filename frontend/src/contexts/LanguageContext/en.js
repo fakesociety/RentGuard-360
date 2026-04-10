@@ -234,6 +234,13 @@ export const en = {
             scoreOffice: '58'
         },
         contracts: {
+            generatingShareLink: 'Generating secure link...',
+            menuShareTitle: 'Share Contract',
+            menuShareTrigger: 'View this contract analysis checked by RentGuard',
+            linkCopied: 'Link copied successfully!',
+            linkCopiedFallback: 'Link copied to clipboard successfully!',
+            shareFailed: 'Failed to share the link.',
+            shareFailedSpecific: 'Failed to generate link, please try again.',
             analyzedPrefix: 'Analyzed:',
             lowRisk: 'Low Risk',
             mediumRisk: 'Medium Risk',

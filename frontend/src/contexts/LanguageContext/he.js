@@ -234,6 +234,13 @@ export const he = {
             scoreOffice: '58'
         },
         contracts: {
+            generatingShareLink: 'מייצר קישור מאובטח...',
+            menuShareTitle: 'שיתוף חוזה',
+            menuShareTrigger: 'צפו בניתוח החוזה הזה שנבדק במערכת RentGuard',
+            linkCopied: 'הקישור הועתק בהצלחה!',
+            linkCopiedFallback: 'הקישור הועתק ללוח העריכה בהצלחה!',
+            shareFailed: 'נכשל בניסיון לשתף את הקישור.',
+            shareFailedSpecific: 'יצירת הקישור נכשלה, אנא נסה שוב.',
             analyzedPrefix: 'נותח:',
             lowRisk: 'סיכון נמוך',
             mediumRisk: 'סיכון בינוני',

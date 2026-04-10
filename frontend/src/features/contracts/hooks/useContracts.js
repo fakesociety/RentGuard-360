@@ -194,19 +194,28 @@ export const useContracts = (userId, t, isRTL) => {
             const result = await createShareLink(contract.contractId);
             const shareUrl = `${window.location.origin}/#/shared/${result.shareToken}`;
 
+            let sharedNatively = false;
+
             if (navigator.share) {
-                await navigator.share({
-                    title: contract.fileName || t('contracts.menuShareTitle'),
-                    text: t('contracts.menuShareTrigger'),
-                    url: shareUrl,
-                });
-            } else {
+                try {
+                    await navigator.share({
+                        title: contract.fileName || t('contracts.menuShareTitle'),
+                        text: t('contracts.menuShareTrigger'),
+                        url: shareUrl,
+                    });
+                    sharedNatively = true;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return;
+                    console.warn('Native share blocked due to timeout, falling back to clipboard...');
+                }
+            }
+            
+            if (!sharedNatively) {
                 await navigator.clipboard.writeText(shareUrl);
-                showAppToast({ type: 'success', message: t('contracts.linkCopied') || 'Link copied!' });
+                showAppToast({ type: 'success', message: t('contracts.linkCopiedFallback') });
             }
         } catch (err) {
-            if (err?.name === 'AbortError') return;
-            showAppToast({ type: 'error', message: t('contracts.shareFailed') || 'Failed to share' });
+            showAppToast({ type: 'error', message: t('contracts.shareFailedSpecific') });
         }
     };
 
