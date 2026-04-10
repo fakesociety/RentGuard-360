@@ -13,7 +13,7 @@
  * ============================================
  */
 import React from 'react';
-import { ChevronDown, AlertTriangle, Wand2, Copy, Check, Lightbulb } from 'lucide-react';
+import { ChevronDown, AlertTriangle, Wand2, Copy, Check, Lightbulb, Quote } from 'lucide-react';
 import ContractView from '@/features/analysis/components/ContractView';
 import './AnalysisResults.css';
 
@@ -143,8 +143,8 @@ const AnalysisResults = ({
                                             <span className="lf-badge-points">-{issue.penalty_points} {t('analysis.points')}</span>
                                         )}
                                     </div>
-                                    <h3>{clauseTitle}</h3>
-                                    <p className="lf-clause-preview">{clausePreview}</p>
+                                    <h3 dir="auto">{clauseTitle}</h3>
+                                    <p className="lf-clause-preview" dir="auto">{clausePreview}</p>
                                 </div>
                                 <button className="lf-expand-btn">
                                     <ChevronDown size={20} className={isExpanded ? 'rotated' : ''} />
@@ -154,9 +154,10 @@ const AnalysisResults = ({
                             {isExpanded && (
                                 <div className="lf-clause-body">
                                     {clauseOriginal && (
-                                        <div className="lf-quote-box">
-                                            <span className="material-symbols-outlined lf-quote-icon">format_quote</span>
-                                            <p>"{clauseOriginal}"</p>
+                                        <div className="lf-quote-box" dir="auto">
+                                            <Quote size={20} className="lf-quote-icon start-quote" />
+                                            <p dir="auto">{clauseOriginal}</p>
+                                            <Quote size={20} className="lf-quote-icon end-quote" />
                                         </div>
                                     )}
 
@@ -168,7 +169,7 @@ const AnalysisResults = ({
                                                 </div>
                                                 <div className="lf-item-text">
                                                     <h4>{t('analysis.theIssue')}</h4>
-                                                    <p>{clauseExplanation}</p>
+                                                    <p dir="auto">{clauseExplanation}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -180,7 +181,7 @@ const AnalysisResults = ({
                                                 </div>
                                                 <div className="lf-item-text">
                                                     <h4>{t('analysis.negotiationStrategy')}</h4>
-                                                    <p>{clauseFix}</p>
+                                                    <p dir="auto">{clauseFix}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -197,9 +198,9 @@ const AnalysisResults = ({
                                             </button>
                                             
                                             {clauseTip && (
-                                                <div className="lf-tip-box">
+                                                <div className="lf-tip-box" dir="auto">
                                                     <Lightbulb size={16} />
-                                                    <span>{clauseTip}</span>
+                                                    <span dir="auto">{clauseTip}</span>
                                                 </div>
                                             )}
                                         </div>

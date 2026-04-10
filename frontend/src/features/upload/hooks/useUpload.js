@@ -70,19 +70,33 @@ export const useUpload = () => {
         let cancelled = false;
         (async () => {
             try {
-                const result = await pollForAnalysis(uploadedContractId, 40, 3000);
+                const result = await pollForAnalysis(uploadedContractId, 60, 3000);
                 if (cancelled) return;
                 if (result) {
                     emitAppToast({
                         type: 'success',
-                        title: t('notifications.analysisReadyTitle'),
-                        message: t('notifications.analysisReadyMessage'),
+                        title: t('notifications.analysisReadyTitle') || 'Analysis Ready',
+                        message: t('notifications.analysisReadyMessage') || 'Your contract has been successfully analyzed.',
                     });
                     navigate(`/analysis/${encodeURIComponent(uploadedContractId)}`, { replace: true });
+                } else {
+                    // Polling timed out (took > 3 mins)
+                    if (!cancelled) {
+                        emitAppToast({
+                            type: 'info',
+                            title: t('notifications.analysisDelayedTitle') || 'Analysis working...',
+                            message: t('notifications.analysisDelayedMessage') || 'The AI is taking longer than usual. Please check your contracts list in a moment.',
+                        });
+                    }
                 }
             } catch (e) {
                 if (!cancelled) {
                     console.warn('Auto-navigate polling failed:', e);
+                    emitAppToast({
+                        type: 'info',
+                        title: t('notifications.analysisDelayedTitle') || 'Analysis is running',
+                        message: t('notifications.analysisDelayedMessage') || 'Please see the Contracts page a bit later to view your final report.',
+                    });
                 }
             }
         })();
@@ -303,13 +317,30 @@ export const useUpload = () => {
                         await deductScan();
                     } catch (deductErr) {
                         console.warn('Local deductScan also failed (RDS fully down). Refreshing subscription state.', deductErr);
-                        await refreshSubscription();
+                        await refreshSubscription(true);
                     }
                 } else {
-                    await refreshSubscription();
+                    await refreshSubscription(true);
                 }
 
-                setUploadedContractId(result.contractId || result.key || '');
+                const finalContractId = result.contractId || result.key || '';
+                setUploadedContractId(finalContractId);
+
+                // Cache metadata so redirect immediately has details 
+                if (finalContractId) {
+                    try {
+                        localStorage.setItem(`rentguard_contract_meta_${finalContractId}`, JSON.stringify({
+                            fileName: normalizedCustomFileName,
+                            propertyAddress: metadata.propertyAddress || '',
+                            landlordName: metadata.landlordName || '',
+                            uploadDate: new Date().toISOString(),
+                            updatedAt: Date.now()
+                        }));
+                    } catch (e) {
+                        console.warn('Failed to pre-cache metadata:', e);
+                    }
+                }
+
                 setUploadSuccess(true);
                 emitAppToast({
                     type: 'success',
@@ -343,7 +374,7 @@ export const useUpload = () => {
         // All attempts failed
         console.error('Upload failed after all attempts:', lastErr);
         // Refresh subscription in case failure was due to zero scans hitting the backend directly
-        await refreshSubscription();
+        await refreshSubscription(true);
         
         const friendlyMessage = isRetryableError(lastErr)
             ? t('upload.serverTemporaryError')

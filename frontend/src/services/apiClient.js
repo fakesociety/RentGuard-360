@@ -34,7 +34,8 @@ export const apiCall = async (endpoint, options = {}) => {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutValue = options.timeout || 120000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutValue);
 
     try {
         const response = await fetch(url, {

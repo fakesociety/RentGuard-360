@@ -22,7 +22,7 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { getContracts, deleteContract } from '@/features/contracts/services/contractsApi';
-import { getAnalysis } from '@/features/analysis/services/analysisApi';
+import { getAnalysis, createShareLink } from '@/features/analysis/services/analysisApi';
 import { exportReportToWord } from '@/features/analysis/services/ReportExportService';
 import { showAppToast } from '@/utils/toast';
 import { useContractMetadataEditor } from '@/features/contracts/hooks/useContractMetadataEditor';
@@ -189,23 +189,24 @@ export const useContracts = (userId, t, isRTL) => {
 
     const handleShare = async (contract) => {
         try {
-            if (!window.isSecureContext || !navigator?.share) {
-                showAppToast({ type: 'warning', message: t('contracts.shareRequiresHttps') });
-                return;
+            showAppToast({ type: 'info', message: t('contracts.generatingShareLink') || 'Generating link...' });
+            
+            const result = await createShareLink(contract.contractId);
+            const shareUrl = `${window.location.origin}/#/shared/${result.shareToken}`;
+
+            if (navigator.share) {
+                await navigator.share({
+                    title: contract.fileName || t('contracts.menuShareTitle'),
+                    text: t('contracts.menuShareTrigger'),
+                    url: shareUrl,
+                });
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                showAppToast({ type: 'success', message: t('contracts.linkCopied') || 'Link copied!' });
             }
-
-            const shareUrl = `${window.location.origin}/#/analysis/${encodeURIComponent(contract.contractId)}`;
-
-            await navigator.share({
-                title: contract.fileName || t('contracts.menuShareTitle'),
-                text: t('contracts.menuShareTrigger'),
-                url: shareUrl,
-            });
-
-            showAppToast({ type: 'info', message: t('contracts.shareSheetOpened') });
         } catch (err) {
             if (err?.name === 'AbortError') return;
-            showAppToast({ type: 'error', message: t('contracts.shareFailed') });
+            showAppToast({ type: 'error', message: t('contracts.shareFailed') || 'Failed to share' });
         }
     };
 

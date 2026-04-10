@@ -29,8 +29,8 @@ const AnalysisHeader = ({
             <div className="lf-header-content">
                 <div className="lf-header-text">
                     <span className="lf-pre-title">{t('analysis.title')}</span>
-                    <h1 className="lf-main-title">{analysis?.fileName || t('analysis.contractDocument')}</h1>
-                    <p className="lf-subtitle">{result?.summary || t('analysis.analysisComplete')}</p>
+                    <h1 className="lf-main-title" dir="auto">{analysis?.fileName || t('analysis.contractDocument')}</h1>
+                    <p className="lf-subtitle" dir="auto">{result?.summary || t('analysis.analysisComplete')}</p>
                 </div>
             </div>
 

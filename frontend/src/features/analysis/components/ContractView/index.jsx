@@ -301,7 +301,10 @@ const containerRef = useRef(null);
 
         if (isFirstRender.current) {
             isFirstRender.current = false;
-            lastCloudSaveSignatureRef.current = currentEditsSignature;
+            // Prevent overriding the signature if a previous effect just hydrated it
+            if (!lastCloudSaveSignatureRef.current) {
+                lastCloudSaveSignatureRef.current = currentEditsSignature;
+            }
             return;
         }
 

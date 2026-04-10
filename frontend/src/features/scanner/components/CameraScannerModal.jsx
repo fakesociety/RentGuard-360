@@ -23,6 +23,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { useScanPages } from '@/features/scanner/hooks/useScanPages';
 import { compressCaptureDataUrl, getCroppedImg } from '@/features/scanner/services/imageProcessing';
 import { buildPdfFileFromPages } from '@/features/scanner/services/pdfBuilder';
+import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import ScannerThumbnailGallery from './ScannerThumbnailGallery';
 import './CameraScannerModal.css';
 
@@ -42,6 +43,7 @@ const CameraScannerModal = ({
     onComplete,
     initialFileName = 'scanned-contract',
 }) => {
+    const { t, isRTL } = useLanguage();
     const webcamRef = useRef(null);
     const pendingImageRef = useRef(null);
     const {
@@ -200,7 +202,29 @@ const CameraScannerModal = ({
                             className="scanner-webcam"
                             mirrored={false}
                             forceScreenshotSourceSize={true}
+                            playsInline={true}
+                            onUserMediaError={(err) => {
+                                if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
+                                    setError(t('upload.cameraAccessError'));
+                                } else {
+                                    setError(`${t('upload.cameraErrorPrefix')} ${err.message || err.name || 'Unknown'}`);
+                                }
+                            }}
                         />
+
+                                                {error && (
+                            <div className="scanner-error-overlay" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
+                                <span className="scanner-error-icon">📷</span>
+                                <h3 className="scanner-error-title">{t('upload.cameraBlockedTitle')}</h3>
+                                <p className="scanner-error-message">
+                                    {error}
+                                </p>
+                                <p className="scanner-error-hints">
+                                    {t('upload.cameraBlockedDesc1')}<br/>
+                                    {t('upload.cameraBlockedDesc2')}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* 2. Spotlight Overlay Layer */}

@@ -86,17 +86,17 @@ export const SubscriptionProvider = ({ children }) => {
         return status === 404 || message.includes('no subscription');
     }, []);
 
-    const refreshSubscription = useCallback(async () => {
+    const refreshSubscription = useCallback(async (silent = false) => {
         if (!isAuthenticated) {
             setSubscription(null);
-            setIsLoadingState(false);
+            if (!silent) setIsLoadingState(false);
             setIsEntitlementKnownState(true);
             return;
         }
 
         // Critical: set these BEFORE the first await to avoid a one-render redirect race.
-        setIsLoadingState(true);
-        setIsEntitlementKnownState(false);
+        if (!silent) setIsLoadingState(true);
+        if (!silent) setIsEntitlementKnownState(false);
         setError(null);
 
         let hasDefinitiveEntitlement = false;

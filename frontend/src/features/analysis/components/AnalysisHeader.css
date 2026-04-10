@@ -18,12 +18,14 @@
     justify-content: space-between;
     align-items: flex-end;
     gap: 1.5rem;
+    width: 100%;
 }
 
 .lf-header-text {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
 }
 
 .lf-pre-title {
@@ -41,14 +43,19 @@
     margin: 0;
     line-height: 1.1;
     letter-spacing: -0.02em;
+    width: 100%;
+    margin-inline: auto; /* centered if container is limited */
+    text-align: start; /* ensure dir="auto" dictates alignment */
 }
 
 .lf-subtitle {
     font-size: 1.125rem;
     color: var(--text-secondary);
     margin: 0;
-    max-width: 600px;
     line-height: 1.6;
+    width: 100%;
+    max-width: 100%; /* Allow to grow to container */
+    text-align: start; /* ensure dir="auto" dictates alignment */
 }
 
 .lf-header-actions {

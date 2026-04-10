@@ -367,3 +367,41 @@
     opacity: 0.65;
     cursor: not-allowed;
 }
+/* --- 10. Camera Error Overlay --- */
+.scanner-error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+    text-align: center;
+}
+
+.scanner-error-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.scanner-error-title {
+    margin-bottom: 10px;
+    color: #ff6b6b;
+}
+
+.scanner-error-message {
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.scanner-error-hints {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #ccc;
+}

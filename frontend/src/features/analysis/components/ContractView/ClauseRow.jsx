@@ -87,11 +87,10 @@ const ClauseRow = ({
                     </div>
                 )}
 
-                <div className="lf-cv-clause-text-area" dir="rtl">
-                    <p className="lf-cv-clause-text" dir="rtl">
+                <div className="lf-cv-clause-text-area" dir="auto">
+                    <p className="lf-cv-clause-text" dir="auto">
                         {getClauseText(clause)}
                     </p>
-
                     {!readOnly && !clauseExplanations[clause.id] && (
                         <div className="lf-cv-clause-actions no-print">
                             <button
@@ -142,7 +141,7 @@ const ClauseRow = ({
                         </button>
                     </div>
                     {expandedExplanations[clause.id] && (
-                        <div className="lf-cv-ai-content" dir="rtl">
+                        <div className="lf-cv-ai-content" dir="auto">
                             {clauseExplanations[clause.id]}
                         </div>
                     )}

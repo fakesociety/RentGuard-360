@@ -172,26 +172,45 @@
 .lf-quote-box {
     background: var(--glass-border);
     border-radius: var(--radius-md);
-    padding: 1.5rem;
-    padding-inline-start: 3rem;
+    padding: 1.5rem 2.5rem; /* adjusted padding for centering horizontally */
     position: relative;
     margin-bottom: 2rem;
     border-inline-start: 3px solid var(--glass-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .lf-quote-icon {
     position: absolute;
-    top: 1.25rem;
-    opacity: 0.2;
-    font-size: 2rem;
+    opacity: 0.15;
+    color: var(--text-primary);
 }
 
-[dir="rtl"] .lf-quote-icon {
-    right: 0.75rem;
+.lf-quote-icon.start-quote {
+    top: 1.5rem;
+    inset-inline-start: 1rem;
 }
 
-[dir="ltr"] .lf-quote-icon {
-    left: 0.75rem;
+.lf-quote-icon.end-quote {
+    bottom: 1rem;
+    inset-inline-end: 1rem;
+}
+
+/* LTR transforms */
+.lf-quote-box:dir(ltr) .start-quote {
+    transform: scaleX(-1);
+}
+.lf-quote-box:dir(ltr) .end-quote {
+    transform: none;
+}
+
+/* RTL transforms */
+.lf-quote-box:dir(rtl) .start-quote {
+    transform: none;
+}
+.lf-quote-box:dir(rtl) .end-quote {
     transform: scaleX(-1);
 }
 
@@ -206,6 +225,7 @@
     user-select: text;
     -webkit-user-select: text;
     cursor: text;
+    text-align: center;
 }
 
 /* Analysis Grid */
