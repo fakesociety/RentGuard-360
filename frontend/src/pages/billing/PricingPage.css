@@ -132,14 +132,17 @@
     gap: var(--space-lg);
     align-items: stretch;
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 3rem auto 0;
 }
 
 /* Card Wrapper */
 .pricing-card-wrapper {
     position: relative;
+    display: flex;
+    flex-direction: column;
     border-radius: var(--radius-lg);
     transition: transform var(--transition-normal);
+    height: 100%;
 }
 
 .pricing-card-wrapper.popular {
@@ -186,6 +189,7 @@
 
 /* Card Styling */
 .pricing-card {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -256,6 +260,7 @@
     font-size: var(--font-size-sm);
     color: var(--text-tertiary);
     line-height: var(--line-height-normal);
+    min-height: 3rem; /* Aligns the elements below by standardizing header height */
 }
 
 /* Price Display */

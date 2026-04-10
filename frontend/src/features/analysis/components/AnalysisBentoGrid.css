@@ -560,4 +560,34 @@
     }
 }
 
+@media (max-width: 1024px) {
+    .lf-bento-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+
+    .lf-bento-score {
+        width: 100% !important;
+        grid-column: span 12 !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    .lf-score-body {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        margin: 2rem auto !important;
+    }
+
+    .lf-bento-tiles {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+        grid-column: span 12 !important;
+    }
+}
+
 

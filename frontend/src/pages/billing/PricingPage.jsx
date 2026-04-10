@@ -227,7 +227,7 @@ const PricingPage = () => {
                                 if (pkg.name === 'Free') return isFreeEligible;
                                 if (pkg.name === 'Single') return !isFreeEligible;
                                 return true;
-                            }).sort((a, b) => a.price - b.price);
+                            }).sort((a, b) => isRTL ? b.price - a.price : a.price - b.price);
 
                             return displayPackages.map((pkg, index) => {
                                 const byId = currentPackageId > 0 && Number(pkg.id) === currentPackageId;

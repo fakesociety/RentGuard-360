@@ -11,6 +11,12 @@
     font-family: 'Calibri', var(--font-sans);
 }
 
+@media (max-width: 1024px) {
+    .lf-sidebar-column {
+        position: static;
+    }
+}
+
 .lf-sidebar-column * {
     font-family: inherit;
 }

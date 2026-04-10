@@ -153,7 +153,7 @@ const PricingPublic = () => {
                 <section className="pricing-cards-section">
                     <div className="pricing-cards-grid">
                         {packages
-                            .sort((a, b) => a.price - b.price)
+                            .sort((a, b) => isRTL ? b.price - a.price : a.price - b.price)
                             .map((pkg, index) => {
                                 const isPopular = pkg.name === 'Basic';
 

@@ -957,8 +957,8 @@ export const en = {
             "Advanced negotiation guidance"
         ],
         "featuresPro": [
-            "Everything in Basic",
             "15 contract scans",
+            "Everything in Basic",
             "Unlimited contract Q&A chat",
             "Priority processing during peak times",
             "Priority human/technical support"

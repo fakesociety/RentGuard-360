@@ -57,14 +57,14 @@ const MapComponent = ({
       if (!address) {
         if (isMounted) {
           setPosition([safeLat, safeLng]);
-          setCurrentPopup(popupText || 'RentGuard-360 HQ');
+          setCurrentPopup(popupText || 'הכתובת לא נמצאה');
         }
         return;
       }
 
       setIsLoading(true);
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=il&q=${encodeURIComponent(address)}`);
         const data = await response.json();
         
         if (isMounted) {
@@ -72,7 +72,7 @@ const MapComponent = ({
             setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
             setCurrentPopup(address);
           } else {
-            setPosition([safeLat, safeLng]);
+            setPosition([safeLat, safeLng]); 
             setCurrentPopup(notFoundText || 'הכתובת לא נמצאה / Address not found');
           }
         }

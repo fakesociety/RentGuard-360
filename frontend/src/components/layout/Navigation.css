@@ -351,6 +351,7 @@
 .profile-header {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: var(--space-md);
     padding: var(--space-lg);
     background: var(--bg-secondary);
@@ -362,6 +363,7 @@
 
 .profile-avatar-large {
     width: 48px;
+    flex-shrink: 0;
     height: 48px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -369,9 +371,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
     font-weight: var(--font-weight-bold);
     font-size: var(--font-size-lg);
-}
+
+    line-height: 1;}
 
 .profile-info {
     flex: 1;

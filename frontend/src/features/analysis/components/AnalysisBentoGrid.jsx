@@ -181,10 +181,12 @@ const AnalysisBentoGrid = ({
                     </div>
                 </div>
 
-                <div className="lf-tile lf-tile-glass" style={{ padding: 0, overflow: 'hidden', minHeight: '220px' }}>
+                <div className="lf-tile lf-tile-glass" style={{ padding: 0, overflow: 'hidden', height: '250px' }}>
                     <MapComponent
                         address={analysis?.propertyAddress || ''}
-                        popupText={analysis?.propertyAddress || 'הכתובת שסופקה'}
+                        latitude={32.0853}
+                        longitude={34.0000}
+                        popupText={analysis?.propertyAddress ? analysis.propertyAddress : 'כתובת לא סופקה / Location Not Provided'}
                         height="100%"
                     />
                 </div>
