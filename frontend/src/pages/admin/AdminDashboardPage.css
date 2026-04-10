@@ -1668,11 +1668,14 @@
 .analytics-card h3 {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     font-size: var(--font-size-lg, 1.125rem);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: var(--space-lg, 20px);
+    text-align: center;
+    width: 100%;
     font-family: var(--font-sans);
 }
 
@@ -1682,7 +1685,7 @@
 
 [dir="rtl"] .analytics-card h3 svg {
     margin-right: 0;
-    margin-left: 2px;
+    margin-left: 0;
 }
 
 .analytics-card-full {
