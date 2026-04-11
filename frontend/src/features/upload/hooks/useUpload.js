@@ -31,6 +31,9 @@ export const useUpload = () => {
 
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    // ------------------------------------------------------------------------
+    // UPLOAD NETWORK STATE: Active process block
+    // ------------------------------------------------------------------------
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState('');
@@ -144,6 +147,9 @@ export const useUpload = () => {
         };
     }, []);
 
+    // ------------------------------------------------------------------------
+    // PRE-FLIGHT VALIDATION: MIME types, 10MB limits, PDF/DOC/JPEG integrity
+    // ------------------------------------------------------------------------
     const validateFile = (file) => {
         const maxSize = 5 * 1024 * 1024;
         const minSize = 30 * 1024;

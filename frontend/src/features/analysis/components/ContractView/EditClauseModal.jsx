@@ -45,10 +45,10 @@ const EditClauseModal = ({
                     <button type="button" className="lf-cv-modal-close" onClick={closeEditor}><X size={20} /></button>
                 </div>
 
-                <div className="lf-cv-modal-body" dir="auto">
+                <div className="lf-cv-modal-body" dir="rtl">
                     <div className="lf-cv-modal-section">
                         <label>{t('contractView.originalClauseLabel')}</label>
-                        <div className="lf-cv-original-text" dir="auto">{selectedClause.text}</div>
+                        <div className="lf-cv-original-text" dir="rtl">{selectedClause.text}</div>
                     </div>
 
                     {selectedClause.issues?.length > 0 && selectedClause.issues.map((issue, idx) => {
@@ -59,7 +59,7 @@ const EditClauseModal = ({
                                 <div className="lf-cv-suggested-header">
                                     <Sparkles size={16} /> <label>{t('contractView.aiFixSuggestionLabel')}</label>
                                 </div>
-                                <div className="lf-cv-suggested-text" dir="auto">{fixText}</div>
+                                <div className="lf-cv-suggested-text" dir="rtl">{fixText}</div>
                                 <button type="button" className="lf-cv-apply-btn" onClick={() => applySuggestedFix(issue)}>
                                     <Check size={16} /> {t('contractView.applySuggestion')}
                                 </button>
@@ -73,7 +73,7 @@ const EditClauseModal = ({
                             className="lf-cv-textarea"
                             value={editingText}
                             onChange={(e) => setEditingText(e.target.value)}
-                            dir="auto"
+                            dir="rtl"
                             rows={6}
                             placeholder={t('contractView.editPlaceholder')}
                         />

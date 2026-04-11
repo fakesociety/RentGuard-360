@@ -26,7 +26,7 @@ export const getSharedAnalysis = async (shareToken) => {
  */
 
 export const createShareLink = async (contractId, expiresInDays = 7) => {
-    return apiCall('/contracts/sharing', {
+    return apiCall('/contracts/share-link', {
         method: 'POST',
         body: JSON.stringify({ contractId, expiresInDays }),
     });
@@ -37,7 +37,7 @@ export const createShareLink = async (contractId, expiresInDays = 7) => {
  */
 
 export const getShareLink = async (contractId) => {
-    return apiCall(`/contracts/sharing?contractId=${encodeURIComponent(contractId)}`, {
+    return apiCall(`/contracts/share-link?contractId=${encodeURIComponent(contractId)}`, {
         method: 'GET',
     });
 };
@@ -47,7 +47,7 @@ export const getShareLink = async (contractId) => {
  */
 
 export const revokeShareLink = async (contractId) => {
-    return apiCall('/contracts/sharing', {
+    return apiCall('/contracts/share-link', {
         method: 'DELETE',
         body: JSON.stringify({ contractId }),
     });

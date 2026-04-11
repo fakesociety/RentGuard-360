@@ -14,7 +14,7 @@
  * - Component sub-files (AnalysisHeader, AnalysisBentoGrid, etc.)
  * ============================================
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Button from '@/components/ui/Button';
 import {
     Hourglass,
@@ -34,24 +34,23 @@ import AnalysisResults from '@/features/analysis/components/AnalysisResults';
 import AnalysisSidebar from '@/features/analysis/components/AnalysisSidebar';
 import { SharePanel } from '@/features/analysis/components/AnalysisModals';
 import { exportEditedContract } from '@/features/analysis/services/ContractExportService';
+import { copyTextToClipboard } from '@/features/analysis/utils/clipboardUtils';
 import { showAppToast as emitAppToast } from '@/utils/toast';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
 
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
+    const [activeTab, setActiveTab] = useState('issues');
+    const [expandedIssue, setExpandedIssue] = useState(null);
+    const [showExportMenu, setShowExportMenu] = useState(false);
+    const [copiedIndex, setCopiedIndex] = useState(null);
+    const [isShareAccordionOpen, setIsShareAccordionOpen] = useState(false);
+
     const {
         analysis,
         isLoading,
         error,
-        activeTab,
-        setActiveTab,
-        expandedIssue,
-        setExpandedIssue,
-        showExportMenu,
-        setShowExportMenu,
-        copiedIndex,
-        setCopiedIndex,
         isExporting,
         isGeneratingShareLink,
         isSharingLink,
@@ -59,8 +58,6 @@ const AnalysisPage = () => {
         shareLink,
         shareLinkExpiresAt,
         isSharePanelVisible,
-        isShareAccordionOpen,
-        setIsShareAccordionOpen,
         contractEditState,
         setContractEditState,
         setEditedClauses,
@@ -76,7 +73,6 @@ const AnalysisPage = () => {
         handleRevokeShareLink,
         handleSaveToCloud,
         applyMetadataUpdate,
-        copyTextToClipboard,
         showExportNotice,
         t,
         isRTL

@@ -17,6 +17,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { revokeImageUrl, totalBytesForPages } from '@/features/scanner/services/imageProcessing';
 
 export const useScanPages = () => {
+    // ------------------------------------------------------------------------
+    // ACTIVE SESSION STATE: Array of cropped document images in memory
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ACTIVE SESSION STATE: Array of cropped document images in memory
+    // ------------------------------------------------------------------------
     const [pages, setPages] = useState([]);
     const [activePageId, setActivePageId] = useState(null);
     const pagesRef = useRef([]);

@@ -80,7 +80,7 @@ export const apiCall = async (endpoint, options = {}) => {
     } catch (error) {
         clearTimeout(timeoutId);
         if (error.name == 'AbortError') {
-            throw new Error('הבקשה נכשלה - הזמן הקצוב עבר. נסה שוב.');
+            throw new Error('Request failed - timeout. Please try again.');
         }
         throw error;
     }

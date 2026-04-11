@@ -47,7 +47,7 @@ const RecommendationCard = ({
                 </div>
 
                 {/* Suggestion text */}
-                <p className="recommendation-card-text" dir="auto">
+                <p className="recommendation-card-text" dir="rtl">
                     {suggestion}
                 </p>
 

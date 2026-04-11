@@ -17,11 +17,13 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getAnalysis, createShareLink, getShareLink, revokeShareLink, saveEditedContract } from '@/features/analysis/services/analysisApi';
+import { getAnalysis, saveEditedContract } from '@/features/analysis/services/analysisApi';
 import { exportReportToWord } from '@/features/analysis/services/ReportExportService';
 import { showAppToast as emitAppToast } from '@/utils/toast';
+import { readMetadataCache, persistMetadataCache } from '@/features/analysis/services/cacheService';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContractShare } from '@/features/analysis/hooks/useContractShare';
 
 export const useAnalysisPage = () => {
     const { contractId } = useParams();
@@ -32,152 +34,70 @@ export const useAnalysisPage = () => {
     const { userAttributes } = useAuth();
     const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
+    // Core Contract Data
     const [analysis, setAnalysis] = useState(state?.contract || null);
     const [isLoading, setIsLoading] = useState(!state?.contract);
     const [error, setError] = useState(null);
-    
-    // UI State
-    const [activeTab, setActiveTab] = useState('issues');
-    const [expandedIssue, setExpandedIssue] = useState(null);
-    const [showExportMenu, setShowExportMenu] = useState(false);
-    const [exportNotice, setExportNotice] = useState(null);
-    const [copiedIndex, setCopiedIndex] = useState(null);
 
-    // Export / Share state
+    // Export State
     const [isExporting, setIsExporting] = useState(false);
-    const [isGeneratingShareLink, setIsGeneratingShareLink] = useState(false);
-    const [isSharingLink, setIsSharingLink] = useState(false);
-    const [isRevokingShareLink, setIsRevokingShareLink] = useState(false);
-    const [shareLink, setShareLink] = useState('');
-    const [shareLinkExpiresAt, setShareLinkExpiresAt] = useState(null);
-    const [isSharePanelVisible, setIsSharePanelVisible] = useState(true);
-    const [isShareAccordionOpen, setIsShareAccordionOpen] = useState(false);
-    
-    // Contract Editor state
+
+    // Contract Editor (Manual overrides by user)
     const [contractEditState, setContractEditState] = useState({ editedCount: 0, saveStatus: null });
     const [_editedClauses, setEditedClauses] = useState({});
-    
-    // Polling state
-    const [pollCount, setPollCount] = useState(0);
-    const MAX_POLL_ATTEMPTS = 12; 
-    const INITIAL_DELAY = 15000; 
-    const POLL_INTERVAL = 10000; 
 
+    // Backend Polling (For async AWS process)
+    const [pollCount, setPollCount] = useState(0);
+    const MAX_POLL_ATTEMPTS = 12;
+    const INITIAL_DELAY = 15000;
+    const POLL_INTERVAL = 10000;
+
+    // DOM & State Refs
     const contractViewRef = useRef(null);
-    const sharePanelRef = useRef(null);
     const prevSaveStatusRef = useRef(null);
     const lastSavingToastAtRef = useRef(0);
     const hydratedEditsContractRef = useRef(null);
 
-    const showAppToast = useCallback((title, message, options = {}) => {
-        const ttlMs = typeof options === 'number' ? options : (options.ttlMs ?? 2600);
-        const type = typeof options === 'number' ? 'success' : (options.type ?? 'success');
-        const icon = typeof options === 'number' ? undefined : options.icon;
+    // Saves user's manual contract edits to AWS
+    const handleSaveToCloud = useCallback(async (clauses, fullEditedText) => {
+        const userId = userAttributes?.sub || 'unknown-user';
+        const contractIdClean = analysis?.contractId || contractId;
+        await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
+    }, [analysis?.contractId, contractId, userAttributes?.sub]);
 
-        window.dispatchEvent(new CustomEvent('rg:toast', {
-            detail: {
-                id: `share-${Date.now()}`,
-                title, message, type, icon, createdAt: Date.now(), ttlMs,
-            },
-        }));
-    }, []);
-
-    const showExportNotice = useCallback((message) => {
-        setExportNotice(message);
-        setTimeout(() => setExportNotice(null), 3000);
-    }, []);
-
-    const getMetadataCacheKey = useCallback((id) => `rentguard_contract_meta_${id}`, []);
-
-    const readMetadataCache = useCallback((id) => {
-        if (!id) return null;
-        try {
-            const raw = localStorage.getItem(getMetadataCacheKey(id));
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            if (!parsed || typeof parsed !== 'object') return null;
-            return {
-                fileName: parsed.fileName || '',
-                propertyAddress: parsed.propertyAddress || '',
-                landlordName: parsed.landlordName || '',
-                uploadDate: parsed.uploadDate || '',
-            };
-        } catch {
-            return null;
-        }
-    }, [getMetadataCacheKey]);
-
-    const persistMetadataCache = useCallback((contractMeta) => {
-        const id = contractMeta?.contractId;
-        if (!id) return;
-        try {
-            localStorage.setItem(getMetadataCacheKey(id), JSON.stringify({
-                fileName: contractMeta.fileName || '',
-                propertyAddress: contractMeta.propertyAddress || '',
-                landlordName: contractMeta.landlordName || '',
-                uploadDate: contractMeta.uploadDate || '',
-                updatedAt: Date.now(),
-            }));
-        } catch (error) {
-            console.warn('Failed to persist contract metadata cache', error);
-        }
-    }, [getMetadataCacheKey]);
-
-    const copyTextToClipboard = useCallback(async (text) => {
-        if (!text) return false;
-        if (navigator?.clipboard?.writeText) {
-            try {
-                await navigator.clipboard.writeText(text);
-                return true;
-            } catch (clipboardError) {
-                console.warn('Async clipboard API failed, using fallback copy.', clipboardError);
+    // Sharing Hook Logic
+    const {
+        isGeneratingShareLink,
+        isRevokingShareLink,
+        shareLink,
+        shareLinkExpiresAt,
+        isSharePanelVisible,
+        sharePanelRef,
+        handleCopyShareLink,
+        handleManualCopyShareLink,
+        handleShareLinkViaApps,
+        handleRevokeShareLink
+    } = useContractShare({
+        contractId: analysis?.contractId || contractId,
+        onSaveBeforeShare: async () => {
+            const currentPayload = contractViewRef.current?.getCurrentEditedPayload?.();
+            if (currentPayload) {
+                await handleSaveToCloud(
+                    currentPayload.editedClauses || {},
+                    currentPayload.fullEditedText || ''
+                );
             }
         }
-        try {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.setAttribute('readonly', '');
-            textarea.style.position = 'absolute';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.select();
-            const copied = document.execCommand('copy');
-            document.body.removeChild(textarea);
-            return copied;
-        } catch (fallbackError) {
-            console.error('Clipboard fallback copy failed', fallbackError);
-            return false;
-        }
-    }, []);
+    });
 
-    const getShareCacheKey = useCallback((id) => `rentguard_share_link_${id}`, []);
-
-    const persistShareLink = useCallback((id, url, expiresAt) => {
-        if (!id || !url) return;
-        try {
-            localStorage.setItem(getShareCacheKey(id), JSON.stringify({
-                url,
-                expiresAt: expiresAt || null,
-            }));
-        } catch (error) {
-            console.warn('Failed to persist share link cache', error);
-        }
-    }, [getShareCacheKey]);
-
-    const clearShareLinkCache = useCallback((id) => {
-        if (!id) return;
-        try {
-            localStorage.removeItem(getShareCacheKey(id));
-        } catch (error) {
-            console.warn('Failed to clear share link cache', error);
-        }
-    }, [getShareCacheKey]);
-
+    // Core Fetch & Poll logic for the AI Contract Analysis
     const fetchAnalysis = useCallback(async () => {
         try {
             if (pollCount === 0) setIsLoading(true);
             const decodedId = decodeURIComponent(contractId);
             const data = await getAnalysis(decodedId);
+
+            // Merge response data with cached metadata to avoid UI flickering
             const cachedMetadata = readMetadataCache(decodedId);
 
             setAnalysis(prev => ({
@@ -191,6 +111,7 @@ export const useAnalysisPage = () => {
             setError(null);
         } catch (err) {
             const errorMsg = err.message || '';
+            // If backend throws 404, analysis isn't ready yet -> trigger next polling cycle
             if (errorMsg.includes('404')) {
                 setError({ title: t('analysis.errors.notReadyTitle'), message: `${t('analysis.errors.notReadyMessage')} (${pollCount + 1}/${MAX_POLL_ATTEMPTS})`, type: 'processing' });
             } else if (errorMsg.includes('FAILED') || errorMsg.includes('ValidationException')) {
@@ -203,10 +124,12 @@ export const useAnalysisPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [contractId, pollCount, readMetadataCache, t]);
+    }, [contractId, pollCount, t]);
 
     useEffect(() => { fetchAnalysis(); }, [fetchAnalysis]);
 
+    // Hydrate missing contract metadata from LocalStorage
+    // Useful when returning from chat or refreshing the page
     useEffect(() => {
         const resolvedId = analysis?.contractId || contractId;
         if (!resolvedId) return;
@@ -230,7 +153,7 @@ export const useAnalysisPage = () => {
                 uploadDate: cachedMetadata.uploadDate || prev.uploadDate,
             };
         });
-    }, [analysis?.contractId, contractId, readMetadataCache]);
+    }, [analysis?.contractId, contractId]);
 
     useEffect(() => {
         const currentRouteContractId = contractId || null;
@@ -244,6 +167,7 @@ export const useAnalysisPage = () => {
         }
     }, [contractId]);
 
+    // Restore previously saved edits (if any) sent from backend
     useEffect(() => {
         const resolvedContractId = analysis?.contractId || contractId;
         if (!analysis || !resolvedContractId) return;
@@ -258,6 +182,7 @@ export const useAnalysisPage = () => {
         hydratedEditsContractRef.current = resolvedContractId;
     }, [analysis, contractId]);
 
+    // Polling Logic: Continuously check backend if status is 'processing'
     useEffect(() => {
         if (error?.type === 'processing' && pollCount < MAX_POLL_ATTEMPTS && !USE_MOCK) {
             const delay = pollCount === 0 ? INITIAL_DELAY : POLL_INTERVAL;
@@ -271,50 +196,6 @@ export const useAnalysisPage = () => {
 
     useEffect(() => { if (analysis) setPollCount(0); }, [analysis]);
 
-    // Load Share Link
-    useEffect(() => {
-        const contractForShare = analysis?.contractId || contractId;
-        if (!contractForShare) {
-            setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); return;
-        }
-        let hadCachedLink = false;
-        try {
-            const cachedRaw = localStorage.getItem(getShareCacheKey(contractForShare));
-            if (cachedRaw) {
-                const cached = JSON.parse(cachedRaw);
-                const cachedExpiry = Number(cached?.expiresAt || 0);
-                if (cached?.url && (!cachedExpiry || cachedExpiry > (Date.now() / 1000))) {
-                    hadCachedLink = true;
-                    setShareLink(cached.url);
-                    setShareLinkExpiresAt(cached?.expiresAt || null);
-                    setIsSharePanelVisible(true);
-                } else {
-                    clearShareLinkCache(contractForShare);
-                }
-            }
-        } catch (error) { console.warn('Failed to read cache', error); }
-
-        let cancelled = false;
-        const loadExistingShareLink = async () => {
-            try {
-                const shareData = await getShareLink(contractForShare);
-                if (cancelled) return;
-                if (shareData?.active && shareData?.shareToken) {
-                    const url = `${window.location.origin}/#/shared/${encodeURIComponent(shareData.shareToken)}`;
-                    setShareLink(url); setShareLinkExpiresAt(shareData?.expiresAt || null); setIsSharePanelVisible(true);
-                    persistShareLink(contractForShare, url, shareData?.expiresAt || null);
-                } else {
-                    setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); clearShareLinkCache(contractForShare);
-                }
-            } catch (err) {
-                if (cancelled) return;
-                if (!hadCachedLink) { setShareLink(''); setShareLinkExpiresAt(null); setIsSharePanelVisible(false); }
-            }
-        };
-        loadExistingShareLink();
-        return () => { cancelled = true; };
-    }, [analysis?.contractId, clearShareLinkCache, contractId, getShareCacheKey, persistShareLink]);
-
     // Saving toast
     useEffect(() => {
         const status = contractEditState.saveStatus || null;
@@ -324,18 +205,19 @@ export const useAnalysisPage = () => {
         if (status === 'saving') {
             const now = Date.now();
             if (now - lastSavingToastAtRef.current > 1500) {
-                showAppToast(t('analysis.toastSavingTitle'), t('analysis.toastSavingMessage'), { ttlMs: 1500, type: 'info', icon: '⟳' });
+                emitAppToast({ title: t('analysis.toastSavingTitle'), message: t('analysis.toastSavingMessage'), ttlMs: 1500, type: 'info', icon: '⟳' });
                 lastSavingToastAtRef.current = now;
             }
         }
         if (status === 'success') {
-            showAppToast(t('analysis.toastSavedTitle'), t('analysis.toastSavedMessage'), { type: 'success', icon: '✓' });
+            emitAppToast({ title: t('analysis.toastSavedTitle'), message: t('analysis.toastSavedMessage'), type: 'success', icon: '✓' });
         }
         if (status === 'error') {
-            showAppToast(t('analysis.toastSaveFailedTitle'), t('analysis.toastSaveFailedMessage'), { type: 'error', icon: '⚠' });
+            emitAppToast({ title: t('analysis.toastSaveFailedTitle'), message: t('analysis.toastSaveFailedMessage'), type: 'error', icon: '⚠' });
         }
-    }, [contractEditState.saveStatus, showAppToast, t]);
+    }, [contractEditState.saveStatus, t]);
 
+    // Generator logic: Converts JSON AI response into downloadable Word Document (.docx)
     const handleExportWord = useCallback(async () => {
         setIsExporting(true);
         emitAppToast({ type: 'info', message: t('export.started') });
@@ -347,127 +229,8 @@ export const useAnalysisPage = () => {
             emitAppToast({ type: 'error', message: t('export.error') });
         } finally {
             setIsExporting(false);
-            setShowExportMenu(false);
         }
     }, [analysis, t]);
-
-    const focusSharePanel = useCallback(() => {
-        setIsSharePanelVisible(true);
-        requestAnimationFrame(() => {
-            sharePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        });
-    }, []);
-
-    const handleCopyShareLink = useCallback(async () => {
-        const shareContractId = analysis?.contractId || contractId;
-        if (!shareContractId) {
-            showExportNotice(t('analysis.missingShareContractId'));
-            return;
-        }
-
-        if (shareLink) {
-            if (isSharePanelVisible) {
-                setIsSharePanelVisible(false);
-                showExportNotice(t('analysis.sharePanelHidden'));
-            } else {
-                focusSharePanel();
-                showExportNotice(t('analysis.sharePanelShown'));
-            }
-            setShowExportMenu(false);
-            return;
-        }
-
-        setIsGeneratingShareLink(true);
-        try {
-            const currentPayload = contractViewRef.current?.getCurrentEditedPayload?.();
-            if (currentPayload && userAttributes?.sub) {
-                await saveEditedContract(shareContractId, userAttributes.sub, currentPayload.editedClauses || {}, currentPayload.fullEditedText || '');
-            }
-            const shareResult = await createShareLink(shareContractId, 7);
-            const token = shareResult?.shareToken;
-            if (!token) throw new Error('Missing share token in response');
-
-            const url = `${window.location.origin}/#/shared/${encodeURIComponent(token)}`;
-            setShareLink(url);
-            setShareLinkExpiresAt(shareResult?.expiresAt || null);
-            setIsSharePanelVisible(true);
-            persistShareLink(shareContractId, url, shareResult?.expiresAt || null);
-            focusSharePanel();
-            showExportNotice(t('analysis.shareCreated'));
-        } catch (err) {
-            console.error('Failed to create share link', err);
-            showExportNotice(t('analysis.shareCreateFailed'));
-        } finally {
-            setIsGeneratingShareLink(false);
-            setShowExportMenu(false);
-        }
-    }, [analysis?.contractId, contractId, focusSharePanel, isSharePanelVisible, persistShareLink, shareLink, showExportNotice, t, userAttributes?.sub]);
-
-    const handleManualCopyShareLink = useCallback(async () => {
-        if (!shareLink) return;
-        try {
-            await copyTextToClipboard(shareLink);
-            showAppToast(t('analysis.shareCopiedTitle'), t('analysis.shareCopiedMessage'));
-        } catch (err) {
-            console.error('Failed to copy share link', err);
-            showExportNotice(t('analysis.shareCopyFailed'));
-        }
-    }, [copyTextToClipboard, shareLink, showAppToast, showExportNotice, t]);
-
-    const handleShareLinkViaApps = useCallback(async () => {
-        if (!shareLink) return;
-        if (window._isSharingModalOpen) return;
-        window._isSharingModalOpen = true;
-
-        const resetLock = () => { setTimeout(() => { window._isSharingModalOpen = false; }, 800); };
-
-        if (!navigator?.share) {
-            await handleManualCopyShareLink();
-            resetLock();
-            return;
-        }
-        try {
-            await navigator.share({
-                title: t('analysis.shareNativeTitle') || 'Contract Analysis',
-                url: shareLink
-            });
-            resetLock();
-        } catch (err) {
-            resetLock();
-            if (err?.name !== 'AbortError') {
-                console.error('Failed to share link via apps', err);
-                await handleManualCopyShareLink();
-            }
-        }
-    }, [handleManualCopyShareLink, shareLink, t]);
-
-    const handleRevokeShareLink = useCallback(async () => {
-        const shareContractId = analysis?.contractId || contractId;
-        if (!shareContractId) {
-            showExportNotice(t('analysis.missingShareContractId'));
-            return;
-        }
-        setIsRevokingShareLink(true);
-        try {
-            await revokeShareLink(shareContractId);
-            setShareLink('');
-            setShareLinkExpiresAt(null);
-            setIsSharePanelVisible(false);
-            clearShareLinkCache(shareContractId);
-            showAppToast(t('analysis.shareRevokedTitle'), t('analysis.shareRevokedMessage'));
-        } catch (err) {
-            console.error('Failed to revoke share link', err);
-            showExportNotice(t('analysis.shareRevokeFailed'));
-        } finally {
-            setIsRevokingShareLink(false);
-        }
-    }, [analysis?.contractId, clearShareLinkCache, contractId, showAppToast, showExportNotice, t]);
-
-    const handleSaveToCloud = useCallback(async (clauses, fullEditedText) => {
-        const userId = userAttributes?.sub || 'unknown-user';
-        const contractIdClean = analysis?.contractId || contractId;
-        await saveEditedContract(contractIdClean, userId, clauses, fullEditedText);
-    }, [analysis?.contractId, contractId, userAttributes?.sub]);
 
     const applyMetadataUpdate = useCallback((updatedContract) => {
         if (!updatedContract?.contractId) return;
@@ -505,7 +268,7 @@ export const useAnalysisPage = () => {
             replace: true,
             state: nextState,
         });
-    }, [contractId, location.hash, location.pathname, location.search, location.state, navigate, persistMetadataCache]);
+    }, [contractId, location.hash, location.pathname, location.search, location.state, navigate]);
 
     return {
         // State variables
@@ -513,24 +276,12 @@ export const useAnalysisPage = () => {
         analysis,
         isLoading,
         error,
-        activeTab,
-        setActiveTab,
-        expandedIssue,
-        setExpandedIssue,
-        showExportMenu,
-        setShowExportMenu,
-        exportNotice,
-        copiedIndex,
-        setCopiedIndex,
         isExporting,
         isGeneratingShareLink,
-        isSharingLink,
         isRevokingShareLink,
         shareLink,
         shareLinkExpiresAt,
         isSharePanelVisible,
-        isShareAccordionOpen,
-        setIsShareAccordionOpen,
         contractEditState,
         setContractEditState,
         _editedClauses,
@@ -549,10 +300,7 @@ export const useAnalysisPage = () => {
         handleRevokeShareLink,
         handleSaveToCloud,
         applyMetadataUpdate,
-        copyTextToClipboard,
-        showExportNotice,
-        showAppToast,
-        
+
         // Translations and Context
         t,
         isRTL,

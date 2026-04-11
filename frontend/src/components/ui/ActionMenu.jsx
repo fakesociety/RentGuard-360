@@ -13,6 +13,7 @@
  * ============================================
  */
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 const ActionMenu = ({
     isOpen,
     onToggle,
@@ -83,6 +84,24 @@ const ActionMenu = ({
             )}
         </div>
     );
+};
+
+ActionMenu.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onToggle: PropTypes.func,
+    onClose: PropTypes.func,
+    containerClassName: PropTypes.string,
+    containerStyle: PropTypes.object,
+    triggerClassName: PropTypes.string,
+    triggerStyle: PropTypes.object,
+    triggerTitle: PropTypes.string,
+    triggerAriaLabel: PropTypes.string,
+    triggerContent: PropTypes.node,
+    panelClassName: PropTypes.string,
+    panelStyle: PropTypes.object,
+    disabled: PropTypes.bool,
+    preventDefault: PropTypes.bool,
+    children: PropTypes.node,
 };
 
 export default ActionMenu;

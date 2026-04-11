@@ -50,6 +50,12 @@ export const isContractTimedOut = (contract) => {
 };
 
 export const useContracts = (userId, t, isRTL) => {
+    // ------------------------------------------------------------------------
+    // GLOBAL INVENTORY STATE: Array of all loaded documents
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // GLOBAL INVENTORY STATE: Array of all loaded documents
+    // ------------------------------------------------------------------------
     const [contracts, setContracts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);

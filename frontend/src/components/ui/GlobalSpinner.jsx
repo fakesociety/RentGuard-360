@@ -13,6 +13,7 @@
  * ============================================
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { RefreshCw } from 'lucide-react';
 
 export const GlobalSpinner = ({ text, fullPage = false, size = 40 }) => {
@@ -33,4 +34,10 @@ export const GlobalSpinner = ({ text, fullPage = false, size = 40 }) => {
   }
 
   return content;
+};
+
+GlobalSpinner.propTypes = {
+    text: PropTypes.string,
+    fullPage: PropTypes.bool,
+    size: PropTypes.number,
 };

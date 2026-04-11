@@ -49,6 +49,9 @@ const getUserStatusKey = (user) => {
 export const useAdminUsers = () => {
     const { t, isRTL } = useLanguage();
     const [allUsers, setAllUsers] = useState([]);
+    // ------------------------------------------------------------------------
+    // USER MANAGEMENT STATE: Data, API Loaders, Search/Filters
+    // ------------------------------------------------------------------------
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

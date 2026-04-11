@@ -115,8 +115,3 @@ export const uploadFile = async (file, onProgress, metadata = {}) => {
         xhr.send(file);
     });
 };
-
-/**
- * Get analysis results for a SHARED contract (Public, no auth)
- * GET /shared-analysis?contractId={id}
- */
