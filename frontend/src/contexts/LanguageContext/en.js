@@ -47,6 +47,26 @@ export const en = {
         "defaultFilename": "RentGuard_Analysis_Report",
         "defaultContractFilename": "RentGuard_Edited_Contract"
     },
+    "reportExport": {
+        "title": "Lease Agreement Analysis Report",
+        "generatedOn": "Generated on: ",
+        "generalRiskAssessment": "General Risk Assessment",
+        "riskScore": "Risk Score: ",
+        "breakdownByCategory": "Score Breakdown by Category",
+        "category": "Category",
+        "score": "Score",
+        "issuesFound": "Issues Found",
+        "riskLevel": "Risk Level: ",
+        "penalty": " | Penalty: -",
+        "explanation": "Explanation: ",
+        "categories": {
+            "financial_terms": "Financial Terms",
+            "tenant_rights": "Tenant Rights",
+            "termination_clauses": "Termination & Exit",
+            "liability_repairs": "Liability & Repairs",
+            "legal_compliance": "Legal Compliance"
+        }
+    },
     "contractExport": {
         "title": "Unprotected Lease Agreement",
         "datePrefix": "Drawn and signed on:",

@@ -8,7 +8,7 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 
-import { inferIsHebrewDocument, normalizeExportTextForDocx, getDocumentDictionary, CONFIG } from '../../utils/contractExportUtils';
+import { inferIsHebrewDocument, normalizeExportTextForDocx, getDocumentDictionary, CONFIG } from '../utils/contractExportUtils';
 
 
 const createTextRun = (text, dict, options = {}) => new TextRun({

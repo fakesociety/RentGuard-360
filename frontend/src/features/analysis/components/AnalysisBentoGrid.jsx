@@ -137,12 +137,12 @@ const AnalysisBentoGrid = ({
                     </div>
                 </div>
 
-                <div className="lf-tile lf-tile-glass" style={{ textAlign: 'center', justifyContent: 'center' }}>
-                    <div className="lf-tile-header" style={{ justifyContent: 'center', gap: '8px' }}>
+                <div className="lf-tile lf-tile-glass lf-bento-center-tile">
+                    <div className="lf-tile-header lf-bento-center-header">
                         <AlertTriangle size={28} className="lf-tile-icon error" />
                         <span className="lf-tile-badge error">{t('analysis.actionRequired')}</span>
                     </div>
-                    <h3 style={{ marginBottom: '1rem' }}>{t('analysis.issues')}</h3>
+                    <h3 className="lf-bento-issues-title">{t('analysis.issues')}</h3>
                     <p className="lf-tile-big-text">{issuesCount}</p>
                 </div>
 
@@ -181,7 +181,7 @@ const AnalysisBentoGrid = ({
                     </div>
                 </div>
 
-                <div className="lf-tile lf-tile-glass" style={{ padding: 0, overflow: 'hidden', height: '250px' }}>
+                <div className="lf-tile lf-tile-glass lf-bento-map-tile">
                     <MapComponent
                         address={analysis?.propertyAddress || ''}
                         latitude={32.0853}

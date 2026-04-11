@@ -73,3 +73,24 @@ export const getDocumentDictionary = (isHebrew) => {
     };
 };
 
+export const getReportDictionary = (isHebrew) => {
+    const localeStrings = isHebrew ? he.reportExport : en.reportExport;
+    return {
+        isRtl: isHebrew,
+        font: isHebrew ? 'David' : 'Arial',
+        language: isHebrew ? 'he-IL' : 'en-US',
+        title: localeStrings.title,
+        generatedOn: localeStrings.generatedOn,
+        generalRiskAssessment: localeStrings.generalRiskAssessment,
+        riskScore: localeStrings.riskScore,
+        breakdownByCategory: localeStrings.breakdownByCategory,
+        category: localeStrings.category,
+        score: localeStrings.score,
+        issuesFound: localeStrings.issuesFound,
+        riskLevel: localeStrings.riskLevel,
+        penalty: localeStrings.penalty,
+        explanation: localeStrings.explanation,
+        categories: localeStrings.categories
+    };
+};
+

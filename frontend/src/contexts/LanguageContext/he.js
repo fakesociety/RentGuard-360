@@ -47,6 +47,26 @@ export const he = {
         "defaultFilename": "דוח_ניתוח_חוזה_RentGuard",
         "defaultContractFilename": "חוזה_ערוך_RentGuard"
     },
+    "reportExport": {
+        "title": "דוח ניתוח חוזה שכירות",
+        "generatedOn": "נוצר בתאריך: ",
+        "generalRiskAssessment": "הערכת סיכון כללית",
+        "riskScore": "ציון סיכון: ",
+        "breakdownByCategory": "פירוט ציון לפי קטגוריות",
+        "category": "קטגוריה",
+        "score": "ציון",
+        "issuesFound": "בעיות שנמצאו",
+        "riskLevel": "רמת סיכון: ",
+        "penalty": " | קנס: -",
+        "explanation": "הסבר: ",
+        "categories": {
+            "financial_terms": "תנאים פיננסיים",
+            "tenant_rights": "זכויות הדייר",
+            "termination_clauses": "סיום ויציאה",
+            "liability_repairs": "אחריות ותיקונים",
+            "legal_compliance": "עמידה בחוק"
+        }
+    },
     "contractExport": {
         "title": "חוזה שכירות בלתי מוגנת",
         "datePrefix": "נערך ונחתם ביום:",

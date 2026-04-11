@@ -7,14 +7,13 @@
 
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
+import { getReportDictionary, detectHebrew } from '../utils/contractExportUtils';
 
-const getDocumentFont = (text) => {
-    return /[\u0590-\u05FF]/.test(text || '') ? 'David' : 'Arial';
-};
-
-const createTextRun = (text, options = {}, font = 'David') => new TextRun({
-    text,
-    font: font,
+const createTextRun = (text, dict, options = {}) => new TextRun({
+    text: String(text ?? ''),
+    font: dict.font,
+    language: { value: dict.language, bidirectional: dict.language },
+    rightToLeft: dict.isRtl,
     ...options,
 });
 
@@ -30,20 +29,24 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         const summary = result?.summary || 'Analysis complete.';
         const breakdown = result?.score_breakdown || {};
 
+        // Detect language based on summary
+        const isHebrew = detectHebrew(summary);
+        const dict = getReportDictionary(isHebrew);
+
         const sections = [];
 
         // 1. Title
         sections.push(
             new Paragraph({
-                children: [createTextRun('דוח ניתוח חוזה שכירות', { bold: true, rightToLeft: true })],
+                children: [createTextRun(dict.title, dict, { bold: true })],
                 heading: HeadingLevel.TITLE,
                 alignment: AlignmentType.CENTER,
-                bidirectional: true,
+                bidirectional: dict.isRtl,
             }),
             new Paragraph({
-                children: [createTextRun(`נוצר בתאריך: ${new Date().toLocaleDateString('he-IL')}`, { rightToLeft: true })],
+                children: [createTextRun(dict.generatedOn + new Date().toLocaleDateString(isHebrew ? 'he-IL' : 'en-US'), dict)],
                 alignment: AlignmentType.CENTER,
-                bidirectional: true,
+                bidirectional: dict.isRtl,
                 spacing: { after: 400 },
             })
         );
@@ -51,21 +54,21 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         // 2. Risk Score & Summary
         sections.push(
             new Paragraph({
-                children: [createTextRun('הערכת סיכון כללית', { bold: true, rightToLeft: true })],
+                children: [createTextRun(dict.generalRiskAssessment, dict, { bold: true })],
                 heading: HeadingLevel.HEADING_1,
-                bidirectional: true,
+                bidirectional: dict.isRtl,
             }),
             new Paragraph({
                 children: [
-                    createTextRun('ציון סיכון: ', { bold: true, rightToLeft: true }),
-                    createTextRun(`${riskScore}/100`, { bold: true, size: 32 }),
+                    createTextRun(dict.riskScore, dict, { bold: true }),
+                    createTextRun(riskScore + '/100', dict, { bold: true, size: 32 }),
                 ],
-                bidirectional: true,
+                bidirectional: dict.isRtl,
                 spacing: { after: 200 },
             }),
             new Paragraph({
-                children: [createTextRun(summary, { rightToLeft: true })],
-                bidirectional: true,
+                children: [createTextRun(summary, dict)],
+                bidirectional: dict.isRtl,
                 spacing: { after: 400 },
             })
         );
@@ -73,32 +76,26 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         // 3. Breakdown Table
         if (Object.keys(breakdown).length > 0) {
             sections.push(new Paragraph({
-                children: [createTextRun('פירוט ציון לפי קטגוריות', { bold: true, rightToLeft: true })],
+                children: [createTextRun(dict.breakdownByCategory, dict, { bold: true })],
                 heading: HeadingLevel.HEADING_2,
-                bidirectional: true,
+                bidirectional: dict.isRtl,
             }));
-            
-            const categoryNames = {
-                financial_terms: 'תנאים פיננסיים',
-                tenant_rights: 'זכויות הדייר',
-                termination_clauses: 'סיום ויציאה',
-                liability_repairs: 'אחריות ותיקונים',
-                legal_compliance: 'עמידה בחוק',
-            };
 
             const tableRows = [
                 new TableRow({
                     children: [
                         new TableCell({
                             children: [new Paragraph({
-                                children: [createTextRun('קטגוריה', { bold: true, rightToLeft: true })],
+                                children: [createTextRun(dict.category, dict, { bold: true })],
                                 alignment: AlignmentType.CENTER,
+                                bidirectional: dict.isRtl,
                             })],
                         }),
                         new TableCell({
                             children: [new Paragraph({
-                                children: [createTextRun('ציון', { bold: true, rightToLeft: true })],
+                                children: [createTextRun(dict.score, dict, { bold: true })],
                                 alignment: AlignmentType.CENTER,
+                                bidirectional: dict.isRtl,
                             })],
                         }),
                     ],
@@ -111,14 +108,15 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
                         children: [
                             new TableCell({
                                 children: [new Paragraph({
-                                    children: [createTextRun(categoryNames[key] || key, { rightToLeft: true })],
-                                    bidirectional: true,
+                                    children: [createTextRun(dict.categories[key] || key, dict)],
+                                    bidirectional: dict.isRtl,
                                 })],
                             }),
                             new TableCell({
                                 children: [new Paragraph({
-                                    children: [createTextRun(`${data.score || 0}/20`)],
+                                    children: [createTextRun((data.score || 0) + '/20', dict)],
                                     alignment: AlignmentType.CENTER,
+                                    bidirectional: dict.isRtl,
                                 })],
                             }),
                         ],
@@ -127,7 +125,7 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
             });
 
             sections.push(
-                new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tableRows }),
+                new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tableRows, visuallyRightToLeft: dict.isRtl }),
                 new Paragraph({ spacing: { after: 400 } })
             );
         }
@@ -135,25 +133,25 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         // 4. Issues List
         if (issues.length > 0) {
             sections.push(new Paragraph({
-                children: [createTextRun(`בעיות שנמצאו (${issues.length})`, { bold: true, rightToLeft: true })],
+                children: [createTextRun(dict.issuesFound + ' (' + issues.length + ')', dict, { bold: true })],
                 heading: HeadingLevel.HEADING_1,
-                bidirectional: true,
+                bidirectional: dict.isRtl,
             }));
 
             issues.forEach((issue, idx) => {
                 sections.push(
                     new Paragraph({
-                        children: [createTextRun(`${idx + 1}. ${issue.clause_topic || 'Issue'}`, { rightToLeft: true })],
+                        children: [createTextRun((idx + 1) + '. ' + (issue.clause_topic || 'Issue'), dict)],
                         heading: HeadingLevel.HEADING_2,
-                        bidirectional: true,
+                        bidirectional: dict.isRtl,
                     }),
                     new Paragraph({
                         children: [
-                            createTextRun('רמת סיכון: ', { bold: true, rightToLeft: true }),
-                            createTextRun(issue.risk_level || 'Medium'),
-                            issue.penalty_points ? createTextRun(` | קנס: -${issue.penalty_points}`) : null
+                            createTextRun(dict.riskLevel, dict, { bold: true }),
+                            createTextRun(issue.risk_level || 'Medium', dict),
+                            issue.penalty_points ? createTextRun(dict.penalty + issue.penalty_points, dict) : null
                         ].filter(Boolean),
-                        bidirectional: true,
+                        bidirectional: dict.isRtl,
                         spacing: { after: 200 },
                     })
                 );
@@ -162,10 +160,10 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
                     sections.push(
                         new Paragraph({
                             children: [
-                                createTextRun('הסבר: ', { bold: true, rightToLeft: true }),
-                                createTextRun(issue.explanation, { rightToLeft: true }),
+                                createTextRun(dict.explanation, dict, { bold: true }),
+                                createTextRun(issue.explanation, dict),
                             ],
-                            bidirectional: true,
+                            bidirectional: dict.isRtl,
                             spacing: { after: 300 },
                         })
                     );
@@ -173,14 +171,12 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
             });
         }
 
-        const docFont = getDocumentFont(summary);
-
         const doc = new Document({
             styles: {
                 default: {
                     document: {
                         run: {
-                            font: docFont,
+                            font: dict.font,
                             size: 24,
                         },
                     },
@@ -191,12 +187,12 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         const blob = await Packer.toBlob(doc);
         
         if (options.asBlob) return blob;
-        saveAs(blob, `${fileName}.docx`);
+        saveAs(blob, fileName + '.docx');
         return true;
 
     } catch (error) {
-        console.error("Report export failed:", error);
-        throw new Error("Failed to generate report document.");
+        console.error('Report export failed:', error);
+        throw new Error('Failed to generate report document.');
     }
 };
 

@@ -13,6 +13,7 @@
  * ============================================
  */
 import React from 'react';
+import Accordion from '@/components/ui/Accordion';
 import { Copy, Share2, ExternalLink, Trash2, ChevronDown } from 'lucide-react';
 
 export const SharePanel = ({
@@ -35,22 +36,16 @@ export const SharePanel = ({
     if (result?.is_contract === false) return null;
 
     return (
-        <div className={`lf-share-accordion ${isShareAccordionOpen ? 'expanded' : ''}`}>
-            <button
-                className="methodology-toggle lf-share-accordion-trigger"
-                onClick={() => setIsShareAccordionOpen(!isShareAccordionOpen)}
-                aria-expanded={isShareAccordionOpen}
-            >
-                <div className="toggle-content lf-share-accordion-title">
-                    <Share2 size={16} />
-                    <span>{t('analysis.secureShareLink')}</span>
-                </div>
-                <ChevronDown size={16} className={`methodology-chevron lf-share-chevron ${isShareAccordionOpen ? 'rotated' : ''}`} />
-            </button>
-
-            <div className="methodology-content-wrapper lf-share-accordion-content">
-                <div className="methodology-content lf-share-accordion-inner">
-                    {!shareLink || !isSharePanelVisible ? (
+        <Accordion 
+            className="lf-share-accordion"
+            dir={t('dir', 'ltr')}
+            title={t('analysis.secureShareLink')}
+            icon={<Share2 size={16} />}
+            isExpanded={isShareAccordionOpen}
+            onToggle={setIsShareAccordionOpen}
+            contentClassName="lf-share-accordion-inner"
+        >
+            {!shareLink || !isSharePanelVisible ? (
                         <button className="lf-action-btn" onClick={handleCopyShareLink} disabled={isGeneratingShareLink}>
                             <Share2 size={16} />
                             <span>{isGeneratingShareLink ? t('analysis.shareButtonCreating') : t('analysis.shareButtonCreate')}</span>
@@ -69,9 +64,7 @@ export const SharePanel = ({
                                 <button className="lf-share-btn-icon danger" onClick={handleRevokeShareLink} disabled={isRevokingShareLink} title={t('analysis.revokeLink')}><Trash2 size={14}/></button>
                             </div>
                         </div>
-                    )}
-                </div>
-            </div>
-        </div>
+                                    )}
+        </Accordion>
     );
 };
