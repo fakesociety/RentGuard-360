@@ -807,6 +807,15 @@ export const he = {
         "deleteAccountDesc": "פעולה זו תמחק לצמיתות את החשבון שלך ואת כל החוזים המקושרים אליו. לא ניתן לבטל פעולה זו."
     },
     "admin": {
+        "loadMore": "טען עוד...",
+        "loadMoreUsers": "טען משתמשים נוספים..",
+        "packageFree": "חינם",
+        "packageSingle": "חד פעמית",
+        "packageBasic": "בסיס",
+        "packagePro": "פרו",
+        "packageAdmin": "אדמין",
+        "packageNone": "ללא",
+        "packageExpired": "פג תוקף",
         "title": "לוח בקרה למנהל",
         "accessDenied": "גישה נדחתה",
         "noPermission": "אין לך הרשאות מנהל",
@@ -868,6 +877,7 @@ export const he = {
         "packageNone": "ללא חבילה",
         "packageExpired": "חבילה שפג תוקפה",
         "showingUsers": "מציג {count} משתמשים",
+        "showingUsersDetailed": "מציג {visible} מתוך {total} משתמשים רשומים",
         "confirmDisable": "האם אתה בטוח שברצונך להשעות משתמש זה?",
         "confirmDisableTitle": "השעיית משתמש",
         "confirmDelete": "האם אתה בטוח שברצונך למחוק משתמש זה?",

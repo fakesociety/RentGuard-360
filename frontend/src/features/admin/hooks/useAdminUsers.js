@@ -32,8 +32,10 @@ const normalizePackageKey = (user) => {
     if (!packageName) return 'none';
     if (user?.packageExpired) return 'expired';
     if (packageName.includes('free')) return 'free';
+    if (packageName.includes('single')) return 'single';
     if (packageName.includes('basic')) return 'basic';
     if (packageName.includes('pro')) return 'pro';
+    if (packageName.includes('admin')) return 'admin';
     return packageName;
 };
 
@@ -92,8 +94,10 @@ export const useAdminUsers = () => {
 
         const packageFilters = [];
         if (has('package_free')) packageFilters.push('free');
+        if (has('package_single')) packageFilters.push('single');
         if (has('package_basic')) packageFilters.push('basic');
         if (has('package_pro')) packageFilters.push('pro');
+        if (has('package_admin')) packageFilters.push('admin');
         if (has('package_none')) packageFilters.push('none');
         if (has('package_expired')) packageFilters.push('expired');
         if (packageFilters.length > 0) {

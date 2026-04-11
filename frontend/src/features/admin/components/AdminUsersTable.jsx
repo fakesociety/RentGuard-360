@@ -12,7 +12,7 @@
  * - None
  * ============================================
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy, Check, Ban, Trash2 } from 'lucide-react';
 import './AdminUsersTable.css';
 
@@ -32,8 +32,29 @@ const AdminUsersTable = ({
     handleDisableUser,
     handleEnableUser,
     handleDeleteUser,
-    actionLoading
+    actionLoading,
+    onVisibleUsersChange
 }) => {
+    const getInitialCount = () => (typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 30);
+    const [visibleCount, setVisibleCount] = useState(getInitialCount());
+
+    useEffect(() => {
+        setVisibleCount(getInitialCount());
+    }, [users]);
+
+    const displayedUsers = users.slice(0, visibleCount);
+    const displayedUsersCount = displayedUsers.length;
+
+    useEffect(() => {
+        if (typeof onVisibleUsersChange === 'function') {
+            onVisibleUsersChange(displayedUsersCount);
+        }
+    }, [displayedUsersCount, onVisibleUsersChange]);
+
+    const handleLoadMore = () => {
+        setVisibleCount(prev => prev + getInitialCount());
+    };
+
     return (
         <div className="users-table-wrapper">
             <table className="users-table">
@@ -74,14 +95,14 @@ const AdminUsersTable = ({
                             <td colSpan="7" className="no-data">{t('admin.noUsers')}</td>
                         </tr>
                     ) : (
-                        users.map(user => {
+                        displayedUsers.map(user => {
                             const statusPresentation = getUserStatusPresentation(user);
                             const copyLabel = copiedUsername === user.username
                                 ? t('admin.copied')
                                 : t('admin.copyEmail');
                             return (
                                 <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
-                                    <td className="email-cell" title={user.email || ''}>
+                                    <td className="email-cell" title={user.email || ''} data-label={t('admin.email')}>
                                         <div className="email-cell-content">
                                             <button
                                                 className={`action-icon-btn copy email-copy-btn ${copiedUsername === user.username ? 'copied' : ''}`}
@@ -95,29 +116,31 @@ const AdminUsersTable = ({
                                             <span className="email-text">{user.email || '—'}</span>
                                         </div>
                                     </td>
-                                    <td>{user.name || '—'}</td>
-                                    <td>
-                                        <span className={`status-badge ${statusPresentation.badgeClass}`}>
+                                    <td data-label={t('admin.name')}><span className="td-value">{user.name || '—'}</span></td>
+                                    <td data-label={t('admin.status')}>
+                                        <span className={`td-value status-badge ${statusPresentation.badgeClass}`}>
                                             <span className="status-dot"></span>
-                                            {statusPresentation.label}
+                                            <span className="status-label">{statusPresentation.label}</span>
                                         </span>
                                     </td>
-                                    <td>
-                                        {user.createdAt
-                                            ? new Date(user.createdAt).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')
-                                            : '—'
-                                        }
+                                    <td data-label={t('admin.joined')}>
+                                        <span className="td-value">
+                                            {user.createdAt
+                                                ? new Date(user.createdAt).toLocaleDateString(isRTL ? 'he-IL' : 'en-US')
+                                                : '—'
+                                            }
+                                        </span>
                                     </td>
-                                    <td>{getPackageDisplay(user)}</td>
-                                    <td>
-                                        <span className="provider-cell-content">
+                                    <td data-label={t('admin.package') || 'Package'}><span className="td-value">{getPackageDisplay(user)}</span></td>
+                                    <td data-label={t('admin.authProvider') || 'Provider'}>
+                                        <span className="td-value provider-cell-content">
                                             <span className={`provider-icon-badge ${getProviderMeta(user).key}`}>
                                                 {getProviderMeta(user).icon}
                                             </span>
-                                            {getProviderDisplay(user)}
+                                            <span className="provider-label">{getProviderDisplay(user)}</span>
                                         </span>
                                     </td>
-                                    <td className="actions-cell">
+                                    <td className="actions-cell" data-label={t('admin.actions')}>
                                         <div className="action-buttons">
                                             {user.enabled ? (
                                                 <button
@@ -154,6 +177,13 @@ const AdminUsersTable = ({
                     )}
                 </tbody>
             </table>
+            {users.length > visibleCount && (
+                <div className="load-more-container">
+                    <button className="load-more-btn" onClick={handleLoadMore}>
+                        {t('admin.loadMoreUsers') || t('admin.loadMore') || (isRTL ? 'טען משתמשים נוספים..' : 'Load more users..')}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

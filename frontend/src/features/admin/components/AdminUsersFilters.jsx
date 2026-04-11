@@ -88,9 +88,21 @@ const AdminUsersFilters = ({
                     </button>
 
                     <div className="users-filter-subtitle">{t('admin.package') || 'Package'}</div>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_free') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_free')}>Free</button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_basic') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_basic')}>Basic</button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_pro') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_pro')}>Pro</button>
+                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_free') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_free')}>
+                        {t('admin.packageFree') || 'Free'}
+                    </button>
+                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_single') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_single')}>
+                        {t('admin.packageSingle') || 'Single'}
+                    </button>
+                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_basic') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_basic')}>
+                        {t('admin.packageBasic') || 'Basic'}
+                    </button>
+                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_pro') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_pro')}>
+                        {t('admin.packagePro') || 'Pro'}
+                    </button>
+                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_admin') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_admin')}>
+                        {t('admin.packageAdmin') || 'Admin'}
+                    </button>
                     <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_none') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_none')}>
                         {t('admin.packageNone') || 'No package'}
                     </button>

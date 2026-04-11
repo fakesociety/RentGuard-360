@@ -22,6 +22,7 @@ const AdminUsers = () => {
     const { t, isRTL } = useLanguage();
     const { isDark } = useTheme();
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+    const [visibleUsersCount, setVisibleUsersCount] = useState(0);
     const [modal, setModal] = useState({
         isOpen: false,
         type: null,
@@ -123,9 +124,20 @@ const AdminUsers = () => {
         const noneLabel = t('admin.none') || 'No package';
         const expiredLabel = t('admin.expired') || 'expired';
         const pendingLabel = t('admin.pending') || 'pending';
+        
         if (!user?.packageName) return noneLabel;
-        if (user?.packagePending) return `${user.packageName} (${pendingLabel})`;
-        return user.packageExpired ? `${user.packageName} (${expiredLabel})` : user.packageName;
+        
+        let packageKey = String(user.packageName).trim().toLowerCase();
+        let baseLabel = user.packageName;
+        
+        if (packageKey.includes('free')) baseLabel = t('admin.packageFree') || 'Free';
+        else if (packageKey.includes('single')) baseLabel = t('admin.packageSingle') || 'Single';
+        else if (packageKey.includes('basic')) baseLabel = t('admin.packageBasic') || 'Basic';
+        else if (packageKey.includes('pro')) baseLabel = t('admin.packagePro') || 'Pro';
+        else if (packageKey.includes('admin')) baseLabel = t('admin.packageAdmin') || 'Admin';
+
+        if (user?.packagePending) return `${baseLabel} (${pendingLabel})`;
+        return user.packageExpired ? `${baseLabel} (${expiredLabel})` : baseLabel;
     };
 
     const getProviderMeta = (user) => {
@@ -146,6 +158,24 @@ const AdminUsers = () => {
     };
 
     const getProviderDisplay = (user) => getProviderMeta(user).label;
+
+    const totalUsersCount = users.length;
+    const fallbackVisibleCount = Math.min(
+        typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 30,
+        totalUsersCount
+    );
+    const resolvedVisibleUsersCount = Math.min(
+        visibleUsersCount > 0 || totalUsersCount === 0 ? visibleUsersCount : fallbackVisibleCount,
+        totalUsersCount
+    );
+    const usersCountTemplate =
+        t('admin.showingUsersDetailed') ||
+        (isRTL
+            ? 'מציג {visible} מתוך {total} משתמשים רשומים'
+            : 'Showing {visible} of {total} registered users');
+    const usersCountText = usersCountTemplate
+        .replace('{visible}', resolvedVisibleUsersCount)
+        .replace('{total}', totalUsersCount);
 
     return (
         <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -204,10 +234,11 @@ const AdminUsers = () => {
                             handleEnableUser={handleEnableUser}
                             handleDeleteUser={handleDeleteUser}
                             actionLoading={actionLoading}
+                            onVisibleUsersChange={setVisibleUsersCount}
                         />
 
                         <p className="users-count">
-                            {t('admin.showingUsers')?.replace('{count}', users.length) || `Showing ${users.length} users`}
+                            {usersCountText}
                         </p>
                     </div>
                 )}

@@ -808,6 +808,15 @@ export const en = {
         "deleteAccountDesc": "This will permanently delete your account and all associated contracts. This cannot be undone."
     },
     "admin": {
+        "loadMore": "Load More...",
+        "loadMoreUsers": "Load more users..",
+        "packageFree": "Free",
+        "packageSingle": "Single",
+        "packageBasic": "Basic",
+        "packagePro": "Pro",
+        "packageAdmin": "Admin",
+        "packageNone": "No package",
+        "packageExpired": "Expired package",
         "title": "Admin Dashboard",
         "accessDenied": "Access Denied",
         "noPermission": "You do not have admin permissions",
@@ -869,6 +878,7 @@ export const en = {
         "packageNone": "No package",
         "packageExpired": "Expired package",
         "showingUsers": "Showing {count} users",
+        "showingUsersDetailed": "Showing {visible} of {total} registered users",
         "confirmDisable": "Are you sure you want to disable this user?",
         "confirmDisableTitle": "Disable User",
         "confirmDelete": "Are you sure you want to delete this user?",
