@@ -403,6 +403,9 @@ export const he = {
         "uploadFailed": "ההעלאה נכשלה. נסו שוב.",
         "serverTemporaryError": "השרת עמוס כרגע. המערכת ניסתה שוב אוטומטית ולא הצליחה. נסו שוב בעוד כמה שניות."
     },
+    "scanner": {
+        "focus_guidance": "אנא ישרו את המסמך בתוך המסגרת וצלמו ישירות מלמעלה לקבלת התוצאות הטובות ביותר"
+    },
     "analysis": {
         "shareExpiryDays": "פג תוקף בעוד {days} ימים",
         "shareExpiryDaysOne": "פג תוקף בעוד יום",

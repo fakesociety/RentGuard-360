@@ -14,7 +14,11 @@
  * ============================================
  */
 const DEFAULT_MAX_WIDTH = 1600;
-const DEFAULT_JPEG_QUALITY = 0.76;
+const DEFAULT_JPEG_QUALITY = 0.82;
+const DETECTION_MAX_SIDE = 1000;
+const MAX_PROCESSING_SIDE = 1600;
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const loadImage = (src) => new Promise((resolve, reject) => {
     const img = new Image();
@@ -26,6 +30,630 @@ const loadImage = (src) => new Promise((resolve, reject) => {
 const dataUrlToBlob = async (dataUrl) => {
     const response = await fetch(dataUrl);
     return response.blob();
+};
+
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+const getRectCorners = (pixelCrop) => {
+    const left = Math.round(pixelCrop.x);
+    const top = Math.round(pixelCrop.y);
+    const right = Math.round(pixelCrop.x + pixelCrop.width);
+    const bottom = Math.round(pixelCrop.y + pixelCrop.height);
+
+    return [
+        { x: left, y: top },
+        { x: right, y: top },
+        { x: right, y: bottom },
+        { x: left, y: bottom },
+    ];
+};
+
+const scaleSourceForProcessing = (image) => {
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const longest = Math.max(sourceWidth, sourceHeight);
+    const scale = longest > MAX_PROCESSING_SIDE ? (MAX_PROCESSING_SIDE / longest) : 1;
+
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+        throw new Error('Unable to create processing canvas context.');
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(image, 0, 0, width, height);
+
+    return {
+        canvas,
+        width,
+        height,
+        scale,
+    };
+};
+
+const solveLinearSystem = (matrix, vector) => {
+    const n = vector.length;
+    const a = matrix.map((row, i) => [...row, vector[i]]);
+
+    for (let col = 0; col < n; col += 1) {
+        let pivot = col;
+        for (let row = col + 1; row < n; row += 1) {
+            if (Math.abs(a[row][col]) > Math.abs(a[pivot][col])) {
+                pivot = row;
+            }
+        }
+
+        if (Math.abs(a[pivot][col]) < 1e-10) {
+            throw new Error('Unable to solve homography matrix.');
+        }
+
+        if (pivot !== col) {
+            [a[col], a[pivot]] = [a[pivot], a[col]];
+        }
+
+        const pivotValue = a[col][col];
+        for (let k = col; k <= n; k += 1) {
+            a[col][k] /= pivotValue;
+        }
+
+        for (let row = 0; row < n; row += 1) {
+            if (row === col) continue;
+            const factor = a[row][col];
+            for (let k = col; k <= n; k += 1) {
+                a[row][k] -= factor * a[col][k];
+            }
+        }
+    }
+
+    return a.map((row) => row[n]);
+};
+
+const buildHomography = (srcPoints, dstPoints) => {
+    const matrix = [];
+    const vector = [];
+
+    for (let i = 0; i < 4; i += 1) {
+        const { x, y } = srcPoints[i];
+        const { x: u, y: v } = dstPoints[i];
+
+        matrix.push([x, y, 1, 0, 0, 0, -u * x, -u * y]);
+        vector.push(u);
+        matrix.push([0, 0, 0, x, y, 1, -v * x, -v * y]);
+        vector.push(v);
+    }
+
+    const solution = solveLinearSystem(matrix, vector);
+    return [
+        solution[0], solution[1], solution[2],
+        solution[3], solution[4], solution[5],
+        solution[6], solution[7], 1,
+    ];
+};
+
+const projectPoint = (h, x, y) => {
+    const denom = (h[6] * x) + (h[7] * y) + h[8];
+    if (Math.abs(denom) < 1e-10) {
+        return { x: -1, y: -1 };
+    }
+
+    return {
+        x: ((h[0] * x) + (h[1] * y) + h[2]) / denom,
+        y: ((h[3] * x) + (h[4] * y) + h[5]) / denom,
+    };
+};
+
+const bilinearSample = (rgba, width, height, x, y) => {
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const x1 = Math.min(width - 1, x0 + 1);
+    const y1 = Math.min(height - 1, y0 + 1);
+
+    const dx = x - x0;
+    const dy = y - y0;
+
+    const idx00 = (y0 * width + x0) * 4;
+    const idx10 = (y0 * width + x1) * 4;
+    const idx01 = (y1 * width + x0) * 4;
+    const idx11 = (y1 * width + x1) * 4;
+
+    const out = [0, 0, 0, 255];
+    for (let c = 0; c < 3; c += 1) {
+        const top = (rgba[idx00 + c] * (1 - dx)) + (rgba[idx10 + c] * dx);
+        const bottom = (rgba[idx01 + c] * (1 - dx)) + (rgba[idx11 + c] * dx);
+        out[c] = Math.round((top * (1 - dy)) + (bottom * dy));
+    }
+
+    return out;
+};
+
+const perspectiveWarp = (sourceData, srcWidth, srcHeight, srcQuad) => {
+    const topWidth = distance(srcQuad[0], srcQuad[1]);
+    const bottomWidth = distance(srcQuad[3], srcQuad[2]);
+    const leftHeight = distance(srcQuad[0], srcQuad[3]);
+    const rightHeight = distance(srcQuad[1], srcQuad[2]);
+
+    const outWidth = Math.max(1, Math.round((topWidth + bottomWidth) * 0.5));
+    const outHeight = Math.max(1, Math.round((leftHeight + rightHeight) * 0.5));
+
+    const dstQuad = [
+        { x: 0, y: 0 },
+        { x: outWidth - 1, y: 0 },
+        { x: outWidth - 1, y: outHeight - 1 },
+        { x: 0, y: outHeight - 1 },
+    ];
+
+    // Inverse mapping: destination rectangle -> source quadrilateral.
+    const h = buildHomography(dstQuad, srcQuad);
+
+    const out = new Uint8ClampedArray(outWidth * outHeight * 4);
+    for (let y = 0; y < outHeight; y += 1) {
+        for (let x = 0; x < outWidth; x += 1) {
+            const srcPt = projectPoint(h, x, y);
+            const outIdx = (y * outWidth + x) * 4;
+
+            if (
+                srcPt.x < 0 || srcPt.y < 0 ||
+                srcPt.x > (srcWidth - 1) || srcPt.y > (srcHeight - 1)
+            ) {
+                out[outIdx] = 255;
+                out[outIdx + 1] = 255;
+                out[outIdx + 2] = 255;
+                out[outIdx + 3] = 255;
+                continue;
+            }
+
+            const sampled = bilinearSample(sourceData, srcWidth, srcHeight, srcPt.x, srcPt.y);
+            out[outIdx] = sampled[0];
+            out[outIdx + 1] = sampled[1];
+            out[outIdx + 2] = sampled[2];
+            out[outIdx + 3] = 255;
+        }
+    }
+
+    return {
+        width: outWidth,
+        height: outHeight,
+        data: out,
+    };
+};
+
+const buildIntegralImage = (values, width, height) => {
+    const stride = width + 1;
+    const integral = new Float32Array((width + 1) * (height + 1));
+
+    for (let y = 1; y <= height; y += 1) {
+        let rowSum = 0;
+        for (let x = 1; x <= width; x += 1) {
+            rowSum += values[((y - 1) * width) + (x - 1)];
+            integral[(y * stride) + x] = integral[((y - 1) * stride) + x] + rowSum;
+        }
+    }
+
+    return { integral, stride };
+};
+
+const sumRegion = (integral, stride, x0, y0, x1, y1) => {
+    const a = integral[(y0 * stride) + x0];
+    const b = integral[(y0 * stride) + x1];
+    const c = integral[(y1 * stride) + x0];
+    const d = integral[(y1 * stride) + x1];
+    return d - b - c + a;
+};
+
+const applyAdaptiveSmartScan = (rgba, width, height) => {
+    const pixelCount = width * height;
+    const luma = new Float32Array(pixelCount);
+
+    for (let i = 0, p = 0; i < pixelCount; i += 1, p += 4) {
+        luma[i] = (rgba[p] * 0.299) + (rgba[p + 1] * 0.587) + (rgba[p + 2] * 0.114);
+    }
+
+    // Light denoise before local normalization to suppress sensor noise and paper grain.
+    const denoised = new Float32Array(pixelCount);
+    for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+            let sum = 0;
+            let weight = 0;
+
+            for (let oy = -1; oy <= 1; oy += 1) {
+                const ny = y + oy;
+                if (ny < 0 || ny >= height) continue;
+                for (let ox = -1; ox <= 1; ox += 1) {
+                    const nx = x + ox;
+                    if (nx < 0 || nx >= width) continue;
+                    const w = (ox === 0 && oy === 0) ? 6 : (ox === 0 || oy === 0 ? 1 : 0);
+                    sum += luma[(ny * width) + nx] * w;
+                    weight += w;
+                }
+            }
+
+            denoised[(y * width) + x] = sum / Math.max(1, weight);
+        }
+    }
+
+    const squares = new Float32Array(pixelCount);
+    for (let i = 0; i < pixelCount; i += 1) {
+        squares[i] = denoised[i] * denoised[i];
+    }
+
+    const { integral: sumIntegral, stride } = buildIntegralImage(denoised, width, height);
+    const { integral: sqIntegral } = buildIntegralImage(squares, width, height);
+
+    const radius = clamp(Math.round(Math.min(width, height) * 0.035), 10, 32);
+    const targetPaper = 240;
+    const detailGain = 0.5;
+    const localContrast = 1.12;
+
+    const normalized = new Float32Array(pixelCount);
+
+    for (let y = 0; y < height; y += 1) {
+        const y0 = Math.max(0, y - radius);
+        const y1 = Math.min(height, y + radius + 1);
+
+        for (let x = 0; x < width; x += 1) {
+            const x0 = Math.max(0, x - radius);
+            const x1 = Math.min(width, x + radius + 1);
+            const area = Math.max(1, (x1 - x0) * (y1 - y0));
+
+            const localSum = sumRegion(sumIntegral, stride, x0, y0, x1, y1);
+            const localMean = localSum / area;
+            const localSqSum = sumRegion(sqIntegral, stride, x0, y0, x1, y1);
+            const localVariance = Math.max(0, (localSqSum / area) - (localMean * localMean));
+            const localStd = Math.sqrt(localVariance);
+
+            const idx = (y * width) + x;
+            const base = denoised[idx];
+
+            // Lift uneven illumination toward white paper while preserving pen strokes.
+            const shadowCorrected = base + (targetPaper - localMean);
+            const detail = (base - localMean) * (1 + (Math.min(1, localStd / 48) * detailGain));
+            const contrasted = ((shadowCorrected + detail) - 128) * localContrast + 128;
+            normalized[idx] = clamp(contrasted, 0, 255);
+        }
+    }
+
+    // Subtle unsharp mask to make text edges crisper without introducing jagged binary artifacts.
+    const amount = 0.4;
+    const out = new Uint8ClampedArray(pixelCount * 4);
+
+    for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+            let blurSum = 0;
+            let blurWeight = 0;
+
+            for (let oy = -1; oy <= 1; oy += 1) {
+                const ny = y + oy;
+                if (ny < 0 || ny >= height) continue;
+                for (let ox = -1; ox <= 1; ox += 1) {
+                    const nx = x + ox;
+                    if (nx < 0 || nx >= width) continue;
+                    const w = (ox === 0 && oy === 0) ? 4 : (ox === 0 || oy === 0 ? 2 : 1);
+                    blurSum += normalized[(ny * width) + nx] * w;
+                    blurWeight += w;
+                }
+            }
+
+            const idx = (y * width) + x;
+            const base = normalized[idx];
+            const blurred = blurSum / Math.max(1, blurWeight);
+            const sharpened = clamp(base + ((base - blurred) * amount), 0, 255);
+            const finalGray = Math.round(sharpened);
+
+            const outIdx = idx * 4;
+            out[outIdx] = finalGray;
+            out[outIdx + 1] = finalGray;
+            out[outIdx + 2] = finalGray;
+            out[outIdx + 3] = 255;
+        }
+    }
+
+    return out;
+};
+
+const getDetectedQuadOrFallback = (ctx, width, height) => {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const bounds = detectBoundsFromImageData(imageData);
+
+    if (!bounds) {
+        return getFallbackCorners(width, height);
+    }
+
+    const safeRight = Math.max(bounds.left + 1, bounds.right);
+    const safeBottom = Math.max(bounds.top + 1, bounds.bottom);
+
+    return [
+        { x: clamp(bounds.left, 0, width - 1), y: clamp(bounds.top, 0, height - 1) },
+        { x: clamp(safeRight, 0, width - 1), y: clamp(bounds.top, 0, height - 1) },
+        { x: clamp(safeRight, 0, width - 1), y: clamp(safeBottom, 0, height - 1) },
+        { x: clamp(bounds.left, 0, width - 1), y: clamp(safeBottom, 0, height - 1) },
+    ];
+};
+
+const renderProcessedDataUrl = (rgba, width, height, quality = 0.96) => {
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = width;
+    outputCanvas.height = height;
+
+    const outputCtx = outputCanvas.getContext('2d');
+    if (!outputCtx) {
+        throw new Error('Unable to finalize processed image in browser canvas context.');
+    }
+
+    outputCtx.putImageData(new ImageData(rgba, width, height), 0, 0);
+    return outputCanvas.toDataURL('image/jpeg', quality);
+};
+
+export const prepareWarpedScanPreview = async (imageSrc) => {
+    const image = await loadImage(imageSrc);
+    const { canvas: sourceCanvas, width: srcWidth, height: srcHeight } = scaleSourceForProcessing(image);
+    const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+    if (!sourceCtx) {
+        throw new Error('Unable to process scanner preview in browser canvas context.');
+    }
+
+    const sourceFrame = sourceCtx.getImageData(0, 0, srcWidth, srcHeight);
+    const quad = getDetectedQuadOrFallback(sourceCtx, srcWidth, srcHeight);
+    const warped = perspectiveWarp(sourceFrame.data, srcWidth, srcHeight, quad);
+
+    const enhanced = applyAdaptiveSmartScan(warped.data, warped.width, warped.height);
+
+    return renderProcessedDataUrl(enhanced, warped.width, warped.height, 0.96);
+};
+
+export const enhanceDocumentPreview = async (imageSrc) => {
+    const image = await loadImage(imageSrc);
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+        throw new Error('Unable to process enhancement in browser canvas context.');
+    }
+
+    // Lightweight "scan" look: grayscale + boosted contrast and brightness.
+    ctx.filter = 'grayscale(1) contrast(1.55) brightness(1.1)';
+    ctx.drawImage(image, 0, 0, width, height);
+    ctx.filter = 'none';
+
+    // Fast per-pixel cleanup to whiten paper and darken text (no heavy libs).
+    const frame = ctx.getImageData(0, 0, width, height);
+    const data = frame.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const lum = data[i];
+        const boosted = lum > 182 ? 255 : lum < 92 ? 0 : Math.round(lum * 1.08);
+        data[i] = boosted;
+        data[i + 1] = boosted;
+        data[i + 2] = boosted;
+    }
+    ctx.putImageData(frame, 0, 0);
+
+    return canvas.toDataURL('image/jpeg', 0.96);
+};
+
+const getFallbackCorners = (width, height) => ([
+    { x: 0, y: 0 },
+    { x: Math.max(0, width - 1), y: 0 },
+    { x: Math.max(0, width - 1), y: Math.max(0, height - 1) },
+    { x: 0, y: Math.max(0, height - 1) },
+]);
+
+const getDetectionCanvas = (img) => {
+    const sourceWidth = img.naturalWidth || img.width;
+    const sourceHeight = img.naturalHeight || img.height;
+    const longestSide = Math.max(sourceWidth, sourceHeight);
+    const scale = longestSide > DETECTION_MAX_SIDE
+        ? DETECTION_MAX_SIDE / longestSide
+        : 1;
+
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+        throw new Error('Unable to create scanner detection canvas context.');
+    }
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    return {
+        canvas,
+        ctx,
+        sourceWidth,
+        sourceHeight,
+        scale,
+    };
+};
+
+const getCornerBackgroundColor = (data, width, height) => {
+    const sampleSize = clamp(Math.round(Math.min(width, height) * 0.06), 12, 40);
+    const areas = [
+        { x0: 0, x1: sampleSize, y0: 0, y1: sampleSize },
+        { x0: width - sampleSize, x1: width, y0: 0, y1: sampleSize },
+        { x0: 0, x1: sampleSize, y0: height - sampleSize, y1: height },
+        { x0: width - sampleSize, x1: width, y0: height - sampleSize, y1: height },
+    ];
+
+    let sumR = 0;
+    let sumG = 0;
+    let sumB = 0;
+    let count = 0;
+
+    for (const area of areas) {
+        for (let y = area.y0; y < area.y1; y += 1) {
+            for (let x = area.x0; x < area.x1; x += 1) {
+                const i = (y * width + x) * 4;
+                sumR += data[i];
+                sumG += data[i + 1];
+                sumB += data[i + 2];
+                count += 1;
+            }
+        }
+    }
+
+    if (!count) {
+        return { r: 255, g: 255, b: 255 };
+    }
+
+    return {
+        r: sumR / count,
+        g: sumG / count,
+        b: sumB / count,
+    };
+};
+
+const detectBoundsFromImageData = (imageData) => {
+    const { data, width, height } = imageData;
+    if (width < 20 || height < 20) {
+        return null;
+    }
+
+    const bg = getCornerBackgroundColor(data, width, height);
+    const rowVotes = new Uint16Array(height);
+    const colVotes = new Uint16Array(width);
+    const distances = new Float32Array(width * height);
+
+    let sum = 0;
+    let sumSq = 0;
+
+    for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+            const idx = (y * width + x) * 4;
+            const dr = data[idx] - bg.r;
+            const dg = data[idx + 1] - bg.g;
+            const db = data[idx + 2] - bg.b;
+            const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+
+            const flatIdx = y * width + x;
+            distances[flatIdx] = dist;
+            sum += dist;
+            sumSq += dist * dist;
+        }
+    }
+
+    const total = width * height;
+    const mean = sum / total;
+    const variance = Math.max(0, (sumSq / total) - (mean * mean));
+    const stdDev = Math.sqrt(variance);
+    const threshold = Math.max(18, mean + (stdDev * 0.45));
+
+    for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+            const flatIdx = y * width + x;
+            if (distances[flatIdx] > threshold) {
+                rowVotes[y] += 1;
+                colVotes[x] += 1;
+            }
+        }
+    }
+
+    const minVotesInRow = Math.max(4, Math.round(width * 0.03));
+    const minVotesInCol = Math.max(4, Math.round(height * 0.03));
+
+    let top = -1;
+    let bottom = -1;
+    let left = -1;
+    let right = -1;
+
+    for (let y = 0; y < height; y += 1) {
+        if (rowVotes[y] >= minVotesInRow) {
+            top = y;
+            break;
+        }
+    }
+
+    for (let y = height - 1; y >= 0; y -= 1) {
+        if (rowVotes[y] >= minVotesInRow) {
+            bottom = y;
+            break;
+        }
+    }
+
+    for (let x = 0; x < width; x += 1) {
+        if (colVotes[x] >= minVotesInCol) {
+            left = x;
+            break;
+        }
+    }
+
+    for (let x = width - 1; x >= 0; x -= 1) {
+        if (colVotes[x] >= minVotesInCol) {
+            right = x;
+            break;
+        }
+    }
+
+    if (top < 0 || bottom < 0 || left < 0 || right < 0) {
+        return null;
+    }
+
+    const detectedWidth = right - left;
+    const detectedHeight = bottom - top;
+    if (detectedWidth < width * 0.2 || detectedHeight < height * 0.2) {
+        return null;
+    }
+
+    const coverage = (detectedWidth * detectedHeight) / (width * height);
+    if (coverage < 0.08 || coverage > 0.98) {
+        return null;
+    }
+
+    return { top, right, bottom, left };
+};
+
+export const detectDocumentCorners = async (imageSrc) => {
+    const image = await loadImage(imageSrc);
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const fallbackCorners = getFallbackCorners(sourceWidth, sourceHeight);
+
+    try {
+        const { ctx, canvas, scale } = getDetectionCanvas(image);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const bounds = detectBoundsFromImageData(imageData);
+
+        if (!bounds) {
+            return {
+                corners: fallbackCorners,
+                didDetect: false,
+            };
+        }
+
+        const unscale = scale > 0 ? (1 / scale) : 1;
+        const safeRight = Math.max(bounds.left + 1, bounds.right);
+        const safeBottom = Math.max(bounds.top + 1, bounds.bottom);
+
+        const corners = [
+            { x: clamp(Math.round(bounds.left * unscale), 0, sourceWidth - 1), y: clamp(Math.round(bounds.top * unscale), 0, sourceHeight - 1) },
+            { x: clamp(Math.round(safeRight * unscale), 0, sourceWidth - 1), y: clamp(Math.round(bounds.top * unscale), 0, sourceHeight - 1) },
+            { x: clamp(Math.round(safeRight * unscale), 0, sourceWidth - 1), y: clamp(Math.round(safeBottom * unscale), 0, sourceHeight - 1) },
+            { x: clamp(Math.round(bounds.left * unscale), 0, sourceWidth - 1), y: clamp(Math.round(safeBottom * unscale), 0, sourceHeight - 1) },
+        ];
+
+        return {
+            corners,
+            didDetect: true,
+        };
+    } catch {
+        return {
+            corners: fallbackCorners,
+            didDetect: false,
+        };
+    }
 };
 
 const drawDownscaledImage = (img, maxWidth) => {
@@ -70,30 +698,24 @@ export const getCroppedImg = async (imageSrc, pixelCrop) => {
     }
 
     const image = await loadImage(imageSrc);
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(pixelCrop.width));
-    canvas.height = Math.max(1, Math.round(pixelCrop.height));
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
+    const { canvas: sourceCanvas, width: srcWidth, height: srcHeight, scale } = scaleSourceForProcessing(image);
+    const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+    if (!sourceCtx) {
         throw new Error('Unable to process crop in browser canvas context.');
     }
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(
-        image,
-        Math.round(pixelCrop.x),
-        Math.round(pixelCrop.y),
-        Math.round(pixelCrop.width),
-        Math.round(pixelCrop.height),
-        0,
-        0,
-        Math.round(pixelCrop.width),
-        Math.round(pixelCrop.height)
-    );
+    const sourceFrame = sourceCtx.getImageData(0, 0, srcWidth, srcHeight);
+    const scaledCrop = {
+        x: pixelCrop.x * scale,
+        y: pixelCrop.y * scale,
+        width: pixelCrop.width * scale,
+        height: pixelCrop.height * scale,
+    };
 
-    return canvas.toDataURL('image/jpeg', 0.98);
+    const srcQuad = getRectCorners(scaledCrop);
+    const warped = perspectiveWarp(sourceFrame.data, srcWidth, srcHeight, srcQuad);
+    const enhanced = applyAdaptiveSmartScan(warped.data, warped.width, warped.height);
+    return renderProcessedDataUrl(enhanced, warped.width, warped.height, 0.98);
 };
 
 export const compressCaptureDataUrl = async (dataUrl, options = {}) => {

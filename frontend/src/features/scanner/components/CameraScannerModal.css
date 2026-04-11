@@ -87,6 +87,7 @@
     z-index: 10;
     pointer-events: none;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 }
@@ -97,7 +98,24 @@
     aspect-ratio: 3/4;
     border-radius: 16px;
     position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+}
+
+.scanner-focus-guidance {
+    margin-top: 14px;
+    max-width: min(88vw, 480px);
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.45;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .scanner-focus-box::before,
@@ -330,12 +348,46 @@
     -webkit-user-drag: none;
 }
 
+.scanner-crop-stage.scan-lock .ReactCrop__crop-selection,
+.scanner-crop-stage.scan-lock .ReactCrop__drag-handle,
+.scanner-crop-stage.scan-lock .ReactCrop__drag-bar {
+    display: none !important;
+}
+
+.scanner-scanline-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.scanner-scanline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(80, 255, 170, 0.95) 50%, transparent 100%);
+    box-shadow: 0 0 10px rgba(80, 255, 170, 0.9);
+    animation: scanner-laser-sweep 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes scanner-laser-sweep {
+    from { top: 6%; }
+    to { top: 94%; }
+}
+
 .scanner-crop-toolbar {
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.95) 20%);
     padding: 14px 16px 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.scanner-crop-toolbar.scan-lock {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .scanner-crop-actions {

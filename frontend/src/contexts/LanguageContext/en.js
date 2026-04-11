@@ -403,6 +403,9 @@ export const en = {
         "uploadFailed": "Upload failed. Please try again.",
         "serverTemporaryError": "The server is temporarily busy. We retried automatically but it didn't work. Please try again in a few seconds."
     },
+    "scanner": {
+        "focus_guidance": "Please align the document within the frame and capture from directly above for best results."
+    },
     "analysis": {
         "shareExpiryDays": "Expires in {days} days",
         "shareExpiryDaysOne": "Expires in 1 day",

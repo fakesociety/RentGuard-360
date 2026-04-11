@@ -28,6 +28,7 @@ import ScannerThumbnailGallery from './ScannerThumbnailGallery';
 import './CameraScannerModal.css';
 
 const PDF_MAX_BYTES = 5 * 1024 * 1024;
+const SCAN_ANIMATION_MS = 2500;
 
 const formatMb = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 
@@ -35,6 +36,47 @@ const videoConstraints = {
     width: { ideal: 1920 },
     height: { ideal: 1080 },
     facingMode: { ideal: 'environment' },
+};
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const cropFromCorners = (corners, displayWidth, displayHeight, naturalWidth, naturalHeight) => {
+    const fallback = {
+        unit: 'px',
+        x: 0,
+        y: 0,
+        width: displayWidth,
+        height: displayHeight,
+    };
+
+    if (!Array.isArray(corners) || corners.length < 4) {
+        return fallback;
+    }
+
+    const xs = corners.map((p) => Number(p?.x)).filter(Number.isFinite);
+    const ys = corners.map((p) => Number(p?.y)).filter(Number.isFinite);
+    if (xs.length < 4 || ys.length < 4) {
+        return fallback;
+    }
+
+    const minX = clamp(Math.min(...xs), 0, naturalWidth - 1);
+    const maxX = clamp(Math.max(...xs), 0, naturalWidth - 1);
+    const minY = clamp(Math.min(...ys), 0, naturalHeight - 1);
+    const maxY = clamp(Math.max(...ys), 0, naturalHeight - 1);
+
+    const sourceWidth = Math.max(1, maxX - minX);
+    const sourceHeight = Math.max(1, maxY - minY);
+
+    const scaleX = displayWidth / Math.max(1, naturalWidth);
+    const scaleY = displayHeight / Math.max(1, naturalHeight);
+
+    return {
+        unit: 'px',
+        x: clamp(minX * scaleX, 0, displayWidth - 1),
+        y: clamp(minY * scaleY, 0, displayHeight - 1),
+        width: clamp(sourceWidth * scaleX, 1, displayWidth),
+        height: clamp(sourceHeight * scaleY, 1, displayHeight),
+    };
 };
 
 const CameraScannerModal = ({
@@ -46,6 +88,8 @@ const CameraScannerModal = ({
     const { t, isRTL } = useLanguage();
     const webcamRef = useRef(null);
     const pendingImageRef = useRef(null);
+    const captureRunRef = useRef(0);
+    const scanTimerRef = useRef(null);
     const {
         pages,
         activePage,
@@ -62,6 +106,7 @@ const CameraScannerModal = ({
     const [pendingCapture, setPendingCapture] = useState(null);
     const [crop, setCrop] = useState(null);
     const [completedCrop, setCompletedCrop] = useState(null);
+    const [isAutoScanning, setIsAutoScanning] = useState(false);
     const [expandedPageId, setExpandedPageId] = useState(null);
     const [error, setError] = useState('');
 
@@ -74,11 +119,30 @@ const CameraScannerModal = ({
         return null;
     }
 
+    const clearScanTimer = () => {
+        if (scanTimerRef.current) {
+            clearTimeout(scanTimerRef.current);
+            scanTimerRef.current = null;
+        }
+    };
+
+    const handleRetake = () => {
+        clearScanTimer();
+        captureRunRef.current += 1;
+        setPendingCapture(null);
+        setCompletedCrop(null);
+        setCrop(null);
+        setIsAutoScanning(false);
+    };
+
     const handleClose = () => {
+        clearScanTimer();
+        captureRunRef.current += 1;
         setError('');
         setPendingCapture(null);
         setCompletedCrop(null);
         setCrop(null);
+        setIsAutoScanning(false);
         clearPages();
         setExpandedPageId(null);
         onClose();
@@ -93,23 +157,34 @@ const CameraScannerModal = ({
             return;
         }
 
-        setError('');
+        const runId = captureRunRef.current + 1;
+        captureRunRef.current = runId;
+        clearScanTimer();
+
         setPendingCapture(frameDataUrl);
         setCrop(null);
         setCompletedCrop(null);
+        setIsAutoScanning(false);
     };
 
     const handlePendingImageLoad = (event) => {
         const image = event.currentTarget;
-        const initialCrop = {
-            unit: 'px',
-            x: image.width * 0.05,
-            y: image.height * 0.05,
-            width: image.width * 0.9,
-            height: image.height * 0.9,
-        };
-        setCrop(initialCrop);
-        setCompletedCrop(initialCrop);
+
+        // Render a usable crop box immediately so UI controls never wait on async detection.
+        const fallbackCrop = cropFromCorners(
+            null,
+            image.width,
+            image.height,
+            image.naturalWidth || image.width,
+            image.naturalHeight || image.height
+        );
+
+        setCrop(fallbackCrop);
+        setCompletedCrop(fallbackCrop);
+
+        if (!pendingCapture) {
+            setIsAutoScanning(false);
+        }
     };
 
     const handleApplyCrop = async () => {
@@ -119,6 +194,7 @@ const CameraScannerModal = ({
         }
 
         setIsCapturing(true);
+        setIsAutoScanning(true);
         try {
             const displayImage = pendingImageRef.current;
             const scaleX = displayImage.naturalWidth / displayImage.width;
@@ -131,10 +207,16 @@ const CameraScannerModal = ({
                 height: completedCrop.height * scaleY,
             };
 
-            const croppedDataUrl = await getCroppedImg(pendingCapture, naturalCrop);
+            const minimumScanDelay = new Promise((resolve) => {
+                clearScanTimer();
+                scanTimerRef.current = setTimeout(resolve, SCAN_ANIMATION_MS);
+            });
+
+            const processPromise = getCroppedImg(pendingCapture, naturalCrop);
+            const [croppedDataUrl] = await Promise.all([processPromise, minimumScanDelay]);
             const page = await compressCaptureDataUrl(croppedDataUrl, {
                 maxWidth: 1600,
-                quality: 0.76,
+                quality: 0.84,
             });
             addPage(page);
             setPendingCapture(null);
@@ -143,6 +225,8 @@ const CameraScannerModal = ({
         } catch (captureError) {
             setError(captureError.message || 'Failed to capture page.');
         } finally {
+            clearScanTimer();
+            setIsAutoScanning(false);
             setIsCapturing(false);
         }
     };
@@ -191,7 +275,7 @@ const CameraScannerModal = ({
                 {/* --- Main Body --- */}
                 <div className="scanner-modal-body">
                     
-                    {/* 1. Camera Layer */}
+                    {/*  Camera Layer */}
                     <div className="scanner-camera-panel">
                         <Webcam
                             ref={webcamRef}
@@ -227,14 +311,17 @@ const CameraScannerModal = ({
                         )}
                     </div>
 
-                    {/* 2. Spotlight Overlay Layer */}
+                    {/*  Spotlight Overlay Layer */}
                     <div className="scanner-spotlight-overlay">
                         <div className="scanner-focus-box">
                             <div className="focus-corners-bottom"></div>
                         </div>
+                        <div className="scanner-focus-guidance" dir="rtl">
+                            {t('scanner.focus_guidance')}
+                        </div>
                     </div>
 
-                    {/* 3. Bottom Controls Layer */}
+                    {/*  Bottom Controls Layer */}
                     <div className="scanner-controls-wrapper">
                         
                         <div className="scanner-gallery-panel">
@@ -271,7 +358,7 @@ const CameraScannerModal = ({
 
                     {pendingCapture && (
                         <div className="scanner-crop-overlay">
-                            <div className="scanner-crop-stage">
+                            <div className={`scanner-crop-stage ${isAutoScanning ? 'scan-lock' : ''}`}>
                                 <ReactCrop
                                     crop={crop}
                                     onChange={(nextCrop) => setCrop(nextCrop)}
@@ -279,6 +366,7 @@ const CameraScannerModal = ({
                                     minWidth={120}
                                     minHeight={120}
                                     keepSelection
+                                    disabled={isAutoScanning}
                                 >
                                     <img
                                         ref={pendingImageRef}
@@ -288,30 +376,34 @@ const CameraScannerModal = ({
                                         onLoad={handlePendingImageLoad}
                                     />
                                 </ReactCrop>
+                                {isAutoScanning && (
+                                    <div className="scanner-scanline-overlay" aria-hidden="true">
+                                        <div className="scanner-scanline" />
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="scanner-crop-toolbar">
-                                <div className="scanner-crop-actions">
-                                    <button
-                                        type="button"
-                                        className="crop-action-btn secondary"
-                                        onClick={() => {
-                                            setPendingCapture(null);
-                                            setCompletedCrop(null);
-                                            setCrop(null);
-                                        }}
-                                    >
-                                        Retake
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="crop-action-btn primary"
-                                        onClick={handleApplyCrop}
-                                        disabled={isCapturing}
-                                    >
-                                        {isCapturing ? 'Applying...' : 'Apply Crop'}
-                                    </button>
-                                </div>
+                            <div className={`scanner-crop-toolbar ${isAutoScanning ? 'scan-lock' : ''}`}>
+                                {!isAutoScanning && (
+                                    <div className="scanner-crop-actions">
+                                        <button
+                                            type="button"
+                                            className="crop-action-btn secondary"
+                                            onClick={handleRetake}
+                                            disabled={isCapturing}
+                                        >
+                                            Retake
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="crop-action-btn primary"
+                                            onClick={handleApplyCrop}
+                                            disabled={isCapturing}
+                                        >
+                                            {isCapturing ? 'Applying...' : 'Apply Crop'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
