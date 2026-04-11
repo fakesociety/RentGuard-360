@@ -14,6 +14,7 @@
  * ============================================
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -63,3 +64,6 @@ export const RequireActivePlanRoute = ({ children }) => {
   return children;
 };
 
+
+ProtectedRoute.propTypes = { children: PropTypes.node };
+RequireActivePlanRoute.propTypes = { children: PropTypes.node };

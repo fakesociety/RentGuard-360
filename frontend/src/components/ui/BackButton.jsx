@@ -17,6 +17,7 @@
  * 1. Imports
  * ========================================================================== */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -69,6 +70,14 @@ const BackButton = ({ to, onClick, label, fallback = '/', className = '' }) => {
             {content}
         </button>
     );
+};
+
+BackButton.propTypes = {
+    to: PropTypes.string,
+    onClick: PropTypes.func,
+    label: PropTypes.string,
+    fallback: PropTypes.string,
+    className: PropTypes.string,
 };
 
 export default BackButton;
