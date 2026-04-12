@@ -240,10 +240,13 @@ const CameraScannerModal = ({
                             forceScreenshotSourceSize={true}
                             playsInline={true}
                             onUserMediaError={(err) => {
+                                const errMsg = err.message || err.name || '';
                                 if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
                                     setError(t('upload.cameraAccessError'));
+                                } else if (errMsg.includes('getUserMedia is not implemented')) {
+                                    setError(t('upload.cameraNotSupportedError') || 'המצלמה אינה נתמכת בדפדפן זה הקפד לגלוש בחיבור מאובטח (HTTPS) או לפתוח את האתר בדפדפן הראשי (Chrome/Safari).');
                                 } else {
-                                    setError(`${t('upload.cameraErrorPrefix')} ${err.message || err.name || 'Unknown'}`);
+                                    setError(`${t('upload.cameraErrorPrefix')} ${errMsg || 'Unknown'}`);
                                 }
                             }}
                         />
@@ -255,10 +258,12 @@ const CameraScannerModal = ({
                                 <p className="scanner-error-message">
                                     {error}
                                 </p>
-                                <p className="scanner-error-hints">
-                                    {t('upload.cameraBlockedDesc1')}<br/>
-                                    {t('upload.cameraBlockedDesc2')}
-                                </p>
+                                {error !== t('upload.cameraNotSupportedError') && (
+                                    <p className="scanner-error-hints">
+                                        {t('upload.cameraBlockedDesc1')}<br/>
+                                        {t('upload.cameraBlockedDesc2')}
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>

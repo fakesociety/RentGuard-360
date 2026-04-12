@@ -16,6 +16,7 @@
  */
 import React from 'react';
 import { Edit3, X, Sparkles, Check, Undo2 } from 'lucide-react';
+import { extractFixText } from '../../utils/analysisUtils';
 import './EditClauseModal.css';
 
 const EditClauseModal = ({
@@ -52,7 +53,7 @@ const EditClauseModal = ({
                     </div>
 
                     {selectedClause.issues?.length > 0 && selectedClause.issues.map((issue, idx) => {
-                        const fixText = issue?.suggested_fix || issue?.recommendation || issue?.suggestedFix || issue?.solution || issue?.fix;
+                        const fixText = extractFixText(issue);
                         if (!fixText) return null;
                         return (
                             <div key={idx} className="lf-cv-modal-section lf-cv-suggested-section">

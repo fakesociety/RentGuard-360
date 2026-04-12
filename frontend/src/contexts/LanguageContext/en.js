@@ -408,6 +408,7 @@ export const en = {
         "cameraAccessError": "No camera access. Please go to your phone settings and allow camera permissions for your browser.",
         "cameraBlockedDesc1": "Cannot access the camera. You may have accidentally blocked it.",
         "cameraBlockedDesc2": "Mobile browsers prevent automatic redirects to settings. You must manually go into your device settings to unblock the camera, then refresh the page.",
+        "cameraNotSupportedError": "Camera is not supported here. Try opening the site in your main browser (Chrome/Safari) rather than an in-app browser (like Facebook/Instagram), and ensure a secure connection (HTTPS).",
         "cameraErrorPrefix": "Camera Error:",
         "selectedFiles": "Selected Files",
         "maxSize": "Max size: 5MB | PDF only",

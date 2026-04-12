@@ -15,7 +15,7 @@
  * ============================================
  */
 import React from 'react';
-import { 
+import {
     AlertTriangle,
     Info,
     CheckCircle2,
@@ -27,6 +27,7 @@ import {
     Undo2
 } from 'lucide-react';
 import RecommendationCard from '../RecommendationCard';
+import { extractFixText } from '../../utils/analysisUtils';
 import './ClauseRow.css';
 
 const ClauseRow = ({
@@ -54,12 +55,8 @@ const ClauseRow = ({
         }
     };
 
-    const isRecommendationApplied = !!editedClauses[clause.id] && 
-        (editedClauses[clause.id].action === 'accepted' || 
-         (clause.issues && clause.issues.some(issue => {
-             const fixT = issue?.suggested_fix || issue?.recommendation || issue?.suggestedFix || issue?.solution || issue?.fix;
-             return fixT && editedClauses[clause.id].text === fixT;
-         })));
+    const currentEdit = editedClauses[clause.id];
+    const isEdited = !!currentEdit;
 
     return (
         <div className="lf-cv-clause-row">
@@ -99,8 +96,8 @@ const ClauseRow = ({
                                 disabled={consultingClauseId === clause.id}
                                 title={t('contractView.getClauseExplanation')}
                             >
-                                {consultingClauseId === clause.id 
-                                    ? <Loader2 className="spin" size={16} /> 
+                                {consultingClauseId === clause.id
+                                    ? <Loader2 className="spin" size={16} />
                                     : <Sparkles size={16} />}
                             </button>
                         </div>
@@ -115,7 +112,7 @@ const ClauseRow = ({
                 )}
 
                 {/* Manual Edit Footer Actions */}
-                {!readOnly && clause.isEdited && !isRecommendationApplied && (
+                {!readOnly && clause.isEdited && !(isEdited && currentEdit.action === 'accepted') && (
                     <div className="lf-cv-clause-edit-footer no-print">
                         <button
                             className="lf-cv-action-btn revert-btn"
@@ -150,21 +147,21 @@ const ClauseRow = ({
 
             {/* Suggested Fix Cards (External Component) */}
             {!readOnly && clause.hasIssue && clause.issues && clause.issues.length > 0 && clause.issues.map((issue, idx) => {
-                const fixText = issue?.suggested_fix || issue?.recommendation || issue?.suggestedFix || issue?.solution || issue?.fix;
+                const fixText = extractFixText(issue);
                 if (!fixText) return null;
-                
-                const isRecommendationApplied = !!editedClauses[clause.id] && 
-                    (editedClauses[clause.id].action === 'accepted' || editedClauses[clause.id].text === fixText);
+
+                const isThisFixApplied = isEdited &&
+                    (currentEdit.action === 'accepted' || currentEdit.text === fixText);
 
                 // Only show unapplied recommendations or the one that was specifically applied
-                if (clause.isEdited && editedClauses[clause.id].text !== fixText && editedClauses[clause.id].action === 'accepted') return null;
+                if (isEdited && !isThisFixApplied && currentEdit.action === 'accepted') return null;
 
                 return (
                     <div key={idx} className="lf-cv-recommendation-wrapper">
                         <RecommendationCard
                             title={t('contractView.fixSuggestion')}
                             suggestion={fixText}
-                            isApplied={isRecommendationApplied}
+                            isApplied={isThisFixApplied}
                             onApply={() => {
                                 updateEditedClauses(prev => ({
                                     ...prev,

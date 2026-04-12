@@ -424,6 +424,7 @@
     padding: 20px;
     z-index: 100;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .scanner-error-icon {
@@ -439,10 +440,14 @@
 .scanner-error-message {
     font-size: 1.1rem;
     line-height: 1.5;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .scanner-error-hints {
     margin-top: 20px;
     font-size: 0.9rem;
     color: #ccc;
+    word-break: break-word;
+    max-width: 100%;
 }
