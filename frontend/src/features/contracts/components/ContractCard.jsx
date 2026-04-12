@@ -20,6 +20,7 @@ import {
     Trash2, Pencil, Download, RefreshCw, FileText,
     MoreVertical, MapPin, Users, Calendar, AlertTriangle, Share2
 } from 'lucide-react';
+import { getRiskTier } from '@/features/analysis/utils/scoreUtils';
 
 const DEFAULT_ANALYSIS_TIMEOUT_MS = 3 * 60 * 1000;
 const ANALYSIS_TIMEOUT_MS = (() => {
@@ -48,20 +49,13 @@ const ContractCard = ({ contract, onDelete, onEdit, onExport, onShare, formatDat
     const [activeMenu, setActiveMenu] = useState(null);
     const status = (contract.status || '').toLowerCase();
 
-    const getScoreData = (score) => {
-        if (score >= 86) return { class: 'excellent', label: t('contracts.lowRisk') };
-        if (score >= 71) return { class: 'good', label: t('contracts.lowMediumRisk') };
-        if (score >= 51) return { class: 'warning', label: t('contracts.mediumRisk') };
-        return { class: 'danger', label: t('contracts.highRisk') };
-    };
-
     const isTimedOut = isContractTimedOut(contract);
     const isAnalyzed = status === 'analyzed';
     const isFailed = status === 'failed' || status === 'error' || isTimedOut;
     const score = contract.riskScore ?? contract.risk_score ?? null;
     const hasScore = isAnalyzed && score !== null && score !== undefined;
 
-    const scoreData = hasScore ? getScoreData(score) : { color: '#64748b', class: 'pending', label: '---' };
+    const scoreData = hasScore ? getRiskTier(score, t) : { color: '#64748b', class: 'pending', label: '---' };
 
     const [animatedScore, setAnimatedScore] = useState(0);
 

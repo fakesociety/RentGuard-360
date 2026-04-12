@@ -13,8 +13,8 @@
  * ============================================
  */
 import React from 'react';
-import { CheckCircle2, XCircle, Activity, ShieldAlert, Percent, Landmark } from 'lucide-react';
 import './AdminStripePanels.css';
+import { CheckCircle2, XCircle, Activity, ShieldAlert, Percent, Landmark } from 'lucide-react';
 
 export const AdminStripePanels = ({
     sql,
@@ -26,7 +26,6 @@ export const AdminStripePanels = ({
     displayCurrency,
     locale,
     t,
-    isRTL,
     formatMoney,
     localizeBundleName
 }) => {
@@ -42,7 +41,7 @@ export const AdminStripePanels = ({
                             return (
                                 <div className="bundle-row" key={item.name}>
                                     <div className="bundle-row-head">
-                                        <span>{localizeBundleName(item.name, isRTL)}</span>
+                                        <span>{localizeBundleName(item.name, item.name, t)}</span>
                                         <span>{item.count}</span>
                                     </div>
                                     <div className="bundle-track">

@@ -49,25 +49,39 @@ export const enableUser = async (username) => {
 };
 
 /**
- * Delete all contracts for the current user
- * Used when a user deletes their account
+ * Delete all contracts for a user (Admin action)
+ * Using a sequential loop to prevent API Gateway rate-limiting (HTTP 429)
  * @param {string} userId - The user's ID
  */
-
 export const deleteAllUserContracts = async (userId) => {
     try {
-        // Get all user's contracts first
         const contracts = await getContracts(userId);
 
-        // Delete each contract
-        const deletePromises = contracts.map(contract =>
-            deleteContract(contract.contractId, userId)
-        );
+        if (!contracts || contracts.length === 0) {
+            return { success: true, count: 0 };
+        }
 
-        await Promise.all(deletePromises);
-        return { success: true, count: contracts.length };
+        let successCount = 0;
+        let failedCount = 0;
+
+        for (const contract of contracts) {
+            try {
+                await deleteContract(contract.contractId, userId);
+                successCount++;
+            } catch (err) {
+                console.error(`Failed to delete contract ${contract.contractId}:`, err);
+                failedCount++;
+            }
+        }
+
+        return {
+            success: failedCount === 0,
+            count: successCount,
+            failed: failedCount,
+            total: contracts.length
+        };
     } catch (error) {
-        console.error('Error deleting user contracts:', error);
+        console.error('Error fetching user contracts for deletion:', error);
         return { success: false, error: error.message };
     }
 };
@@ -84,9 +98,3 @@ export const deleteUser = async (username) => {
     });
     return data;
 };
-
-/**
- * Check if a user exists in Cognito and their verification status
- * @param {string} email - The email to check
- * @returns {status: 'EXISTS' | 'NEEDS_VERIFICATION' | 'USER_NOT_FOUND'}
- */

@@ -6,14 +6,24 @@
  * 
  * STRUCTURE:
  * - Caches data in sessionStorage
- * - Analyzes success rates, payment mixes, disputes
+ * - Analyzes success rates, payment mixes, disputes (via stripeUtils)
  * 
  * DEPENDENCIES:
  * - getAdminStripeStats API
+ * - stripeUtils (Math logic)
  * ============================================
  */
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { getAdminStripeStats } from '@/features/billing/services/stripeApi';
+import {
+    calculateSuccessRate,
+    calculateConversionRate,
+    calculateDisputeRate,
+    calculateRefundRate,
+    calculateDerivedCurrencies,
+    calculatePaymentMixRows
+} from '@/features/admin/utils/stripeUtils';
 
 const CACHE_KEY = 'rg_admin_stripe_stats';
 
@@ -39,14 +49,15 @@ const withTimeout = (promise, timeoutMs = 9000) => new Promise((resolve, reject)
         });
 });
 
-const normalizeAdminStatsError = (err) => {
+const normalizeAdminStatsError = (err, t) => {
     const msg = String(err?.message || '').toLowerCase();
-    if (msg.includes('504')) return 'Stripe service זמנית לא זמין (504).';
-    if (msg.includes('timeout')) return 'טעינת Stripe התעכבה. נסה שוב בעוד רגע.';
-    return err?.message || 'שגיאה בטעינת נתוני Stripe';
+    if (msg.includes('504')) return t('admin.stripeError504');
+    if (msg.includes('timeout')) return t('admin.stripeErrorTimeout');
+    return err?.message || t('admin.stripeErrorDefault');
 };
 
 export const useAdminStripeInsights = () => {
+    const { t } = useLanguage();
     const [data, setData] = useState(() => getCachedStats());
     const [loading, setLoading] = useState(() => !getCachedStats());
     const [error, setError] = useState('');
@@ -67,11 +78,11 @@ export const useAdminStripeInsights = () => {
                 // ignore cache write errors
             }
         } catch (err) {
-            setError(normalizeAdminStatsError(err));
+            setError(normalizeAdminStatsError(err, t));
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         loadData(initialHasCacheRef.current);
@@ -80,12 +91,7 @@ export const useAdminStripeInsights = () => {
     const sql = useMemo(() => data?.sql ?? {}, [data]);
     const stripe = useMemo(() => data?.stripe ?? {}, [data]);
 
-    const successRate = useMemo(() => {
-        const total = Number(stripe.chargesLast30Days || 0);
-        const successful = Number(stripe.successfulChargesLast30Days || 0);
-        if (!total) return 0;
-        return Math.round((successful / total) * 100);
-    }, [stripe]);
+    const successRate = useMemo(() => calculateSuccessRate(stripe), [stripe]);
 
     const displayCurrency = stripe.defaultCurrency || 'USD';
     const paymentMethods = useMemo(
@@ -96,57 +102,16 @@ export const useAdminStripeInsights = () => {
         () => (Array.isArray(stripe.currencyBreakdown) ? stripe.currencyBreakdown : []),
         [stripe.currencyBreakdown]
     );
-    const conversionRate = useMemo(() => {
-        const intents = Number(stripe.paymentIntentsLast30Days || 0);
-        const successfulCharges = Number(stripe.successfulChargesLast30Days || 0);
-        if (!intents) return 0;
-        return Math.round((successfulCharges / intents) * 100);
-    }, [stripe]);
+    const conversionRate = useMemo(() => calculateConversionRate(stripe), [stripe]);
 
-    const totalMethodCount = Math.max(paymentMethods.reduce((sum, method) => sum + Number(method.count || 0), 0), 1);
-    const disputeRate = useMemo(() => {
-        const charges = Number(stripe.chargesLast30Days || 0);
-        if (!charges) return 0;
-        return ((Number(stripe.disputeCountLast30Days || 0) / charges) * 100).toFixed(2);
-    }, [stripe]);
-    const refundRate = useMemo(() => {
-        const charges = Number(stripe.chargesLast30Days || 0);
-        if (!charges) return 0;
-        return ((Number(stripe.refundedChargesLast30Days || 0) / charges) * 100).toFixed(2);
-    }, [stripe]);
-    const derivedCurrencies = useMemo(() => {
-        if (currencies.length > 0) {
-            return currencies;
-        }
+    const disputeRate = useMemo(() => calculateDisputeRate(stripe), [stripe]);
+    const refundRate = useMemo(() => calculateRefundRate(stripe), [stripe]);
 
-        const map = new Map();
-        (sql.recentTransactions || []).forEach((tx) => {
-            const code = String(tx.currency || 'N/A').toUpperCase();
-            const amount = Number(tx.amount || 0);
-            map.set(code, (map.get(code) || 0) + amount);
-        });
+    const derivedCurrencies = useMemo(() =>
+        calculateDerivedCurrencies(currencies, sql.recentTransactions),
+        [currencies, sql.recentTransactions]);
 
-        return Array.from(map.entries())
-            .map(([currency, amount]) => ({ currency, amount }))
-            .sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
-    }, [currencies, sql.recentTransactions]);
-
-    const paymentMixRows = useMemo(() => {
-        return paymentMethods
-            .slice()
-            .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
-            .map((method) => {
-                const key = String(method.method || 'unknown').toLowerCase();
-                const value = Number(method.count || 0);
-                const percent = Math.round((value / totalMethodCount) * 100);
-
-                return {
-                    label: key.replace(/_/g, ' '),
-                    percent,
-                    count: value,
-                };
-            });
-    }, [paymentMethods, totalMethodCount]);
+    const paymentMixRows = useMemo(() => calculatePaymentMixRows(paymentMethods), [paymentMethods]);
 
     return {
         data,

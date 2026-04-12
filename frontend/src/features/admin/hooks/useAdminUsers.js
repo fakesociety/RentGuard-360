@@ -6,48 +6,44 @@
  * 
  * STRUCTURE:
  * - Fetches users list
- * - Applies search, status, and package sorting/filtering
+ * - Applies search, status, and package sorting/filtering (via userUtils)
  * - Functions for enable/disable/delete user statuses
  * 
  * DEPENDENCIES:
  * - API (getUsers, disableUser, enableUser, deleteUser)
+ * - userUtils (Logic & Constants)
  * ============================================
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { getUsers, disableUser, enableUser, deleteUser } from '@/features/admin/services/adminApi';
 import { emitAppToast } from '@/utils/toast';
-import { Mail } from 'lucide-react';
+import { copyToClipboard } from '@/features/contracts/utils/browserUtils';
+import { 
+    STATUS_FILTER_KEYS, 
+    normalizeProviderKey, 
+    getUserStatusKey,
+    applyUserFiltersAndSort
+} from '@/features/admin/utils/userUtils';
 
-const STATUS_FILTER_KEYS = ['status_enabled', 'status_disabled', 'status_pending'];
-
-const normalizeProviderKey = (user) => {
-    const provider = String(user?.authProvider || '').trim().toLowerCase();
-    if (provider.includes('google')) return 'google';
-    return 'email';
-};
-
-const normalizePackageKey = (user) => {
-    const packageName = String(user?.packageName || '').trim().toLowerCase();
-    if (!packageName) return 'none';
-    if (user?.packageExpired) return 'expired';
-    if (packageName.includes('free')) return 'free';
-    if (packageName.includes('single')) return 'single';
-    if (packageName.includes('basic')) return 'basic';
-    if (packageName.includes('pro')) return 'pro';
-    if (packageName.includes('admin')) return 'admin';
-    return packageName;
-};
-
-const getUserStatusKey = (user) => {
-    const rawStatus = String(user?.status || '').toUpperCase();
-    if (!user?.enabled) return 'disabled';
-    if (rawStatus && rawStatus !== 'CONFIRMED' && rawStatus !== 'EXTERNAL_PROVIDER') return 'pending';
-    return 'active';
+const executeUserAction = async (actionFn, t, { titleKey, messageText, failTitleKey, failMessageText, type }, onSuccess, onFinally) => {
+    try {
+        await actionFn();
+        onSuccess?.();
+        emitAppToast({ type, title: t(titleKey), message: messageText });
+    } catch (err) {
+        emitAppToast({
+            type: 'error',
+            title: t(failTitleKey),
+            message: err.message || failMessageText,
+        });
+    } finally {
+        onFinally?.();
+    }
 };
 
 export const useAdminUsers = () => {
-    const { t, isRTL } = useLanguage();
+    const { t } = useLanguage();
     const [allUsers, setAllUsers] = useState([]);
     // ------------------------------------------------------------------------
     // USER MANAGEMENT STATE: Data, API Loaders, Search/Filters
@@ -67,7 +63,6 @@ export const useAdminUsers = () => {
         try {
             const data = await getUsers('');
             setAllUsers(data.users || []);
-            setUsers(data.users || []);
         } catch (err) {
             setError(err.message || t('common.error'));
         } finally {
@@ -76,67 +71,7 @@ export const useAdminUsers = () => {
     }, [t]);
 
     const filterAndSortUsers = useCallback(() => {
-        let filtered = [...allUsers];
-        const has = (key) => advancedFilters.includes(key);
-
-        let selectedStatus = null;
-        if (has('status_enabled')) selectedStatus = 'active';
-        if (has('status_disabled')) selectedStatus = 'disabled';
-        if (has('status_pending')) selectedStatus = 'pending';
-
-        if (selectedStatus) {
-            filtered = filtered.filter(user => getUserStatusKey(user) === selectedStatus);
-        }
-
-        const providerFilters = [];
-        if (has('provider_email')) providerFilters.push('email');
-        if (has('provider_google')) providerFilters.push('google');
-        if (providerFilters.length > 0) {
-            filtered = filtered.filter(user => providerFilters.includes(normalizeProviderKey(user)));
-        }
-
-        const packageFilters = [];
-        if (has('package_free')) packageFilters.push('free');
-        if (has('package_single')) packageFilters.push('single');
-        if (has('package_basic')) packageFilters.push('basic');
-        if (has('package_pro')) packageFilters.push('pro');
-        if (has('package_admin')) packageFilters.push('admin');
-        if (has('package_none')) packageFilters.push('none');
-        if (has('package_expired')) packageFilters.push('expired');
-        if (packageFilters.length > 0) {
-            filtered = filtered.filter(user => {
-                const packageKey = normalizePackageKey(user);
-                if (packageFilters.includes(packageKey)) return true;
-                if (packageFilters.includes('expired') && user.packageExpired) return true;
-                return false;
-            });
-        }
-
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(user =>
-                (user.email?.toLowerCase().includes(query)) ||
-                (user.name?.toLowerCase().includes(query))
-            );
-        }
-
-        filtered.sort((a, b) => {
-            let valA = a[sortConfig.key];
-            let valB = b[sortConfig.key];
-            if (valA === null || valA === undefined) valA = '';
-            if (valB === null || valB === undefined) valB = '';
-
-            if (typeof valA === 'string' && typeof valB === 'string') {
-                return sortConfig.direction === 'asc'
-                    ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
-                    : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
-            }
-
-            if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-
+        const filtered = applyUserFiltersAndSort(allUsers, { advancedFilters, searchQuery, sortConfig });
         setUsers(filtered);
     }, [advancedFilters, allUsers, searchQuery, sortConfig]);
 
@@ -145,10 +80,8 @@ export const useAdminUsers = () => {
     }, [fetchAllUsers]);
 
     useEffect(() => {
-        if (allUsers.length > 0) {
-            filterAndSortUsers();
-        }
-    }, [allUsers.length, filterAndSortUsers]);
+        filterAndSortUsers();
+    }, [filterAndSortUsers]);
 
     const handleSort = (key) => {
         let direction = 'asc';
@@ -177,12 +110,6 @@ export const useAdminUsers = () => {
     const advancedFilterCount = advancedFilters.length;
 
 
-    const getLocalizedLabel = useCallback((key, fallbackEn, fallbackHe) => {
-        const translated = t(key);
-        if (translated && translated !== key) return translated;
-        return isRTL ? fallbackHe : fallbackEn;
-    }, [t, isRTL]);
-
     const getUserIdentifier = useCallback((username) => {
         const matchedUser = allUsers.find(user => user.username === username);
         if (!matchedUser) return username;
@@ -197,111 +124,76 @@ export const useAdminUsers = () => {
         if (!email) return;
 
         try {
-            if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(email);
-            } else {
-                const textArea = document.createElement('textarea');
-                textArea.value = email;
-                textArea.setAttribute('readonly', '');
-                textArea.style.position = 'absolute';
-                textArea.style.left = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
+            const success = await copyToClipboard(email);
+            if (!success) throw new Error('copy failure');
 
             setCopiedUsername(username);
             window.setTimeout(() => setCopiedUsername(current => current === username ? null : current), 1500);
             emitAppToast({
                 type: 'success',
-                title: getLocalizedLabel(
-                    'admin.copySuccessTitle',
-                    'Email copied',
-                    'האימייל הועתק'
-                ),
-                message: getLocalizedLabel(
-                    'admin.copySuccessMessage',
-                    'Email address was copied to clipboard.',
-                    'כתובת האימייל הועתקה ללוח.'
-                ),
+                title: t('admin.copySuccessTitle'),
+                message: t('admin.copySuccessMessage'),
             });
         } catch {
             emitAppToast({
                 type: 'error',
                 title: t('common.error') || 'Error',
-                message: getLocalizedLabel(
-                    'admin.copyFailed',
-                    'Unable to copy email. Please select and copy manually.',
-                    'לא ניתן להעתיק אימייל. אפשר לסמן ולהעתיק ידנית.'
-                ),
+                message: t('admin.copyFailed'),
             });
         }
     };
 
 
-    const doEnableUser = async (username) => {
+    const handleAction = async (username, actionFn, titleKey, messageKey, failTitleKey, failMessageKey, type) => {
         setActionLoading(username);
-        try {
-            await enableUser(username);
-            fetchAllUsers();
-            emitAppToast({
-                type: 'success',
-                title: t('notifications.adminUserEnabledTitle'),
-                message: t('notifications.adminUserEnabledMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } catch (err) {
-            emitAppToast({
-                type: 'error',
-                title: t('notifications.adminUserEnableFailedTitle'),
-                message: err.message || t('notifications.adminUserEnableFailedMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } finally {
-            setActionLoading(null);
-        }
+        const userIdentifier = getUserIdentifier(username);
+        await executeUserAction(
+            actionFn,
+            t,
+            {
+                titleKey,
+                messageText: t(messageKey)?.replace('{user}', userIdentifier),
+                failTitleKey,
+                failMessageText: t(failMessageKey)?.replace('{user}', userIdentifier),
+                type
+            },
+            fetchAllUsers,
+            () => setActionLoading(null)
+        );
     };
 
-    const doDisableUser = async (username) => {
-        setActionLoading(username);
-        try {
-            await disableUser(username, 'Admin action');
-            fetchAllUsers();
-            emitAppToast({
-                type: 'warning',
-                title: t('notifications.adminUserDisabledTitle'),
-                message: t('notifications.adminUserDisabledMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } catch (err) {
-            emitAppToast({
-                type: 'error',
-                title: t('notifications.adminUserDisableFailedTitle'),
-                message: err.message || t('notifications.adminUserDisableFailedMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } finally {
-            setActionLoading(null);
-        }
-    };
+    const doEnableUser = (username) => 
+        handleAction(
+            username, 
+            () => enableUser(username), 
+            'notifications.adminUserEnabledTitle', 
+            'notifications.adminUserEnabledMessage', 
+            'notifications.adminUserEnableFailedTitle', 
+            'notifications.adminUserEnableFailedMessage', 
+            'success'
+        );
 
-    const doDeleteUser = async (username) => {
-        setActionLoading(username);
-        try {
-            await deleteUser(username);
-            fetchAllUsers();
-            emitAppToast({
-                type: 'warning',
-                title: t('notifications.adminUserDeletedTitle'),
-                message: t('notifications.adminUserDeletedMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } catch (err) {
-            emitAppToast({
-                type: 'error',
-                title: t('notifications.adminUserDeleteFailedTitle'),
-                message: err.message || t('notifications.adminUserDeleteFailedMessage')?.replace('{user}', getUserIdentifier(username)),
-            });
-        } finally {
-            setActionLoading(null);
-        }
-    };
+    const doDisableUser = (username) => 
+        handleAction(
+            username, 
+            () => disableUser(username, 'Admin action'), 
+            'notifications.adminUserDisabledTitle', 
+            'notifications.adminUserDisabledMessage', 
+            'notifications.adminUserDisableFailedTitle', 
+            'notifications.adminUserDisableFailedMessage', 
+            'warning'
+        );
+
+    const doDeleteUser = (username) => 
+        handleAction(
+            username, 
+            () => deleteUser(username), 
+            'notifications.adminUserDeletedTitle', 
+            'notifications.adminUserDeletedMessage', 
+            'notifications.adminUserDeleteFailedTitle', 
+            'notifications.adminUserDeleteFailedMessage', 
+            'warning'
+        );
 
     return {
         users,
@@ -321,7 +213,6 @@ export const useAdminUsers = () => {
         copiedUsername,
         handleCopyEmail,
         fetchAllUsers,
-        getLocalizedLabel,
         getUserIdentifier,
         doEnableUser,
         doDisableUser,

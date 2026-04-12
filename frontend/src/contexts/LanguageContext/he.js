@@ -833,6 +833,12 @@ export const he = {
         "deleteAccountDesc": "פעולה זו תמחק לצמיתות את החשבון שלך ואת כל החוזים המקושרים אליו. לא ניתן לבטל פעולה זו."
     },
     "admin": {
+        "stripeError504": "Stripe service זמנית לא זמין (504).",
+        "stripeErrorTimeout": "טעינת Stripe התעכבה. נסה שוב בעוד רגע.",
+        "stripeErrorDefault": "שגיאה בטעינת נתוני Stripe",
+        "copySuccessTitle": "האימייל הועתק",
+        "copySuccessMessage": "כתובת האימייל הועתקה ללוח.",
+        "copyFailed": "לא ניתן להעתיק אימייל. אפשר לסמן ולהעתיק ידנית.",
         "loadMore": "טען עוד...",
         "loadMoreUsers": "טען משתמשים נוספים..",
         "packageFree": "חינם",

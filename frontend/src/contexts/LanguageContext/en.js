@@ -833,6 +833,12 @@ export const en = {
         "deleteAccountDesc": "This will permanently delete your account and all associated contracts. This cannot be undone."
     },
     "admin": {
+        "stripeError504": "Stripe service temporarily unavailable (504).",
+        "stripeErrorTimeout": "Stripe loading delayed. Please try again in a moment.",
+        "stripeErrorDefault": "Error loading Stripe data",
+        "copySuccessTitle": "Email copied",
+        "copySuccessMessage": "Email address was copied to clipboard.",
+        "copyFailed": "Unable to copy email. Please select and copy manually.",
         "loadMore": "Load More...",
         "loadMoreUsers": "Load more users..",
         "packageFree": "Free",

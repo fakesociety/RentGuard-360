@@ -39,6 +39,8 @@ import { showAppToast as emitAppToast } from '@/utils/toast';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
 
+import { getRiskTier } from '@/features/analysis/utils/scoreUtils';
+
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
     const [activeTab, setActiveTab] = useState('issues');
@@ -96,10 +98,8 @@ const AnalysisPage = () => {
     };
 
     const getHealthTier = (score) => {
-        if (score >= 86) return 'health-excellent';
-        if (score >= 71) return 'health-good';
-        if (score >= 51) return 'health-warning';
-        return 'health-danger';
+        const tier = getRiskTier(score, t);
+        return `health-${tier.class}`;
     };
 
     const pickInlineText = (...candidates) => {

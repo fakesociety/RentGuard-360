@@ -101,7 +101,7 @@ const AdminUsersTable = ({
                         </tr>
                     ) : (
                         displayedUsers.map(user => {
-                            const statusPresentation = getUserStatusPresentation(user);
+                            const statusPresentation = getUserStatusPresentation(user, t);
                             const copyLabel = copiedUsername === user.username
                                 ? t('admin.copied')
                                 : t('admin.copyEmail');
@@ -136,13 +136,13 @@ const AdminUsersTable = ({
                                             }
                                         </span>
                                     </td>
-                                    <td data-label={t('admin.package') || 'Package'}><span className="td-value">{getPackageDisplay(user)}</span></td>
-                                    <td data-label={t('admin.authProvider') || 'Provider'}>
-                                        <span className="td-value provider-cell-content">
-                                            <span className={`provider-icon-badge ${getProviderMeta(user).key}`}>
-                                                {getProviderMeta(user).icon}
-                                            </span>
-                                            <span className="provider-label">{getProviderDisplay(user)}</span>
+                                      <td data-label={t('admin.package') || 'Package'}><span className="td-value">{getPackageDisplay(user, t)}</span></td>
+                                      <td data-label={t('admin.authProvider') || 'Provider'}>
+                                          <span className="td-value provider-cell-content">
+                                              <span className={`provider-icon-badge ${getProviderMeta(user, t).key}`}>
+                                                  {getProviderMeta(user, t).icon}
+                                              </span>
+                                              <span className="provider-label">{getProviderDisplay(user, t)}</span>
                                         </span>
                                     </td>
                                     <td className="actions-cell" data-label={t('admin.actions')}>
@@ -210,5 +210,5 @@ const AdminUsersTable = ({
         </div>
     );
 };
-
 export default AdminUsersTable;
+// HMR trigger

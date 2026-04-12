@@ -21,27 +21,38 @@ import { BarChart3, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAdminAnalytics } from '@/features/admin/hooks/useAdminAnalytics';
 import { AdminAnalyticsCards } from '@/features/admin/components/AdminAnalyticsCards';
 import { AdminAnalyticsCharts } from '@/features/admin/components/AdminAnalyticsCharts';
+import { getChartTheme, getRiskColor, CHART_COLORS, RISK_LEVEL_COLORS } from '@/features/admin/utils/chartUIUtils';
+import { useTheme } from '@/contexts/ThemeContext';
 import './AdminDashboardPage.css';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
-
+import { useMemo } from 'react';
 
 const AdminAnalytics = () => {
     const { t, isRTL } = useLanguage();
+    const { isDark } = useTheme();
     
     const {
         loading,
         error,
         fetchStats,
-        chartTheme,
-        pieData,
-        commonIssues,
-        avgRiskScore,
-        riskColor,
-        isDark
+        pieData: rawPieData,
+        commonIssues: rawCommonIssues,
+        avgRiskScore
     } = useAdminAnalytics();
 
+    const chartTheme = useMemo(() => getChartTheme(isDark), [isDark]);
+    const riskColor = useMemo(() => getRiskColor(avgRiskScore), [avgRiskScore]);
+
+    const pieData = useMemo(() => 
+        (rawPieData || []).map(item => ({ ...item, color: RISK_LEVEL_COLORS[item.state] || '#10b981' })), 
+    [rawPieData]);
+
+    const commonIssues = useMemo(() => 
+        (rawCommonIssues || []).map((issue, index) => ({ ...issue, color: CHART_COLORS[index % CHART_COLORS.length] })), 
+    [rawCommonIssues]);
+
     return (
-        <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <>
             <header className="admin-header">
                 <h1>
                     <BarChart3 size={28} style={{ marginInlineEnd: '12px' }} />
@@ -82,9 +93,9 @@ const AdminAnalytics = () => {
                     </ThemeProvider>
                 )}
             </div>
-        </div>
+        </>
     );
 };
 
 export default AdminAnalytics;
-
+// HMR trigger

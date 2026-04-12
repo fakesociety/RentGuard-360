@@ -21,15 +21,15 @@ const EditContractModal = ({ editModal, setEditModal, saveEdit, isSaving, t, isR
                 <div className="lf-modal-body">
                     <div className="lf-form-group">
                         <label>{t('contracts.fileName')}</label>
-                        <input type="text" className="lf-input" value={editModal.fileName} onChange={e => setEditModal({ ...editModal, fileName: e.target.value })} />
+                        <input type="text" className="lf-input" value={editModal.fileName || ''} onChange={e => setEditModal({ ...editModal, fileName: e.target.value })} />
                     </div>
                     <div className="lf-form-group">
                         <label>{t('contracts.propertyAddress')}</label>
-                        <input type="text" className="lf-input" value={editModal.propertyAddress} onChange={e => setEditModal({ ...editModal, propertyAddress: e.target.value })} />
+                        <input type="text" className="lf-input" value={editModal.propertyAddress || ''} onChange={e => setEditModal({ ...editModal, propertyAddress: e.target.value })} />
                     </div>
                     <div className="lf-form-group">
                         <label>{t('contracts.landlordName')}</label>
-                        <input type="text" className="lf-input" value={editModal.landlordName} onChange={e => setEditModal({ ...editModal, landlordName: e.target.value })} />
+                        <input type="text" className="lf-input" value={editModal.landlordName || ''} onChange={e => setEditModal({ ...editModal, landlordName: e.target.value })} />
                     </div>
                 </div>
                 <div className="lf-modal-footer">

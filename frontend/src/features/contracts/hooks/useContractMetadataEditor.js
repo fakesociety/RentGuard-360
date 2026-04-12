@@ -54,17 +54,16 @@ export const useContractMetadataEditor = ({ userId, t, onApplyLocalUpdate, onAft
         setIsSaving(true);
         try {
             const updates = {
-                fileName: String(editModal.fileName || '').trim() || t('contracts.defaultFileName'),
+                fileName: normalizeFinalFileName(editModal.fileName, t).trim() || t('contracts.defaultFileName'),
                 propertyAddress: String(editModal.propertyAddress || '').trim(),
-                landlordName: String(editModal.landlordName || '').trim(),
+                landlordName: String(editModal.landlordName || '').trim(),      
             };
 
-            await updateContract(editModal.contractId, userId, updates);
+            await updateContract(editModal.contractId, userId, updates);        
 
             const updatedContract = {
                 contractId: editModal.contractId,
-                fileName: normalizeFinalFileName(updates.fileName, t),
-                propertyAddress: updates.propertyAddress,
+                fileName: updates.fileName,
                 landlordName: updates.landlordName,
             };
 
@@ -104,3 +103,4 @@ export const useContractMetadataEditor = ({ userId, t, onApplyLocalUpdate, onAft
     };
 };
 
+export default useContractMetadataEditor;

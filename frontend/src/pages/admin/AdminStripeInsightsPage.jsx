@@ -24,39 +24,9 @@ import { AdminStripeCards } from '@/features/admin/components/AdminStripeCards';
 import { AdminStripePanels } from '@/features/admin/components/AdminStripePanels';
 import { AdminStripeTable } from '@/features/admin/components/AdminStripeTable';
 import './AdminStripeInsightsPage.css';
+import { formatMoney, shortUserId, localizeBundleName } from '@/utils/formatUtils';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
-
-const formatMoney = (value, currency = 'USD', locale = 'en-US') => {
-    const safe = Number(value || 0);
-    try {
-        return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: String(currency || 'USD').toUpperCase(),
-            maximumFractionDigits: 2,
-        }).format(safe);
-    } catch {
-        return `${safe.toFixed(2)} ${String(currency || 'USD').toUpperCase()}`;
-    }
-};
-
-const shortUserId = (value) => {
-    const text = String(value || '');
-    if (text.length <= 12) return text;
-    return `${text.slice(0, 6)}...${text.slice(-4)}`;
-};
-
-const localizeBundleName = (name, isRTL) => {
-    const raw = String(name || '').trim();
-    if (!isRTL) return raw;
-
-    const key = raw.toLowerCase();
-    if (key === 'basic') return 'בסיס';
-    if (key === 'free') return 'חינם';
-    if (key === 'single') return 'חד פעמית';
-    if (key === 'pro') return 'פרו';
-    return raw;
-};
 
 const AdminStripeInsights = () => {
     const { isAdmin } = useAuth();

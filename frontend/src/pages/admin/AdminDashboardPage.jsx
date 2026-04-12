@@ -18,7 +18,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import Button from '@/components/ui/Button';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { getChartTheme, getLabelColor, getGridColor } from '@/features/admin/utils/chartUIUtils';
+
 import { AlertTriangle, Lock, RefreshCw } from 'lucide-react';
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats';
 import AdminDashboardCards from '@/features/admin/components/AdminDashboardCards';
@@ -45,28 +47,13 @@ const AdminDashboard = () => {
         userChartDataset
     } = useAdminStats();
 
-    // Create MUI theme for charts
-    const chartTheme = useMemo(() => createTheme({
-        palette: {
-            mode: isDark ? 'dark' : 'light',
-            text: {
-                primary: isDark ? '#f8fafc' : '#1a1a2e',
-                secondary: isDark ? '#94a3b8' : 'rgba(0,0,0,0.6)',
-            },
-            background: {
-                default: isDark ? '#0f0f23' : '#f8fafc',
-                paper: isDark ? '#1a1a2e' : '#ffffff',
-            },
-        },
-    }), [isDark]);
-
-    const labelColor = isDark ? '#94a3b8' : '#475569';
-    const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-
-    const accessDenied = !isAdmin;
+    const chartTheme = useMemo(() => getChartTheme(isDark), [isDark]);
+    const labelColor = getLabelColor(isDark);
+    const gridColor = getGridColor(isDark);
+const accessDenied = !isAdmin;
 
     return (
-        <div className={"admin-dashboard page-container " + (isDark ? 'dark' : 'light')} dir={isRTL ? 'rtl' : 'ltr'}>
+        <>
             <header className="admin-header">
                 <h1>{t('admin.title')}</h1>
                 <p>{isRTL ? 'שלום' : 'Hello'}, <bdi>{userAttributes?.name || 'Admin'}</bdi></p>
@@ -121,7 +108,7 @@ const AdminDashboard = () => {
                     </ThemeProvider>
                 )}
             </div>
-        </div>
+                </>
     );
 };
 

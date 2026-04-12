@@ -1,19 +1,3 @@
-/**
- * ============================================
- *  AdminLayout Component
- *  Admin Pages Layout Wrapper
- * ============================================
- * 
- * STRUCTURE:
- * - Mobile Top Bar
- * - AdminSidebar for Navigation
- * - Outlet for routed content
- * 
- * DEPENDENCIES:
- * - AdminSidebar component
- * - react-router-dom (Outlet)
- * ============================================
- */
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import AdminSidebar from '@/features/admin/components/AdminSidebar';
@@ -21,13 +5,10 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Menu, X, Shield } from 'lucide-react';
 import './AdminLayoutPage.css';
+import './AdminDashboardPage.css';
 
-/**
- * AdminLayout - Wrapper component for admin pages
- * Provides sidebar navigation and main content area with mobile menu
- */
 const AdminLayout = () => {
-    const { isRTL } = useLanguage();
+    const { t, isRTL } = useLanguage();
     const { isDark } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -36,7 +17,6 @@ const AdminLayout = () => {
             className={`admin-layout ${isDark ? 'dark' : 'light'}`}
             dir={isRTL ? 'rtl' : 'ltr'}
         >
-            {/* Mobile Top Bar */}
             <div className="mobile-top-bar">
                 <div className="mobile-logo">
                     <Shield size={24} />
@@ -45,24 +25,22 @@ const AdminLayout = () => {
                 <button
                     className="mobile-menu-btn"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                    aria-label={mobileMenuOpen ? t('admin.closeMenu') : t('admin.openMenu')}
                 >
                     {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
-            {/* Mobile Overlay */}
             <div
                 className={`mobile-overlay ${mobileMenuOpen ? 'visible' : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
             />
 
-            {/* Sidebar - visible on desktop, toggleable on mobile */}
             <div className={`sidebar-container ${mobileMenuOpen ? 'open' : ''}`}>
                 <AdminSidebar onNavigate={() => setMobileMenuOpen(false)} />
             </div>
 
-            <main className="admin-main">
+            <main className={`admin-main admin-dashboard page-container ${isDark ? 'dark' : 'light'}`}>
                 <Outlet />
             </main>
         </div>

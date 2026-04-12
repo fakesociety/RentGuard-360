@@ -50,10 +50,37 @@
 
 .admin-layout.dark {
     background: #0B0E13;
+    /* Theme Variables - Glass cards matching design system */
+    --admin-card-bg: var(--glass-bg, rgba(30, 41, 59, 0.95));
+    --admin-card-border: var(--glass-border, rgba(51, 65, 85, 0.5));
+    --admin-card-border-hover: rgba(16, 185, 129, 0.3);
+    --admin-card-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    --admin-card-glow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.4));
+    --admin-text: var(--text-primary, #f8fafc);
+    --admin-text-secondary: var(--text-secondary, #94a3b8);
+    --admin-text-muted: var(--text-tertiary, #64748b);
+    --admin-border: var(--glass-border, rgba(51, 65, 85, 0.5));
+    --admin-glow-green: rgba(16, 185, 129, 0.15);
+    --admin-glow-blue: rgba(59, 130, 246, 0.15);
+    --admin-glow-purple: rgba(139, 92, 246, 0.15);
+    --admin-green: var(--accent-primary, #10b981);
 }
 
 .admin-layout.light {
     background: var(--bg-page);
+    --admin-card-bg: rgba(255, 255, 255, 0.95);
+    --admin-card-border: rgba(15, 23, 42, 0.08);
+    --admin-card-border-hover: rgba(59, 130, 246, 0.25);
+    --admin-card-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    --admin-card-glow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --admin-text: #0f172a;
+    --admin-text-secondary: #334155;
+    --admin-text-muted: #64748b;
+    --admin-border: rgba(15, 23, 42, 0.06);
+    --admin-glow-green: transparent;
+    --admin-glow-blue: transparent;
+    --admin-glow-purple: transparent;
+    --admin-green: #059669;
 }
 
 /* ============================================

@@ -204,7 +204,7 @@ const ContactPage = () => {
 
                     {/* Map Component Branding Box */}
                     <div className="brand-image-card" style={{ height: 'auto', background: 'transparent' }}>
-                        <MapComponent latitude={32.0853} longitude={34.7818} popupText="RentGuard-360 TLV" />
+                        <MapComponent latitude={32.0853} longitude={34.7818} popupText={t('contact.mapPopupText')} />
                         <div style={{ marginTop: '1rem', textAlign: 'center', opacity: 0.8 }}>
                             <p>
                                 {t('contact.joinText')}

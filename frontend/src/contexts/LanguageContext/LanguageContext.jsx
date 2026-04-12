@@ -33,11 +33,15 @@ import { en } from './en';
 
 const translations = { he, en };;
 
-const translateFromLanguage = (language, key) => {
+const translateFromLanguage = (language, key, params = null) => {
     const keys = String(key || '').split('.');
     let value = translations[language] || translations.he;
     for (const k of keys) {
-        value = value?.[k];
+        if (value === undefined) break;
+        value = value[k];
+    }
+    if (typeof value === 'string' && params) {
+        return value.replace(/{(\w+)}/g, (_, k) => params[k] !== undefined ? params[k] : `{${k}}`);
     }
     return value || key;
 };
@@ -45,7 +49,7 @@ const translateFromLanguage = (language, key) => {
 const defaultLanguageContext = {
     language: 'he',
     setLanguage: () => {},
-    t: (key) => translateFromLanguage('he', key),
+    t: (key, params) => translateFromLanguage('he', key, params),
     toggleLanguage: () => {},
     isRTL: true,
     translations: translations.he,
@@ -70,7 +74,7 @@ export const LanguageProvider = ({ children }) => {
         document.documentElement.lang = language;
     }, [language]);
 
-    const t = useCallback((key) => translateFromLanguage(language, key), [language]);
+    const t = useCallback((key, params) => translateFromLanguage(language, key, params), [language]);
 
     const toggleLanguage = useCallback(() => {
         setLanguage(prev => prev === 'he' ? 'en' : 'he');

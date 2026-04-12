@@ -5,38 +5,44 @@
  * ============================================
  * 
  * STRUCTURE:
- * - calculateDateRange: Range handling
+ * - fetchStats: Gets data from API
  * - contractsChartDataset: For contract graphs
  * - userChartDataset: For user signup graphs
  * 
  * DEPENDENCIES:
  * - API (getSystemStats)
+ * - statsUtils (Caching & Date logic)
  * ============================================
  */
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getSystemStats } from '@/features/admin/services/adminApi';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
+import { calculateDateRange, parseLocalDate, getCachedSystemStats, setCachedSystemStats } from '@/features/admin/utils/statsUtils';
 
 export const useAdminStats = () => {
     const { t } = useLanguage();
     // ------------------------------------------------------------------------
     // STATE & TIME WINDOWS: Primary stats and active viewing ranges
     // ------------------------------------------------------------------------
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(() => getCachedSystemStats());
+    const [loading, setLoading] = useState(() => !getCachedSystemStats());
     const [error, setError] = useState(null);
     const [dateRange, setDateRange] = useState('30d');
     const [userDateRange, setUserDateRange] = useState('30d');
+    const initialHasCacheRef = useRef(Boolean(getCachedSystemStats()));
 
     // ------------------------------------------------------------------------
     // ASYNC LOAD PHASE: Server communication for metrics
     // ------------------------------------------------------------------------
-    const fetchStats = useCallback(async () => {
-        setLoading(true);
+    const fetchStats = useCallback(async (silent = false) => {
+        if (!silent) {
+            setLoading(true);
+        }
         setError(null);
         try {
             const data = await getSystemStats();
             setStats(data);
+            setCachedSystemStats(data);
         } catch (err) {
             setError(err.message || t('common.error'));
         } finally {
@@ -45,73 +51,37 @@ export const useAdminStats = () => {
     }, [t]);
 
     useEffect(() => {
-        fetchStats();
+        fetchStats(initialHasCacheRef.current);
     }, [fetchStats]);
-
-    // ------------------------------------------------------------------------
-    // DATE ENGINE: Calculates relative bounding boxes (like 'last 30 days')
-    // Prevents timezone bugs when analyzing logs
-    // ------------------------------------------------------------------------
-    const calculateDateRange = (range) => {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-        switch (range) {
-            case '7d':
-                return { start: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), end: today };
-            case '30d':
-                return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: today };
-            case 'month':
-                return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
-            case 'year':
-                return { start: new Date(now.getFullYear(), 0, 1), end: today };
-            case 'all':
-                return { start: new Date(2020, 0, 1), end: today };
-            default:
-                if (range && range.match(/^\d{4}$/)) {
-                    const year = parseInt(range);
-                    return { start: new Date(year, 0, 1), end: new Date(year, 11, 31) };
-                }
-                return { start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), end: today };
-        }
-    };
-
-    // ------------------------------------------------------------------------
-    // UTILITIES: Prevent UTC shifting from hiding today's data
-    // ------------------------------------------------------------------------ to avoid UTC offsets hiding today's data
-    const parseLocalDate = (dateStr) => {
-        if (!dateStr) return new Date();
-        const dateOnly = String(dateStr).slice(0, 10);
-        const parts = dateOnly.split('-');
-        return new Date(parts[0], parts[1] - 1, parts[2]);
-    };
 
     const { start: rangeStart, end: rangeEnd } = calculateDateRange(dateRange);
 
-    const contractsByDay = (stats?.contractsByDay || []).filter(d => {
-        const date = parseLocalDate(d.date);
-        return date >= rangeStart && date <= rangeEnd;
-    });
-
     const contractsChartDataset = useMemo(() => {
-        return contractsByDay.map(d => ({
-            date: parseLocalDate(d.date),
-            analyzed: d.analyzed,
-        }));
-    }, [contractsByDay]);
+        return (stats?.contractsByDay || []).reduce((acc, d) => {
+            const date = parseLocalDate(d.date);
+            if (date >= rangeStart && date <= rangeEnd) {
+                acc.push({
+                    date,
+                    analyzed: d.analyzed
+                });
+            }
+            return acc;
+        }, []);
+    }, [stats?.contractsByDay, rangeStart, rangeEnd]);
 
     const { start: userRangeStart, end: userRangeEnd } = calculateDateRange(userDateRange);
 
     const userChartDataset = useMemo(() => {
-        const filteredUserRegs = (stats?.userRegistrations || []).filter(d => {
+        return (stats?.userRegistrations || []).reduce((acc, d) => {
             const date = parseLocalDate(d.date);
-            return date >= userRangeStart && date <= userRangeEnd;
-        });
-
-        return filteredUserRegs.map(d => ({
-            date: parseLocalDate(d.date),
-            count: Number(d.count) || 0
-        }));
+            if (date >= userRangeStart && date <= userRangeEnd) {
+                acc.push({
+                    date,
+                    count: Number(d.count) || 0
+                });
+            }
+            return acc;
+        }, []);
     }, [stats?.userRegistrations, userRangeStart, userRangeEnd]);
 
     return {
