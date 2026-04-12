@@ -37,6 +37,9 @@ const AdminUsersTable = ({
 }) => {
     const getInitialCount = () => (typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 30);
     const [visibleCount, setVisibleCount] = useState(getInitialCount());
+    const disableLabel = t('admin.disable') || (isRTL ? 'חסום' : 'Disable');
+    const enableLabel = t('admin.enable') || (isRTL ? 'הפעל' : 'Enable');
+    const deleteLabel = t('admin.delete') || (isRTL ? 'מחק' : 'Delete');
 
     useEffect(() => {
         setVisibleCount(getInitialCount());
@@ -144,30 +147,48 @@ const AdminUsersTable = ({
                                         <div className="action-buttons">
                                             {user.enabled ? (
                                                 <button
-                                                    className="action-icon-btn danger"
+                                                    className="action-icon-btn danger with-label"
                                                     onClick={() => handleDisableUser(user.username)}
                                                     disabled={actionLoading === user.username}
-                                                    title={t('admin.disable')}
+                                                    title={disableLabel}
+                                                    aria-label={disableLabel}
                                                 >
-                                                    {actionLoading === user.username ? '...' : <Ban size={16} />}
+                                                    {actionLoading === user.username ? '...' : (
+                                                        <>
+                                                            <Ban size={16} />
+                                                            <span className="action-btn-label">{disableLabel}</span>
+                                                        </>
+                                                    )}
                                                 </button>
                                             ) : (
                                                 <button
-                                                    className="action-icon-btn success"
+                                                    className="action-icon-btn success with-label"
                                                     onClick={() => handleEnableUser(user.username)}
                                                     disabled={actionLoading === user.username}
-                                                    title={t('admin.enable')}
+                                                    title={enableLabel}
+                                                    aria-label={enableLabel}
                                                 >
-                                                    {actionLoading === user.username ? '...' : <Check size={16} />}
+                                                    {actionLoading === user.username ? '...' : (
+                                                        <>
+                                                            <Check size={16} />
+                                                            <span className="action-btn-label">{enableLabel}</span>
+                                                        </>
+                                                    )}
                                                 </button>
                                             )}
                                             <button
-                                                className="action-icon-btn danger"
+                                                className="action-icon-btn danger with-label"
                                                 onClick={() => handleDeleteUser(user.username)}
                                                 disabled={actionLoading === user.username}
-                                                title={t('admin.delete')}
+                                                title={deleteLabel}
+                                                aria-label={deleteLabel}
                                             >
-                                                {actionLoading === user.username ? '...' : <Trash2 size={16} />}
+                                                {actionLoading === user.username ? '...' : (
+                                                    <>
+                                                        <Trash2 size={16} />
+                                                        <span className="action-btn-label">{deleteLabel}</span>
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </td>

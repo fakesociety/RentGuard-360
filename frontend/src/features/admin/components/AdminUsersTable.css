@@ -73,7 +73,7 @@
     border-bottom: none;
 }
 
-.users-table .disabled-user td:not(.actions-cell) {
+.users-table .disabled-user td:not(.actions-cell):not(.email-cell) {
     opacity: 0.35;
 }
 
@@ -90,6 +90,18 @@
     font-weight: 400;
     color: #d1d5db;
     background: transparent;
+}
+
+.status-badge.active {
+    color: #34d399;
+}
+
+.status-badge.pending {
+    color: #f59e0b;
+}
+
+.status-badge.disabled {
+    color: #f87171;
 }
 
 .status-badge.active .status-dot {
@@ -109,6 +121,11 @@
     filter: none;
 }
 
+.admin-dashboard.light .status-badge.pending {
+    color: #d97706;
+    filter: none;
+}
+
 .admin-dashboard.light .status-badge.active .status-dot {
     background: #10b981;
     box-shadow: none;
@@ -119,6 +136,11 @@
     filter: none;
 }
 
+.admin-dashboard.light .status-badge.pending .status-dot {
+    background: #f59e0b;
+    box-shadow: none;
+}
+
 .admin-dashboard.light .status-badge.disabled .status-dot {
     background: #ef4444;
     box-shadow: none;
@@ -126,8 +148,8 @@
 
 /* Keep actions buttons large enough and prevent clipping in both themes */
 .users-table-wrapper .actions-cell {
-    min-width: 132px;
-    width: 132px;
+    min-width: 236px;
+    width: 236px;
     overflow: visible;
 }
 
@@ -148,6 +170,53 @@
     flex-shrink: 0;
 }
 
+.users-table-wrapper .action-icon-btn.with-label {
+    width: auto;
+    min-width: 98px;
+    height: 34px;
+    border-radius: 999px;
+    padding: 0 12px;
+    gap: 7px;
+    justify-content: center;
+}
+
+.users-table-wrapper .action-icon-btn.with-label svg {
+    width: 14px;
+    height: 14px;
+}
+
+.users-table-wrapper .action-btn-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+    color: inherit;
+    white-space: nowrap;
+}
+
+.users-table-wrapper .action-icon-btn.danger {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.users-table-wrapper .action-icon-btn.success {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.09);
+}
+
+.users-table-wrapper .email-copy-btn {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(148, 163, 184, 0.08);
+    color: #94a3b8;
+}
+
+.users-table-wrapper .email-copy-btn.copied {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
 .users-table-wrapper .action-icon-btn svg {
     width: 16px;
     height: 16px;
@@ -158,17 +227,24 @@
     height: 32px;
 }
 
-/* In RTL move only icons to the visual left of their label text */
-[dir="rtl"] .users-table .email-cell-content .email-copy-btn,
+/* In RTL keep provider/status icons on the visual left of text */
 [dir="rtl"] .users-table .provider-cell-content .provider-icon-badge,
 [dir="rtl"] .users-table .status-badge .status-dot {
     order: 2;
 }
 
-[dir="rtl"] .users-table .email-cell-content .email-text,
 [dir="rtl"] .users-table .provider-cell-content .provider-label,
 [dir="rtl"] .users-table .status-badge .status-label {
     order: 1;
+}
+
+/* In RTL keep copy icon on the visual right, before the email text */
+[dir="rtl"] .users-table .email-cell-content .email-copy-btn {
+    order: 1;
+}
+
+[dir="rtl"] .users-table .email-cell-content .email-text {
+    order: 2;
 }
 
 .admin-dashboard.light .users-table tbody tr:last-child .actions-cell {
@@ -195,7 +271,7 @@
         background: transparent;
         border: none;
         box-shadow: none;
-        padding: 4px;
+        padding: 0 14px;
         width: 100%;
         max-width: 100% !important;
         max-height: none !important;
@@ -234,33 +310,31 @@
     }
 
     .users-table tr {
-        margin-bottom: 16px;
-        background: var(--admin-card-bg);
-        border-radius: 12px;
-        border: 1px solid var(--admin-card-border);
-        padding: 12px 16px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 24px;
+        border: 1px solid rgba(203, 213, 225, 0.62);
+        padding: 18px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
         width: 100%;
-        box-sizing: border-box;
+        transition: none;
+        transform: none !important;
     }
 
     .users-table tbody tr:hover {
-        transform: translateY(-2px);
+        transform: none;
     }
 
     .users-table-wrapper .users-table td {
         display: flex !important;
         justify-content: space-between;
-        align-items: flex-start;
-        padding: 12px 0 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        align-items: center;
+        padding: 10px 0 !important;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
         white-space: normal !important;
         overflow: visible !important;
         text-overflow: clip !important;
         gap: 12px;
-        width: 100%;
-        box-sizing: border-box;
     }
 
     .users-table td:last-child {
@@ -275,17 +349,15 @@
     .users-table td::before {
         content: attr(data-label);
         font-weight: 600;
-        color: #9ca3af;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-inline-end: 16px;
+        color: #64748b;
+        font-size: 0.78rem;
+        letter-spacing: 0.01em;
+        margin-inline-end: 12px;
         flex-shrink: 0;
         max-width: 45%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: 2px;
     }
 
     .email-cell-content,
@@ -293,14 +365,23 @@
     .td-value,
     .action-buttons,
     .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex: 1 1 auto;
         justify-content: flex-end;
         text-align: end;
         word-break: break-word;
-        flex-grow: 1;
-        min-width: 0;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
+    }
+
+    [dir="ltr"] .email-cell-content,
+    [dir="ltr"] .provider-cell-content,
+    [dir="ltr"] .td-value,
+    [dir="ltr"] .action-buttons,
+    [dir="ltr"] .status-badge {
+        justify-content: flex-start;
+        text-align: start;
     }
 
     .users-table-wrapper .users-table td > span,
@@ -311,6 +392,11 @@
         min-width: 0;
         max-width: none;
         flex: 1 1 auto;
+    }
+
+    [dir="ltr"] .users-table-wrapper .users-table td > span,
+    [dir="ltr"] .users-table-wrapper .users-table td > div {
+        text-align: start;
     }
 
     .users-table .email-text,
@@ -327,10 +413,57 @@
         unicode-bidi: plaintext;
     }
 
-    .action-buttons {
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+    /* Mobile RTL: place copy icon on the left of the email text */
+    [dir="rtl"] .users-table .email-cell-content .email-copy-btn {
+        order: 2;
+    }
+
+    [dir="rtl"] .users-table .email-cell-content .email-text {
+        order: 1;
+    }
+
+    .users-table .status-badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        gap: 6px;
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    .users-table .status-badge.active {
+        background: rgba(16, 185, 129, 0.16);
+        color: #047857;
+    }
+
+    .users-table .status-badge.pending {
+        background: rgba(245, 158, 11, 0.18);
+        color: #b45309;
+    }
+
+    .users-table .status-badge.disabled {
+        background: rgba(239, 68, 68, 0.16);
+        color: #b91c1c;
+    }
+
+    .status-badge .status-dot {
+        width: 8px;
+        height: 8px;
+        animation: none;
+    }
+
+    .users-table td.actions-cell {
+        margin-top: 8px;
+        padding-top: 12px !important;
+        border-top: none !important;
+        display: flex !important;
+        justify-content: center;
+    }
+
+    .users-table td.actions-cell::before {
+        display: none;
     }
 
     .users-table-wrapper .actions-cell {
@@ -344,14 +477,91 @@
     }
 
     .users-table-wrapper .action-buttons {
+        width: 100%;
+        justify-content: center;
         gap: 10px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        flex-wrap: nowrap;
     }
 
-    .users-table-wrapper .action-icon-btn {
-        width: 34px !important;
-        height: 34px !important;
+    .users-table-wrapper .action-icon-btn.with-label {
+        min-width: 0;
+        flex: 1 1 0;
+        height: 42px;
+        border-radius: 999px;
+        padding: 0 12px;
+        gap: 7px;
+    }
+
+    .users-table-wrapper .action-icon-btn.with-label .action-btn-label {
+        font-size: 0.78rem;
+    }
+
+    .users-table .disabled-user td:not(.actions-cell):not(.email-cell) {
+        opacity: 0.6;
+    }
+
+    .users-table .disabled-user .email-cell,
+    .users-table .disabled-user .email-copy-btn {
+        opacity: 1;
+    }
+
+    .admin-dashboard.dark .users-table tr {
+        background: rgba(15, 23, 42, 0.88);
+        border-color: rgba(148, 163, 184, 0.24);
+        box-shadow: 0 12px 26px rgba(2, 6, 23, 0.42);
+    }
+
+    .admin-dashboard.dark .users-table td {
+        border-bottom-color: rgba(148, 163, 184, 0.2);
+    }
+
+    .admin-dashboard.dark .users-table td::before {
+        color: #9fb0c3;
+    }
+
+    .admin-dashboard.dark .users-table .email-text,
+    .admin-dashboard.dark .users-table .td-value,
+    .admin-dashboard.dark .users-table .provider-label {
+        color: #e2e8f0;
+    }
+
+    .admin-dashboard.dark .users-table .status-badge.active {
+        background: rgba(16, 185, 129, 0.22);
+        color: #6ee7b7;
+    }
+
+    .admin-dashboard.dark .users-table .status-badge.pending {
+        background: rgba(245, 158, 11, 0.24);
+        color: #fcd34d;
+    }
+
+    .admin-dashboard.dark .users-table .status-badge.disabled {
+        background: rgba(248, 113, 113, 0.24);
+        color: #fda4af;
+    }
+
+    .admin-dashboard.dark .users-table-wrapper .action-icon-btn.with-label.danger {
+        background: rgba(127, 29, 29, 0.32);
+        border-color: rgba(248, 113, 113, 0.4);
+        color: #fca5a5;
+    }
+
+    .admin-dashboard.dark .users-table-wrapper .action-icon-btn.with-label.success {
+        background: rgba(6, 78, 59, 0.34);
+        border-color: rgba(52, 211, 153, 0.36);
+        color: #86efac;
+    }
+
+    .admin-dashboard.dark .users-table-wrapper .email-copy-btn {
+        background: rgba(30, 41, 59, 0.72);
+        border-color: rgba(148, 163, 184, 0.34);
+        color: #cbd5e1;
+    }
+
+    .admin-dashboard.dark .users-table-wrapper .email-copy-btn.copied {
+        background: rgba(6, 95, 70, 0.32);
+        border-color: rgba(52, 211, 153, 0.38);
+        color: #6ee7b7;
     }
 }
 
@@ -456,6 +666,25 @@
 .admin-dashboard.light .users-table .email-text,
 .admin-dashboard.light .users-table .provider-cell-content {
     color: #111827 !important; /* Force dark text in light mode */
+}
+
+.admin-dashboard.light .users-table .status-badge.active,
+.admin-dashboard.light .users-table .status-badge.active .status-label {
+    color: #047857 !important;
+}
+
+.admin-dashboard.light .users-table .status-badge.pending,
+.admin-dashboard.light .users-table .status-badge.pending .status-label {
+    color: #b45309 !important;
+}
+
+.admin-dashboard.light .users-table .status-badge.disabled,
+.admin-dashboard.light .users-table .status-badge.disabled .status-label {
+    color: #b91c1c !important;
+}
+
+.admin-dashboard.light .users-table .action-icon-btn.with-label .action-btn-label {
+    color: inherit !important;
 }
 
 .admin-dashboard.light .users-table tbody tr:last-child td {
