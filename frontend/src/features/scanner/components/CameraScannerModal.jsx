@@ -38,47 +38,6 @@ const videoConstraints = {
     facingMode: { ideal: 'environment' },
 };
 
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-
-const cropFromCorners = (corners, displayWidth, displayHeight, naturalWidth, naturalHeight) => {
-    const fallback = {
-        unit: 'px',
-        x: 0,
-        y: 0,
-        width: displayWidth,
-        height: displayHeight,
-    };
-
-    if (!Array.isArray(corners) || corners.length < 4) {
-        return fallback;
-    }
-
-    const xs = corners.map((p) => Number(p?.x)).filter(Number.isFinite);
-    const ys = corners.map((p) => Number(p?.y)).filter(Number.isFinite);
-    if (xs.length < 4 || ys.length < 4) {
-        return fallback;
-    }
-
-    const minX = clamp(Math.min(...xs), 0, naturalWidth - 1);
-    const maxX = clamp(Math.max(...xs), 0, naturalWidth - 1);
-    const minY = clamp(Math.min(...ys), 0, naturalHeight - 1);
-    const maxY = clamp(Math.max(...ys), 0, naturalHeight - 1);
-
-    const sourceWidth = Math.max(1, maxX - minX);
-    const sourceHeight = Math.max(1, maxY - minY);
-
-    const scaleX = displayWidth / Math.max(1, naturalWidth);
-    const scaleY = displayHeight / Math.max(1, naturalHeight);
-
-    return {
-        unit: 'px',
-        x: clamp(minX * scaleX, 0, displayWidth - 1),
-        y: clamp(minY * scaleY, 0, displayHeight - 1),
-        width: clamp(sourceWidth * scaleX, 1, displayWidth),
-        height: clamp(sourceHeight * scaleY, 1, displayHeight),
-    };
-};
-
 const CameraScannerModal = ({
     open,
     onClose,
@@ -88,13 +47,10 @@ const CameraScannerModal = ({
     const { t, isRTL } = useLanguage();
     const webcamRef = useRef(null);
     const pendingImageRef = useRef(null);
-    const captureRunRef = useRef(0);
     const scanTimerRef = useRef(null);
     const {
         pages,
-        activePage,
         activePageId,
-        totalBytes,
         setActivePageId,
         addPage,
         removePage,
@@ -128,7 +84,6 @@ const CameraScannerModal = ({
 
     const handleRetake = () => {
         clearScanTimer();
-        captureRunRef.current += 1;
         setPendingCapture(null);
         setCompletedCrop(null);
         setCrop(null);
@@ -137,7 +92,6 @@ const CameraScannerModal = ({
 
     const handleClose = () => {
         clearScanTimer();
-        captureRunRef.current += 1;
         setError('');
         setPendingCapture(null);
         setCompletedCrop(null);
@@ -157,8 +111,6 @@ const CameraScannerModal = ({
             return;
         }
 
-        const runId = captureRunRef.current + 1;
-        captureRunRef.current = runId;
         clearScanTimer();
 
         setPendingCapture(frameDataUrl);
@@ -171,13 +123,13 @@ const CameraScannerModal = ({
         const image = event.currentTarget;
 
         // Render a usable crop box immediately so UI controls never wait on async detection.
-        const fallbackCrop = cropFromCorners(
-            null,
-            image.width,
-            image.height,
-            image.naturalWidth || image.width,
-            image.naturalHeight || image.height
-        );
+        const fallbackCrop = {
+            unit: 'px',
+            x: 0,
+            y: 0,
+            width: image.width,
+            height: image.height,
+        };
 
         setCrop(fallbackCrop);
         setCompletedCrop(fallbackCrop);

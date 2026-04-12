@@ -255,17 +255,6 @@
     justify-content: center;
 }
 
-/* --- 7. Hide Deprecated Elements --- */
-.scanner-modal-header h2,
-.scanner-modal-header p,
-.scanner-gallery-panel h3,
-.scanner-thumb-meta,
-.scanner-camera-actions,
-.scanner-modal-footer,
-.scanner-active-preview {
-    display: none !important;
-}
-
 .scanner-error {
     position: absolute;
     top: 80px;
