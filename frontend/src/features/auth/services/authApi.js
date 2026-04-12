@@ -1,4 +1,4 @@
-import { apiCall, API_URL, getAuthToken } from '@/services/apiClient';
+import { publicApiCall } from '@/services/apiClient';
 
 export const checkUserStatus = async (email) => {
     try {
@@ -10,10 +10,3 @@ export const checkUserStatus = async (email) => {
         return { status: 'USER_NOT_FOUND' };
     }
 };
-
-/**
- * Ask a contract-grounded question for a selected contract
- * @param {string} contractId - The selected contract ID
- * @param {string} question - User question
- * @returns {{answer: string, meta: object}}
- */

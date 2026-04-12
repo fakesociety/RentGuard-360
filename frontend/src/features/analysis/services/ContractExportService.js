@@ -8,74 +8,8 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 
-// RTL alignment: let Word handle it naturally via w:bidi on paragraphs.
-// Do NOT set explicit w:jc=right — bidi already implies right alignment
-// and explicit values can cause rendering conflicts in some Word versions.
-const HEBREW_CHARS_PATTERN = /[\u0590-\u05FF]/g;
-const LATIN_CHARS_PATTERN = /[A-Za-z]/g;
-const RTL_CONTRACT_KEYWORDS = ['חוזה', 'הסכם', 'שכירות', 'משכיר', 'שוכר', 'הואיל', 'לפיכך'];
+import { inferIsHebrewDocument, normalizeExportTextForDocx, getDocumentDictionary, CONFIG } from '../utils/contractExportUtils';
 
-// --- Constants ---
-const CONFIG = {
-    COLORS: { HIGHLIGHT: 'yellow' },
-    SPACING: {
-        PARAGRAPH_AFTER: 300,
-        LINE_HEIGHT: 360, // 1.5 line spacing
-        SECTION_BEFORE: 400,
-    },
-    MARGINS: { TOP: 1440, BOTTOM: 1440, LEFT: 1440, RIGHT: 1440 } // 1 inch margins
-};
-
-// --- Language Detection & Dictionary ---
-const detectHebrew = (text) => /[\u0590-\u05FF]/.test(text || '');
-
-const inferIsHebrewDocument = (clauseTexts = []) => {
-    const sample = (Array.isArray(clauseTexts) ? clauseTexts : [])
-        .filter((line) => typeof line === 'string' && line.trim().length > 0)
-        .slice(0, 40)
-        .join('\n')
-        .slice(0, 12000);
-
-    if (!sample || !detectHebrew(sample)) {
-        return false;
-    }
-
-    const hebrewChars = (sample.match(HEBREW_CHARS_PATTERN) || []).length;
-    const latinChars = (sample.match(LATIN_CHARS_PATTERN) || []).length;
-    const hasHebrewContractKeyword = RTL_CONTRACT_KEYWORDS.some((keyword) => sample.includes(keyword));
-
-    if (latinChars === 0) {
-        return hebrewChars > 0;
-    }
-
-    if (hasHebrewContractKeyword && hebrewChars >= 10) {
-        return true;
-    }
-
-    return hebrewChars / (hebrewChars + latinChars) >= 0.3;
-};
-
-const normalizeExportTextForDocx = (text) => {
-    return String(text ?? '')
-        .replace(/\r\n/g, '\n')
-        .replace(/\r/g, '\n')
-        .replace(/[ \t]{2,}/g, ' ');
-};
-
-const getDocumentDictionary = (isHebrew) => ({
-    isRtl: isHebrew,
-    font: isHebrew ? 'David' : 'Arial',
-    language: isHebrew ? 'he-IL' : 'en-US',
-    title: isHebrew ? 'חוזה שכירות בלתי מוגנת' : 'Unprotected Lease Agreement',
-    datePrefix: isHebrew ? 'נערך ונחתם ביום:' : 'Drawn and signed on:',
-    signaturesTitle: isHebrew ? 'חתימות' : 'Signatures',
-    tenant: isHebrew ? 'השוכר' : 'Tenant',
-    landlord: isHebrew ? 'המשכיר' : 'Landlord',
-    id: isHebrew ? 'ת.ז.: ' : 'ID: ',
-    nameTitle: isHebrew ? 'שם: ' : 'Name: ',
-    dateLabel: isHebrew ? 'תאריך: ' : 'Date: ',
-    dateLocale: isHebrew ? 'he-IL' : 'en-US'
-});
 
 const createTextRun = (text, dict, options = {}) => new TextRun({
     text,
@@ -296,12 +230,14 @@ const parseClausesForLegacyExport = (originalText, backendClauses = []) => {
 };
 
 // Backward-compatible API used by AnalysisPage/AnalysisResults.
+// eslint-disable-next-line no-unused-vars
 export const exportEditedContract = async (originalText, editedClauses, _issues = [], fileName = 'Edited_Contract', backendClauses = [], options = {}) => {
     const clauseTexts = parseClausesForLegacyExport(originalText, backendClauses);
     return exportEditedContractToWord(clauseTexts, editedClauses || {}, fileName, options);
 };
 
-export const exportEditedContractToBlob = async (originalText, editedClauses, _issues = [], fileName = 'Edited_Contract', backendClauses = []) => {
+// eslint-disable-next-line no-unused-vars
+export const exportEditedContractToBlob = async (originalText, editedClauses, _issues = [], fileName = 'Edited_Contract', backendClauses = [], options = {}) => {
     return exportEditedContract(originalText, editedClauses, _issues, fileName, backendClauses, { asBlob: true });
 };
 

@@ -19,12 +19,18 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 
 export const useAdminStats = () => {
     const { t } = useLanguage();
+    // ------------------------------------------------------------------------
+    // STATE & TIME WINDOWS: Primary stats and active viewing ranges
+    // ------------------------------------------------------------------------
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [dateRange, setDateRange] = useState('30d');
     const [userDateRange, setUserDateRange] = useState('30d');
 
+    // ------------------------------------------------------------------------
+    // ASYNC LOAD PHASE: Server communication for metrics
+    // ------------------------------------------------------------------------
     const fetchStats = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -42,7 +48,10 @@ export const useAdminStats = () => {
         fetchStats();
     }, [fetchStats]);
 
-    // Unified Date Range Calculation
+    // ------------------------------------------------------------------------
+    // DATE ENGINE: Calculates relative bounding boxes (like 'last 30 days')
+    // Prevents timezone bugs when analyzing logs
+    // ------------------------------------------------------------------------
     const calculateDateRange = (range) => {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -67,7 +76,9 @@ export const useAdminStats = () => {
         }
     };
 
-    // Safe local date parser to avoid UTC offsets hiding today's data
+    // ------------------------------------------------------------------------
+    // UTILITIES: Prevent UTC shifting from hiding today's data
+    // ------------------------------------------------------------------------ to avoid UTC offsets hiding today's data
     const parseLocalDate = (dateStr) => {
         if (!dateStr) return new Date();
         const dateOnly = String(dateStr).slice(0, 10);

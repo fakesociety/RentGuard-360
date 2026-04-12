@@ -489,19 +489,19 @@ const containerRef = useRef(null);
             showAppToast({ type: 'info', message: t('export.started') });
             const currentEdits = editedClausesRef.current || {};
             const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-            await exportEditedContractToWord(clauseTexts, currentEdits, t('export.defaultContractFilename'));
+            await exportEditedContractToWord(clauseTexts, currentEdits, t('export.defaultContractFilename'), { t, isRtl: isRTL });
             showAppToast({ type: 'success', message: t('export.success') });
         } catch (error) {
             console.error('Contract export error:', error);
             showAppToast({ type: 'error', message: t('export.error') });
         }
-    }, [clauses, getClauseTextFromEdits, t]);
+    }, [clauses, getClauseTextFromEdits, t, isRTL]);
 
     const handleGetDocxBlob = useCallback(async () => {
         const currentEdits = editedClausesRef.current || {};
         const clauseTexts = clauses.map(c => getClauseTextFromEdits(c, currentEdits));
-        return await exportEditedContractToWordBlob(clauseTexts, currentEdits, t('export.defaultContractFilename'));
-    }, [clauses, getClauseTextFromEdits, t]);
+        return await exportEditedContractToWordBlob(clauseTexts, currentEdits, t('export.defaultContractFilename'), { t, isRtl: isRTL });
+    }, [clauses, getClauseTextFromEdits, t, isRTL]);
 
     const getCurrentEditedPayload = useCallback(() => {
         const currentEdits = editedClausesRef.current || {};

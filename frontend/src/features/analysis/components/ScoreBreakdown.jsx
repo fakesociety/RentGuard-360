@@ -29,6 +29,7 @@
  */
 import React from 'react';
 import { BadgeDollarSign, House, FileText, Wrench, Scale } from 'lucide-react';
+import Accordion from '@/components/ui/Accordion';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import './SidebarAccordions.css';
 
@@ -82,34 +83,14 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
 
 // ... הלוגיקה שלך למעלה נשארת אותו דבר בדיוק ...
 
-    const [isExpanded, setIsExpanded] = React.useState(false);
-
     return (
-        <div className={`score-breakdown ${isExpanded ? 'expanded' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
-            
-            {/* כפתור פתיחה/סגירה של האקורדיון */}
-            <button
-                className="methodology-toggle"
-                onClick={() => setIsExpanded(!isExpanded)}
-                aria-expanded={isExpanded}
-            >
-                <div className="toggle-content">
-                    <FileText size={16} />
-                    <span>{t('analysis.scoreBreakdown', 'פירוט הציון')}</span>
-                </div>
-                <svg 
-                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                    className={`methodology-chevron ${isExpanded ? 'rotated' : ''}`}
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </button>
-
-            {/* תוכן האקורדיון (ללא עיגול הציון הראשי) */}
-            <div className="methodology-content-wrapper">
-                <div className="methodology-content">
-                    {/* Category Breakdown */}
+        <Accordion 
+            title={t('analysis.scoreBreakdown', 'פירוט הציון')}
+            icon={<FileText size={16} />}
+            className="score-breakdown"
+            contentClassName="methodology-content"
+            dir={isRTL ? 'rtl' : 'ltr'}
+        >
                     <div className="categories-breakdown">
                         <div className="categories-list">
                             {Object.entries(categories).map(([key, data]) => {
@@ -150,9 +131,7 @@ const ScoreBreakdown = ({ overallScore = 0, breakdown = {} }) => {
                             </div>
                         ))}
                     </div>
-                </div>
-            </div>
-        </div>
+        </Accordion>
     );
 };
 

@@ -143,8 +143,8 @@ const AnalysisResults = ({
                                             <span className="lf-badge-points">-{issue.penalty_points} {t('analysis.points')}</span>
                                         )}
                                     </div>
-                                    <h3 dir="auto">{clauseTitle}</h3>
-                                    <p className="lf-clause-preview" dir="auto">{clausePreview}</p>
+                                    <h3 dir="rtl">{clauseTitle}</h3>
+                                    <p className="lf-clause-preview" dir="rtl">{clausePreview}</p>
                                 </div>
                                 <button className="lf-expand-btn">
                                     <ChevronDown size={20} className={isExpanded ? 'rotated' : ''} />
@@ -154,9 +154,9 @@ const AnalysisResults = ({
                             {isExpanded && (
                                 <div className="lf-clause-body">
                                     {clauseOriginal && (
-                                        <div className="lf-quote-box" dir="auto">
+                                        <div className="lf-quote-box" dir="rtl">
                                             <Quote size={20} className="lf-quote-icon start-quote" />
-                                            <p dir="auto">{clauseOriginal}</p>
+                                            <p dir="rtl">{clauseOriginal}</p>
                                             <Quote size={20} className="lf-quote-icon end-quote" />
                                         </div>
                                     )}
@@ -169,7 +169,7 @@ const AnalysisResults = ({
                                                 </div>
                                                 <div className="lf-item-text">
                                                     <h4>{t('analysis.theIssue')}</h4>
-                                                    <p dir="auto">{clauseExplanation}</p>
+                                                    <p dir="rtl">{clauseExplanation}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -181,7 +181,7 @@ const AnalysisResults = ({
                                                 </div>
                                                 <div className="lf-item-text">
                                                     <h4>{t('analysis.negotiationStrategy')}</h4>
-                                                    <p dir="auto">{clauseFix}</p>
+                                                    <p dir="rtl">{clauseFix}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -198,9 +198,9 @@ const AnalysisResults = ({
                                             </button>
                                             
                                             {clauseTip && (
-                                                <div className="lf-tip-box" dir="auto">
+                                                <div className="lf-tip-box" dir="rtl">
                                                     <Lightbulb size={16} />
-                                                    <span dir="auto">{clauseTip}</span>
+                                                    <span dir="rtl">{clauseTip}</span>
                                                 </div>
                                             )}
                                         </div>

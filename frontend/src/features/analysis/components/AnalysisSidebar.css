@@ -244,12 +244,12 @@
 }
 
 /* Collapsible share section: base accordion visuals/hover are inherited from SidebarAccordions.css */
-.lf-share-accordion.lf-ocr-accordion {
+.lf-accordion.lf-ocr-accordion {
     border: 1px solid var(--accent-danger);
 }
 
-.lf-ocr-accordion .lf-ocr-accordion-title,
-.lf-ocr-accordion .methodology-chevron {
+.lf-ocr-accordion .lf-accordion-title,
+.lf-ocr-accordion .lf-accordion-chevron {
     color: var(--accent-danger);
 }
 

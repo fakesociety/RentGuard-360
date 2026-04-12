@@ -47,6 +47,36 @@ export const en = {
         "defaultFilename": "RentGuard_Analysis_Report",
         "defaultContractFilename": "RentGuard_Edited_Contract"
     },
+    "reportExport": {
+        "title": "Lease Agreement Analysis Report",
+        "generatedOn": "Generated on: ",
+        "generalRiskAssessment": "General Risk Assessment",
+        "riskScore": "Risk Score: ",
+        "breakdownByCategory": "Score Breakdown by Category",
+        "category": "Category",
+        "score": "Score",
+        "issuesFound": "Issues Found",
+        "riskLevel": "Risk Level: ",
+        "penalty": " | Penalty: -",
+        "explanation": "Explanation: ",
+        "categories": {
+            "financial_terms": "Financial Terms",
+            "tenant_rights": "Tenant Rights",
+            "termination_clauses": "Termination & Exit",
+            "liability_repairs": "Liability & Repairs",
+            "legal_compliance": "Legal Compliance"
+        }
+    },
+    "contractExport": {
+        "title": "Unprotected Lease Agreement",
+        "datePrefix": "Drawn and signed on:",
+        "signaturesTitle": "Signatures",
+        "tenant": "Tenant",
+        "landlord": "Landlord",
+        "id": "ID: ",
+        "nameTitle": "Name: ",
+        "dateLabel": "Date: "
+    },
     "auth": {
         "login": "Login",
         "register": "Sign Up",
@@ -234,6 +264,13 @@ export const en = {
             scoreOffice: '58'
         },
         contracts: {
+            generatingShareLink: 'Generating secure link...',
+            menuShareTitle: 'Share Contract',
+            menuShareTrigger: 'View this contract analysis checked by RentGuard',
+            linkCopied: 'Link copied successfully!',
+            linkCopiedFallback: 'Link copied to clipboard successfully!',
+            shareFailed: 'Failed to share the link.',
+            shareFailedSpecific: 'Failed to generate link, please try again.',
             analyzedPrefix: 'Analyzed:',
             lowRisk: 'Low Risk',
             mediumRisk: 'Medium Risk',
@@ -270,6 +307,13 @@ export const en = {
         }
     },
     "contracts": {
+        "generatingShareLink": "Generating secure link...",
+        "menuShareTitle": "Share Contract",
+        "menuShareTrigger": "Share Analysis",
+        "linkCopied": "Link copied successfully!",
+        "linkCopiedFallback": "Link copied to clipboard!",
+        "shareFailedSpecific": "Share failed. Please check your network connection.",
+        "shareFailed": "Failed to share.",
         "deleteSuccessTitle": "Contract Deleted",
         "deleteSuccess": "The contract was successfully deleted from the system.",
 
@@ -797,6 +841,15 @@ export const en = {
         "deleteAccountDesc": "This will permanently delete your account and all associated contracts. This cannot be undone."
     },
     "admin": {
+        "loadMore": "Load More...",
+        "loadMoreUsers": "Load more users..",
+        "packageFree": "Free",
+        "packageSingle": "Single",
+        "packageBasic": "Basic",
+        "packagePro": "Pro",
+        "packageAdmin": "Admin",
+        "packageNone": "No package",
+        "packageExpired": "Expired package",
         "title": "Admin Dashboard",
         "accessDenied": "Access Denied",
         "noPermission": "You do not have admin permissions",
@@ -858,6 +911,7 @@ export const en = {
         "packageNone": "No package",
         "packageExpired": "Expired package",
         "showingUsers": "Showing {count} users",
+        "showingUsersDetailed": "Showing {visible} of {total} registered users",
         "confirmDisable": "Are you sure you want to disable this user?",
         "confirmDisableTitle": "Disable User",
         "confirmDelete": "Are you sure you want to delete this user?",

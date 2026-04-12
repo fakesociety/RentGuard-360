@@ -50,6 +50,12 @@ export const isContractTimedOut = (contract) => {
 };
 
 export const useContracts = (userId, t, isRTL) => {
+    // ------------------------------------------------------------------------
+    // GLOBAL INVENTORY STATE: Array of all loaded documents
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // GLOBAL INVENTORY STATE: Array of all loaded documents
+    // ------------------------------------------------------------------------
     const [contracts, setContracts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -194,19 +200,59 @@ export const useContracts = (userId, t, isRTL) => {
             const result = await createShareLink(contract.contractId);
             const shareUrl = `${window.location.origin}/#/shared/${result.shareToken}`;
 
+            let sharedNatively = false;
+
             if (navigator.share) {
-                await navigator.share({
-                    title: contract.fileName || t('contracts.menuShareTitle'),
-                    text: t('contracts.menuShareTrigger'),
-                    url: shareUrl,
-                });
-            } else {
-                await navigator.clipboard.writeText(shareUrl);
-                showAppToast({ type: 'success', message: t('contracts.linkCopied') || 'Link copied!' });
+                try {
+                    await navigator.share({
+                        title: contract.fileName || t('contracts.menuShareTitle'),
+                        text: t('contracts.menuShareTrigger'),
+                        url: shareUrl,
+                    });
+                    sharedNatively = true;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return;
+                    console.warn('Native share blocked due to timeout, falling back to clipboard...');
+                }
+            }
+            
+            if (!sharedNatively) {
+                const fallbackCopy = (text) => {
+                    try {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = text;
+                        textArea.style.position = 'fixed';
+                        textArea.style.opacity = '0';
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                };
+
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(shareUrl);
+                    } else {
+                        throw new Error('Clipboard API not available');
+                    }
+                } catch (clipboardErr) {
+                    const success = fallbackCopy(shareUrl);
+                    if (!success) {
+                        // Ultimate fallback
+                        window.prompt(t('contracts.linkCopiedFallback') || 'Copy link:', shareUrl);
+                    }
+                }
+                
+                showAppToast({ type: 'success', message: t('contracts.linkCopiedFallback') });
             }
         } catch (err) {
-            if (err?.name === 'AbortError') return;
-            showAppToast({ type: 'error', message: t('contracts.shareFailed') || 'Failed to share' });
+            console.error('Share error:', err);
+            showAppToast({ type: 'error', message: t('contracts.shareFailedSpecific') });
         }
     };
 

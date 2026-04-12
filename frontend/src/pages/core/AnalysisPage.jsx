@@ -14,7 +14,7 @@
  * - Component sub-files (AnalysisHeader, AnalysisBentoGrid, etc.)
  * ============================================
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Button from '@/components/ui/Button';
 import {
     Hourglass,
@@ -34,33 +34,29 @@ import AnalysisResults from '@/features/analysis/components/AnalysisResults';
 import AnalysisSidebar from '@/features/analysis/components/AnalysisSidebar';
 import { SharePanel } from '@/features/analysis/components/AnalysisModals';
 import { exportEditedContract } from '@/features/analysis/services/ContractExportService';
+import { copyTextToClipboard } from '@/features/analysis/utils/clipboardUtils';
 import { showAppToast as emitAppToast } from '@/utils/toast';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
 
 const AnalysisPage = () => {
     const hookState = useAnalysisPage();
+    const [activeTab, setActiveTab] = useState('issues');
+    const [expandedIssue, setExpandedIssue] = useState(null);
+    const [showExportMenu, setShowExportMenu] = useState(false);
+    const [copiedIndex, setCopiedIndex] = useState(null);
+    const [isShareAccordionOpen, setIsShareAccordionOpen] = useState(false);
+
     const {
         analysis,
         isLoading,
         error,
-        activeTab,
-        setActiveTab,
-        expandedIssue,
-        setExpandedIssue,
-        showExportMenu,
-        setShowExportMenu,
-        copiedIndex,
-        setCopiedIndex,
         isExporting,
         isGeneratingShareLink,
-        isSharingLink,
         isRevokingShareLink,
         shareLink,
         shareLinkExpiresAt,
         isSharePanelVisible,
-        isShareAccordionOpen,
-        setIsShareAccordionOpen,
         contractEditState,
         setContractEditState,
         setEditedClauses,
@@ -76,11 +72,13 @@ const AnalysisPage = () => {
         handleRevokeShareLink,
         handleSaveToCloud,
         applyMetadataUpdate,
-        copyTextToClipboard,
-        showExportNotice,
         t,
         isRTL
     } = hookState;
+
+    const showExportNotice = useCallback((message) => {
+        emitAppToast({ type: 'warning', message });
+    }, []);
 
     const getShareExpiryLabel = useCallback(() => {
         if (!shareLinkExpiresAt) return t('analysis.shareExpiryDefault');
@@ -146,7 +144,7 @@ const AnalysisPage = () => {
         emitAppToast({ type: 'info', message: t('export.started') });
 
         try {
-            await exportEditedContract(contractText, editedClauses || {}, exportIssues, baseFileName, backendClauses);
+            await exportEditedContract(contractText, editedClauses || {}, exportIssues, baseFileName, backendClauses, { t, isRtl: isRTL });
             emitAppToast({ type: 'success', message: t('export.success') });
         } catch (error) {
             console.error('Full contract export error:', error);
@@ -155,9 +153,8 @@ const AnalysisPage = () => {
     }, [
         analysis,
         editedClauses,
-        setShowExportMenu,
-        showExportNotice,
         t,
+        isRTL
     ]);
 
     if (isLoading) {
@@ -304,7 +301,7 @@ const AnalysisPage = () => {
                             getRiskLabel={getRiskLabel}
                             pickInlineText={pickInlineText}
                             pickBlockText={pickBlockText}
-                            exportEditedContract={exportEditedContract}
+                            exportEditedContract={(txt, edits, issues, fn, clauses) => exportEditedContract(txt, edits, issues, fn, clauses, { t, isRtl: isRTL })}
                         />
                     </div>
 
@@ -328,7 +325,6 @@ const AnalysisPage = () => {
                                 getShareExpiryLabel={getShareExpiryLabel}
                                 handleManualCopyShareLink={handleManualCopyShareLink}
                                 handleShareLinkViaApps={handleShareLinkViaApps}
-                                isSharingLink={isSharingLink}
                                 handleRevokeShareLink={handleRevokeShareLink}
                                 isRevokingShareLink={isRevokingShareLink}
                                 t={t}

@@ -1,3 +1,19 @@
+/**
+ * ============================================
+ *  useContractMetadataEditor Hook
+ *  Handles updating arbitrary key-value markers on a file
+ * ============================================
+ *
+ * STRUCTURE:
+ * - Local Draft State: Staging edits before saving
+ * - saveEdits: Commits changes safely to AWS backend
+ * - rename / delete flags
+ *
+ * DEPENDENCIES:
+ * - contractsApi
+ * - cacheService (Refresh cache after edits)
+ * ============================================
+ */
 import { useCallback, useState } from 'react';
 import { updateContract } from '@/features/contracts/services/contractsApi';
 import { showAppToast } from '@/utils/toast';

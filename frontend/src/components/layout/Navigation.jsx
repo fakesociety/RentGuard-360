@@ -20,6 +20,7 @@
  * 1. Imports
  * ========================================================================== */
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
@@ -340,3 +341,8 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
 };
 
 export default Navigation;
+Navigation.propTypes = {
+    showAuthControls: PropTypes.bool,
+    onAuthClick: PropTypes.func,
+    className: PropTypes.string,
+};

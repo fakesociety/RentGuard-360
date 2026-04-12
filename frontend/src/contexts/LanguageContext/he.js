@@ -47,6 +47,36 @@ export const he = {
         "defaultFilename": "דוח_ניתוח_חוזה_RentGuard",
         "defaultContractFilename": "חוזה_ערוך_RentGuard"
     },
+    "reportExport": {
+        "title": "דוח ניתוח חוזה שכירות",
+        "generatedOn": "נוצר בתאריך: ",
+        "generalRiskAssessment": "הערכת סיכון כללית",
+        "riskScore": "ציון סיכון: ",
+        "breakdownByCategory": "פירוט ציון לפי קטגוריות",
+        "category": "קטגוריה",
+        "score": "ציון",
+        "issuesFound": "בעיות שנמצאו",
+        "riskLevel": "רמת סיכון: ",
+        "penalty": " | קנס: -",
+        "explanation": "הסבר: ",
+        "categories": {
+            "financial_terms": "תנאים פיננסיים",
+            "tenant_rights": "זכויות הדייר",
+            "termination_clauses": "סיום ויציאה",
+            "liability_repairs": "אחריות ותיקונים",
+            "legal_compliance": "עמידה בחוק"
+        }
+    },
+    "contractExport": {
+        "title": "חוזה שכירות בלתי מוגנת",
+        "datePrefix": "נערך ונחתם ביום:",
+        "signaturesTitle": "חתימות",
+        "tenant": "השוכר",
+        "landlord": "המשכיר",
+        "id": "ת.ז.: ",
+        "nameTitle": "שם: ",
+        "dateLabel": "תאריך: "
+    },
     "auth": {
         "login": "התחברות",
         "register": "הרשמה",
@@ -234,6 +264,13 @@ export const he = {
             scoreOffice: '58'
         },
         contracts: {
+            generatingShareLink: 'מייצר קישור מאובטח...',
+            menuShareTitle: 'שיתוף חוזה',
+            menuShareTrigger: 'צפו בניתוח החוזה הזה שנבדק במערכת RentGuard',
+            linkCopied: 'הקישור הועתק בהצלחה!',
+            linkCopiedFallback: 'הקישור הועתק ללוח העריכה בהצלחה!',
+            shareFailed: 'נכשל בניסיון לשתף את הקישור.',
+            shareFailedSpecific: 'יצירת הקישור נכשלה, אנא נסה שוב.',
             analyzedPrefix: 'נותח:',
             lowRisk: 'סיכון נמוך',
             mediumRisk: 'סיכון בינוני',
@@ -270,6 +307,13 @@ export const he = {
         }
     },
     "contracts": {
+        "generatingShareLink": "מייצר קישור לחלוקה...",
+        "menuShareTitle": "שיתוף חוזה",
+        "menuShareTrigger": "שיתוף הניתוח",
+        "linkCopied": "הקישור הועתק בהצלחה!",
+        "linkCopiedFallback": "הקישור הועתק ללוח העריכה בכדי שתוכל לשתף!",
+        "shareFailedSpecific": "השיתוף נכשל (אולי בגלל בעיית רשת).",
+        "shareFailed": "נכשל השיתוף.",
         "deleteSuccessTitle": "מחיקת חוזה הושלמה",
         "deleteSuccess": "החוזה נמחק מהמערכת בהצלחה.",
 
@@ -796,6 +840,15 @@ export const he = {
         "deleteAccountDesc": "פעולה זו תמחק לצמיתות את החשבון שלך ואת כל החוזים המקושרים אליו. לא ניתן לבטל פעולה זו."
     },
     "admin": {
+        "loadMore": "טען עוד...",
+        "loadMoreUsers": "טען משתמשים נוספים..",
+        "packageFree": "חינם",
+        "packageSingle": "חד פעמית",
+        "packageBasic": "בסיס",
+        "packagePro": "פרו",
+        "packageAdmin": "אדמין",
+        "packageNone": "ללא",
+        "packageExpired": "פג תוקף",
         "title": "לוח בקרה למנהל",
         "accessDenied": "גישה נדחתה",
         "noPermission": "אין לך הרשאות מנהל",
@@ -857,6 +910,7 @@ export const he = {
         "packageNone": "ללא חבילה",
         "packageExpired": "חבילה שפג תוקפה",
         "showingUsers": "מציג {count} משתמשים",
+        "showingUsersDetailed": "מציג {visible} מתוך {total} משתמשים רשומים",
         "confirmDisable": "האם אתה בטוח שברצונך להשעות משתמש זה?",
         "confirmDisableTitle": "השעיית משתמש",
         "confirmDelete": "האם אתה בטוח שברצונך למחוק משתמש זה?",

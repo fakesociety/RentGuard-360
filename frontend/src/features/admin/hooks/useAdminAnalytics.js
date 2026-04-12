@@ -22,10 +22,17 @@ import { createTheme } from '@mui/material/styles';
 export const useAdminAnalytics = () => {
     const { t } = useLanguage();
     const { isDark } = useTheme();
+    // ------------------------------------------------------------------------
+    // STATE MANAGEMENT: Core statistics from the backend system
+    // ------------------------------------------------------------------------
     const [stats, setStats] = useState(null);
+    // Tracks API call progress across the entire dashboard view
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // ------------------------------------------------------------------------
+    // DATA FETCHING: Retrieves all aggregated metrics needed for Admin Dashboard
+    // ------------------------------------------------------------------------
     const fetchStats = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -43,7 +50,10 @@ export const useAdminAnalytics = () => {
         fetchStats();
     }, [fetchStats]);
 
-    // Create MUI theme for charts
+    // ------------------------------------------------------------------------
+    // THEME & STYLING HYDRATION:
+    // Generates a Material-UI Theme dynamically based on RentGuard's light/dark mode context
+    // ------------------------------------------------------------------------
     const chartTheme = useMemo(() => createTheme({
         palette: {
             mode: isDark ? 'dark' : 'light',
@@ -58,7 +68,10 @@ export const useAdminAnalytics = () => {
         },
     }), [isDark]);
 
-    // Derived stats
+    // ------------------------------------------------------------------------
+    // METRICS PROCESSING:
+    // Secure defaults and transformations applied to pure API data before rendering
+    // ------------------------------------------------------------------------
     const riskDistribution = stats?.riskDistribution || {
         lowRisk: 0,
         lowMediumRisk: 0,

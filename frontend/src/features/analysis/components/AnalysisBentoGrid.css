@@ -204,6 +204,17 @@
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-sm);
+    min-height: 200px;
+}
+
+.lf-tile-glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme="dark"] .lf-tile-glass {
+    background: rgba(30, 41, 59, 0.4);
 }
 
 .lf-tile-header {
@@ -280,6 +291,13 @@
     color: var(--text-secondary);
     font-size: 0.95rem;
     font-weight: 500;
+}
+
+.lf-meta-row svg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .lf-tile-wide-side {
@@ -573,8 +591,8 @@
 
 @media (max-width: 1024px) {
     .lf-bento-grid {
-        display: flex !important;
-        flex-direction: column !important;
+        display: flex;
+        flex-direction: column;
         gap: 1.5rem !important;
     }
 
@@ -594,11 +612,33 @@
     }
 
     .lf-bento-tiles {
-        display: flex !important;
-        flex-direction: column !important;
+        display: flex;
+        flex-direction: column;
         gap: 1.5rem !important;
         grid-column: span 12 !important;
     }
 }
 
 
+
+/* Bento Center Tile (Issues) */
+.lf-bento-center-tile {
+    text-align: center;
+    justify-content: center;
+}
+.lf-bento-center-header {
+    justify-content: center;
+    gap: 8px;
+}
+.lf-bento-issues-title {
+    margin-bottom: 1rem;
+}
+
+/* Bento Map Tile */
+.lf-bento-map-tile {
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
