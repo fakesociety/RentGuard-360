@@ -7,50 +7,6 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { extractFixText } from '@/features/analysis/utils/analysisUtils';
 import { extractClauseNumber } from '@/features/analysis/utils/stringUtils';
 
-const FUZZY_MATCH_STRIP_PATTERN = /[\s\t\r\n.,\-:;"']+/g;
-const MIN_FUZZY_MATCH_LENGTH = 15;
-
-export const normalizeForFuzzyClauseMatch = (text) => {
-    return String(text || '')
-        .toLowerCase()
-        .replace(FUZZY_MATCH_STRIP_PATTERN, '');
-};
-
-export const isFuzzyClauseMatch = (issueText, clauseText) => {
-    const normalizedIssue = normalizeForFuzzyClauseMatch(issueText);
-    const normalizedClause = normalizeForFuzzyClauseMatch(clauseText);
-
-    if (!normalizedIssue || !normalizedClause) return false;
-    if (normalizedIssue.length < MIN_FUZZY_MATCH_LENGTH || normalizedClause.length < MIN_FUZZY_MATCH_LENGTH) return false;
-
-    // Strict overlap check
-    if (
-        normalizedClause === normalizedIssue ||
-        normalizedClause.includes(normalizedIssue) ||
-        normalizedIssue.includes(normalizedClause)
-    ) {
-        return true;
-    }
-
-    // Word intersection for OCR resilience
-    const getWords = (t) => String(t || '').toLowerCase().replace(/[.,\-:;"'()[\]{}*&^%$#@!\\|?><]/g, ' ').split(/\s+/).filter(w => w.length > 2);
-    const issueWords = getWords(issueText);
-    const clauseWords = getWords(clauseText);
-    
-    if (issueWords.length < 3 || clauseWords.length < 3) return false;
-    
-    let matchCount = 0;
-    for (const w of issueWords) {
-        if (clauseWords.includes(w)) {
-            matchCount++;
-        }
-    }
-    
-    const matchRatio = matchCount / issueWords.length;
-    const requiredRatio = issueWords.length < 5 ? 0.9 : 0.75;
-    return matchRatio >= requiredRatio;
-};
-
 export const useContractEditor = ({
     contractText = '',
     backendClauses = [],

@@ -1,6 +1,6 @@
 import { apiCall, API_URL, publicApiCall } from '@/services/apiClient';
 
-export function normalizeAnalysis(data) {
+function normalizeAnalysis(data) {
     if (!data) return data;
     
     // Create a unified field for contract text

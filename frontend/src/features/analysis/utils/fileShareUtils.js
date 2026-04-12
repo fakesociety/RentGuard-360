@@ -6,7 +6,7 @@
  * ============================================
  */
 
-export const sanitizeFileName = (rawFileName) => {
+const sanitizeFileName = (rawFileName) => {
     const normalized = String(rawFileName || 'document').normalize('NFC');
     const fileNameOnly = normalized.replace(/[\\/]/g, ' ');
 
@@ -26,7 +26,7 @@ export const sanitizeFileName = (rawFileName) => {
     return safeExt ? `${finalBase}.${safeExt}` : finalBase;
 };
 
-export const toAsciiCompatibleFileName = (safeUnicodeFileName) => {
+const toAsciiCompatibleFileName = (safeUnicodeFileName) => {
     const lastDot = safeUnicodeFileName.lastIndexOf('.');
     const base = lastDot > 0 ? safeUnicodeFileName.slice(0, lastDot) : safeUnicodeFileName;
     const ext = lastDot > 0 ? safeUnicodeFileName.slice(lastDot + 1) : '';

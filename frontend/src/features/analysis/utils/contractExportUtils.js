@@ -4,9 +4,9 @@ import { en } from '@/contexts/LanguageContext/en';
 // RTL alignment: let Word handle it naturally via w:bidi on paragraphs.
 // Do NOT set explicit w:jc=right — bidi already implies right alignment
 // and explicit values can cause rendering conflicts in some Word versions.
-export const HEBREW_CHARS_PATTERN = /[\u0590-\u05FF]/g;
-export const LATIN_CHARS_PATTERN = /[A-Za-z]/g;
-export const RTL_CONTRACT_KEYWORDS = ['חוזה', 'הסכם', 'שכירות', 'משכיר', 'שוכר', 'הואיל', 'לפיכך'];
+const HEBREW_CHARS_PATTERN = /[\u0590-\u05FF]/g;
+const LATIN_CHARS_PATTERN = /[A-Za-z]/g;
+const RTL_CONTRACT_KEYWORDS = ['חוזה', 'הסכם', 'שכירות', 'משכיר', 'שוכר', 'הואיל', 'לפיכך'];
 
 // --- Constants ---
 export const CONFIG = {

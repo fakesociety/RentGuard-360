@@ -79,21 +79,6 @@ export const getContracts = async (userId) => {
     }
 };
 
-export function normalizeAnalysis(data) {
-    if (!data) return data;
-    
-    // Create a unified field for contract text
-    data.normalizedContractText = 
-        data.fullEditedText || 
-        data.sanitizedText || 
-        data.full_text || 
-        data.contractText || 
-        data.extracted_text || 
-        '';
-        
-    return data;
-}
-
 /**
  * Get analysis results for a specific contract
  * @param {string} contractId - Contract ID

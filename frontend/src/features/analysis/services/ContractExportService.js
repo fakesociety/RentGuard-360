@@ -237,13 +237,6 @@ export const exportEditedContract = async (originalText, editedClauses, _issues 
 };
 
 // eslint-disable-next-line no-unused-vars
-export const exportEditedContractToBlob = async (originalText, editedClauses, _issues = [], fileName = 'Edited_Contract', backendClauses = [], options = {}) => {
+const exportEditedContractToBlob = async (originalText, editedClauses, _issues = [], fileName = 'Edited_Contract', backendClauses = [], options = {}) => {
     return exportEditedContract(originalText, editedClauses, _issues, fileName, backendClauses, { asBlob: true });
-};
-
-export default {
-    exportEditedContract,
-    exportEditedContractToBlob,
-    exportEditedContractToWord,
-    exportEditedContractToWordBlob
 };

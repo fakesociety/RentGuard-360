@@ -104,4 +104,3 @@ export const useContractMetadataEditor = ({ userId, t, onApplyLocalUpdate, onAft
     };
 };
 
-export default useContractMetadataEditor;

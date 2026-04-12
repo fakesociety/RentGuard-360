@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { translateError } from '@/features/auth/utils/errorMapper';
@@ -39,32 +39,36 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
     const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
     const [showResetNewPassword, setShowResetNewPassword] = useState(false);
 
-    const resetPasswordVisibilityStates = () => {
+    const resetPasswordVisibilityStates = useCallback(() => {
         setShowLoginPassword(false);
         setShowRegisterPassword(false);
         setShowRegisterConfirmPassword(false);
         setShowResetNewPassword(false);
-    };
+    }, []);
 
-    const clearAuthPasswordFields = () => {
+    const clearAuthPasswordFields = useCallback(() => {
         setPassword('');
         setConfirmPassword('');
-    };
+    }, []);
 
-    const switchAuthView = (nextView) => {
+    const switchAuthView = useCallback((nextView) => {
         clearAuthPasswordFields();
         resetPasswordVisibilityStates();
         onChangeView(nextView);
-    };
+    }, [clearAuthPasswordFields, resetPasswordVisibilityStates, onChangeView]);
 
     useEffect(() => {
-        if (initialEmail) setEmail(initialEmail);
+        if (initialEmail) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setEmail(initialEmail);
+        }
     }, [initialEmail]);
 
     useEffect(() => {
         const isOpen = Boolean(view);
         if (isOpen && !wasOpenRef.current) {
             if (lastViewedRef.current && view !== lastViewedRef.current) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 clearAuthPasswordFields();
                 resetPasswordVisibilityStates();
             }
@@ -75,11 +79,12 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
         }
 
         wasOpenRef.current = isOpen;
-    }, [view]);
+    }, [view, clearAuthPasswordFields, resetPasswordVisibilityStates]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         resetPasswordVisibilityStates();
-    }, [view]);
+    }, [view, resetPasswordVisibilityStates]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -102,14 +107,17 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
             const message = decodeURIComponent(
                 oauthErrorDescription || oauthError || t('auth.socialLoginCanceledOrFailed')
             );
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError(message);
+             
             switchAuthView('login');
+             
             setShowSocialConflictModal(false);
 
             const cleanUrl = `${window.location.origin}${window.location.pathname}`;
             window.history.replaceState({}, document.title, cleanUrl);
         }
-    }, [isRTL, view, onChangeView]);
+    }, [isRTL, view, onChangeView, switchAuthView, t]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -128,7 +136,7 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
         if (!result.success) {
             setError(translateError(result.error || 'Login failed', t, isRTL));
         } else {
-            try { localStorage.removeItem('rentguard_pending_verification'); } catch { }
+            try { localStorage.removeItem('rentguard_pending_verification'); } catch { /* ignore */ }
         }
         setLoading(false);
     };
@@ -272,7 +280,7 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
     };
 
     const clearPendingVerification = () => {
-        try { localStorage.removeItem('rentguard_pending_verification'); } catch { }
+        try { localStorage.removeItem('rentguard_pending_verification'); } catch { /* ignore */ }
         setError('');
         setCode('');
         setTempEmail('');

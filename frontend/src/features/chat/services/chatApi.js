@@ -37,9 +37,3 @@ export const clearContractChatHistory = async (contractId) => {
     );
     return data;
 };
-
-export default {
-    askContractQuestion,
-    getContractChatHistory,
-    clearContractChatHistory,
-};

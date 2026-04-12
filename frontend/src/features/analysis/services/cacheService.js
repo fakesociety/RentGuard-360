@@ -1,4 +1,4 @@
-export const getMetadataCacheKey = (id) => `rentguard_contract_meta_${id}`;
+const getMetadataCacheKey = (id) => `rentguard_contract_meta_${id}`;
 
 export const readMetadataCache = (id) => {
     if (!id) return null;

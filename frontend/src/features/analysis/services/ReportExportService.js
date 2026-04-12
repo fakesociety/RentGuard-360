@@ -195,12 +195,3 @@ export const exportReportToWord = async (analysis, fileName = 'Contract_Analysis
         throw new Error('Failed to generate report document.');
     }
 };
-
-export const exportReportToWordBlob = async (analysis, fileName) => {
-    return exportReportToWord(analysis, fileName, { asBlob: true });
-};
-
-export default {
-    exportReportToWord,
-    exportReportToWordBlob
-};

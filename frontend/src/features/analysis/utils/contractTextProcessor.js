@@ -8,7 +8,6 @@
  * - isNoiseLine: Detects OCR garbage
  * - fixClauseNumbering: Re-orders RTL numbering 
  * - processContractClauses: Main exported cleaner
- * - detectLanguage: Text language detector
  * 
  * ============================================
  */
@@ -157,13 +156,3 @@ export const processContractClauses = (clauses) => {
     return mergedClauses.map(clause => fixClauseNumbering(clause.trim()));
 };
 
-/**
- * Detect primary language of text
- */
-export const detectLanguage = (text) => {
-    const hebrewChars = (text.match(/[\u0590-\u05FF]/g) || []).length;
-    const latinChars = (text.match(/[a-zA-Z]/g) || []).length;
-    return hebrewChars > latinChars ? 'he' : 'en';
-};
-
-export default processContractClauses;

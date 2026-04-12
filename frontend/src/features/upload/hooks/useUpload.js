@@ -49,7 +49,6 @@ export const useUpload = () => {
     });
     const [customFileName, setCustomFileName] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
-    const [showTermsModal, setShowTermsModal] = useState(false);
     const [showScannerModal, setShowScannerModal] = useState(false);
     const [uploadVisualStatus, setUploadVisualStatus] = useState('idle');
 
@@ -427,8 +426,6 @@ export const useUpload = () => {
         setCustomFileName,
         termsAccepted,
         setTermsAccepted,
-        showTermsModal,
-        setShowTermsModal,
         showScannerModal,
         setShowScannerModal,
         uploadVisualStatus,

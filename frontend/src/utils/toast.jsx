@@ -118,7 +118,3 @@ export function emitAppToast(payload) {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent('rg:toast', { detail: payload }));
 }
-
-export function emitLegacyToast(title, message, options = {}) {
-    emitAppToast({ title, message, ...options });
-}

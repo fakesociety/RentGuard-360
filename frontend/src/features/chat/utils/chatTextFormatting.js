@@ -13,7 +13,7 @@
  * - None
  * ============================================
  */
-export const CHAT_AUTO_OPEN_PREF_KEY = 'rentguard_chat_auto_open_contract';
+const CHAT_AUTO_OPEN_PREF_KEY = 'rentguard_chat_auto_open_contract';
 
 export const isContractChatAutoOpenEnabled = () => {
     try {
@@ -35,7 +35,7 @@ export const getAnalysisContractIdFromPath = (pathname) => {
     }
 };
 
-export const parseJsonObjectFromText = (value) => {
+const parseJsonObjectFromText = (value) => {
     const text = String(value || '').trim();
     if (!text) return null;
 
@@ -73,7 +73,7 @@ export const parseJsonObjectFromText = (value) => {
     }
 };
 
-export const unwrapAssistantAnswerText = (rawText) => {
+const unwrapAssistantAnswerText = (rawText) => {
     let current = String(rawText || '').trim();
     if (!current) return '';
 

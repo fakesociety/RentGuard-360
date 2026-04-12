@@ -13,7 +13,7 @@
  * ============================================
  */
 import React from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, CheckCircle2, FilePenLine, FileText, Files, Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import FileDropZone from '@/components/ui/FileDropZone';

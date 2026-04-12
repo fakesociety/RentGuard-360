@@ -34,7 +34,7 @@ const ANALYSIS_TIMEOUT_MS = (() => {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ANALYSIS_TIMEOUT_MS;
 })();
 
-export const isContractTimedOut = (contract) => {
+const isContractTimedOut = (contract) => {
     const status = (contract.status || '').toLowerCase();
     if (status === 'analyzed' || status === 'failed' || status === 'error') {
         return false;

@@ -9,7 +9,7 @@ if (!API_URL) {
     throw new Error('Missing VITE_API_ENDPOINT. Set it from the CloudFormation stack Output ApiUrl.');
 }
 
-export const getAuthToken = async () => {
+const getAuthToken = async () => {
     try {
         const session = await fetchAuthSession();
         const token = session.tokens?.idToken?.toString();
@@ -146,23 +146,3 @@ export const sendContactMessage = async (formData, options = {}) => {
         : await apiCall(endpoint, request);
 };
 
-export function normalizeAnalysis(data) {
-    if (!data) return data;
-    data.normalizedContractText = 
-        data.fullEditedText || 
-        data.sanitizedText || 
-        data.full_text || 
-        data.contractText || 
-        data.extracted_text || 
-        '';
-    return data;
-}
-
-export default {
-    API_URL,
-    getAuthToken,
-    apiCall,
-    publicApiCall,
-    sendContactMessage,
-    normalizeAnalysis
-}

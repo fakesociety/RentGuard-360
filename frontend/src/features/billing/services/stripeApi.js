@@ -197,15 +197,3 @@ export const createCustomerPortalSession = async (userId, email, name, returnUrl
         body: JSON.stringify({ userId, email, name, returnUrl }),
     }, true);
 };
-
-export default {
-    getPackages,
-    getPackageById,
-    createPaymentIntent,
-    confirmPayment,
-    getSubscription,
-    getTransactions,
-    deductScan,
-    getAdminStripeStats,
-    createCustomerPortalSession,
-};
