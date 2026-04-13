@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { createCustomerPortalSession, getTransactions } from '@/features/billing/services/stripeApi';
-import { emitAppToast } from '@/utils/toast';
+import { emitAppToast } from '@/components/ui/toast/toast';
 
 export const useBilling = () => {
     const { userAttributes, user, isAdmin } = useAuth();

@@ -9,7 +9,7 @@ import { Mail, CheckCircle2, MapPin, Send, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { sendContactMessage } from '@/services/apiClient';
-import { emitAppToast } from '@/utils/toast';
+import { emitAppToast } from '@/components/ui/toast/toast';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';

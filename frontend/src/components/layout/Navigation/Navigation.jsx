@@ -1,156 +1,58 @@
-/**
- * ============================================
- *  Navigation Menu
- *  Top navbar handling public & authenticated states
- * ============================================
- * 
- * STRUCTURE:
- * - Component Setup & State
- * - Route-based Link rendering
- * - Bundle-gated navigation handling
- * - User Profile menu / Auth controls
- * 
- * DEPENDENCIES:
- * - react-router-dom
- * - AuthContext, SubscriptionContext
- * ============================================
- */
-
-/* ==========================================================================
- * 1. Imports
- * ========================================================================== */
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { ThemeToggle } from '../ui/Toggle';
-import LanguageToggle from '../ui/LanguageToggle';
-import ScanBadge from '../ui/ScanBadge';
+import { useNavigationUI } from './hooks/useNavigationUI';
+import { useCompactNavPrefs } from './hooks/useCompactNavPrefs';
+import { useBundleGatedNavigation } from './hooks/useBundleGatedNavigation';
+import { ThemeToggle } from '../../ui/Toggle';
+import LanguageToggle from '../../ui/LanguageToggle';
+import ScanBadge from '../../ui/ScanBadge';
 import { Shield, Settings } from 'lucide-react';
-import { showAppToast } from '@/utils/toast';
 import './Navigation.css';
 
-/* ==========================================================================
- * 2. Component Setup & State
- * ========================================================================== */
+/**
+ * Global Navigation Bar Component.
+ * Responsibilities:
+ * - Renders dynamic links based on Auth & Subscription states.
+ * - Handles access-gating (preventing non-subscribed users from accessing protected views).
+ * - Manages responsive mobile and desktop menus.
+ */
 const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, className = '' }) => {
-    const MOBILE_NAV_COMPACT_PREF_KEY = 'rentguard_mobile_nav_compact';
+    // Global Contexts
     const { logout, userAttributes, isAdmin, isAuthenticated } = useAuth();
     const { t, isRTL } = useLanguage();
     const { hasSubscription } = useSubscription();
+    
     const navigate = useNavigate();
-    const location = useLocation();
     
-    const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [compactMobileNavEnabled, setCompactMobileNavEnabled] = useState(() => {
-        try {
-            return localStorage.getItem(MOBILE_NAV_COMPACT_PREF_KEY) === 'true';
-        } catch {
-            return false;
-        }
-    });
+    // Custom Hooks for UI & State Logic
+const { 
+        showProfileMenu, 
+        setShowProfileMenu, 
+        showMobileMenu, 
+        setShowMobileMenu, 
+        navRef, 
+        profileRef 
+    } = useNavigationUI(isAuthenticated, isRTL);
+
+    const compactMobileNavEnabled = useCompactNavPrefs();
     
-    const navRef = useRef(null);
-    const profileRef = useRef(null);
-
-    /* ======================================================================
-     * 3. Lifecycle / Effects
-     * ====================================================================== */
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setShowProfileMenu(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        if (showProfileMenu || showMobileMenu) {
-            window.dispatchEvent(new CustomEvent('rg:nav-menu-opened'));
-        }
-    }, [showProfileMenu, showMobileMenu]);
-
-    useEffect(() => {
-        const handleChatOpened = () => {
-            setShowProfileMenu(false);
+    // Gated Navigation logic hooked directly to toasts
+    const handleBundleGatedNavigation = useBundleGatedNavigation(
+        isAuthenticated, 
+        isAdmin, 
+        hasSubscription, 
+        () => {
             setShowMobileMenu(false);
-        };
-
-        window.addEventListener('rg:chat-panel-opened', handleChatOpened);
-        return () => window.removeEventListener('rg:chat-panel-opened', handleChatOpened);
-    }, []);
-
-    useEffect(() => {
-        const updateCompactMode = () => {
-            try {
-                setCompactMobileNavEnabled(localStorage.getItem(MOBILE_NAV_COMPACT_PREF_KEY) === 'true');
-            } catch {
-                setCompactMobileNavEnabled(false);
-            }
-        };
-
-        const onCustomToggle = (event) => {
-            if (typeof event?.detail?.enabled === 'boolean') {
-                setCompactMobileNavEnabled(event.detail.enabled);
-                return;
-            }
-            updateCompactMode();
-        };
-
-        const onStorage = (event) => {
-            if (event.key && event.key !== MOBILE_NAV_COMPACT_PREF_KEY) return;
-            updateCompactMode();
-        };
-
-        window.addEventListener('rg:mobile-nav-compact-changed', onCustomToggle);
-        window.addEventListener('storage', onStorage);
-
-        return () => {
-            window.removeEventListener('rg:mobile-nav-compact-changed', onCustomToggle);
-            window.removeEventListener('storage', onStorage);
-        };
-    }, []);
-
-    useEffect(() => {
-        const navElement = navRef.current;
-        if (!navElement) return undefined;
-
-        const rootElement = document.documentElement;
-        const updateMainOffset = () => {
-            const navRect = navElement.getBoundingClientRect();
-            const nextOffsetPx = Math.max(64, Math.ceil(navRect.bottom + 12));
-            rootElement.style.setProperty('--rg-nav-main-offset', `${nextOffsetPx}px`);
-        };
-
-        updateMainOffset();
-
-        let resizeObserver;
-        if (typeof ResizeObserver !== 'undefined') {
-            resizeObserver = new ResizeObserver(() => updateMainOffset());
-            resizeObserver.observe(navElement);
+            setShowProfileMenu(false);
         }
+    );
 
-        window.addEventListener('resize', updateMainOffset);
-        window.addEventListener('orientationchange', updateMainOffset);
+    // --- Action Handlers ---
 
-        return () => {
-            window.removeEventListener('resize', updateMainOffset);
-            window.removeEventListener('orientationchange', updateMainOffset);
-            if (resizeObserver) {
-                resizeObserver.disconnect();
-            }
-            rootElement.style.removeProperty('--rg-nav-main-offset');
-        };
-    }, [isAuthenticated, isRTL, location.pathname]);
-
-    /* ======================================================================
-     * 4. Helper Functions
-     * ====================================================================== */
     const handleLogout = async () => {
         await logout();
         navigate('/');
@@ -161,28 +63,8 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
         return name.charAt(0).toUpperCase();
     };
 
-    const notifyBundleRequired = () => {
-        showAppToast({
-            type: 'warning',
-            title: t('notifications.bundleRequiredTitle'),
-            message: t('notifications.bundleRequiredMessage'),
-            duration: 5200,
-        });
-    };
+    // --- Route Configuration ---
 
-    const handleBundleGatedNavigation = (event, path) => {
-        const blockedPaths = ['/dashboard', '/upload', '/contracts', '/settings'];
-        if (isAuthenticated && !isAdmin && !hasSubscription && blockedPaths.includes(path)) {
-            event.preventDefault();
-            setShowMobileMenu(false);
-            setShowProfileMenu(false);
-            notifyBundleRequired();
-        }
-    };
-
-    /* ======================================================================
-     * 5. Navigation Configuration
-     * ====================================================================== */
     const authLinks = [
         { path: '/dashboard', label: t('nav.dashboard') },
         { path: '/upload', label: t('nav.upload') },
@@ -200,6 +82,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
     const navLinks = isAuthenticated ? authLinks : publicLinks;
     const authenticatedHomePath = isAdmin || hasSubscription ? '/dashboard' : '/pricing';
     const compactModeActive = isAuthenticated && compactMobileNavEnabled;
+    
     const navClasses = [
         'nav-container',
         isAuthenticated ? 'is-authenticated' : 'is-public',
@@ -207,17 +90,16 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
         className
     ].filter(Boolean).join(' ');
 
-    /* ======================================================================
-     * 6. Render / JSX
-     * ====================================================================== */
     return (
         <nav ref={navRef} className={navClasses} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="nav-inner">
+                {/* Brand Logo */}
                 <Link to={isAuthenticated ? authenticatedHomePath : '/'} className="nav-logo">
                     <Shield size={32} className="logo-icon" />
                     <span className="logo-text">{t('nav.brand')}</span>
                 </Link>
 
+                {/* Desktop Links */}
                 <div className="nav-links-desktop">
                     {navLinks.map(link => (
                         <NavLink
@@ -232,6 +114,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                     ))}
                 </div>
 
+                {/* Right Side Controls */}
                 <div className="nav-right" dir="ltr">
                     {isAuthenticated ? (
                         <>
@@ -239,6 +122,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                             <LanguageToggle />
                             <ThemeToggle />
 
+                            {/* User Profile Dropdown */}
                             <div className="profile-container" ref={profileRef}>
                                 <button
                                     className="profile-button"
@@ -250,14 +134,14 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                                     aria-expanded={showProfileMenu}
                                     aria-label={showProfileMenu ? t('nav.closeProfile') : t('nav.openProfile')}
                                 >
-                                    <div className="profile-avatar">{getUserInitials()}</div>
+                                    <div className="profile-avatar">{getUserInitials(userAttributes)}</div>
                                     <span className="profile-chevron" aria-hidden="true">{showProfileMenu ? '▲' : '▼'}</span>
                                 </button>
 
                                 {showProfileMenu && (
                                     <div className="profile-dropdown">
                                         <div className="profile-header">
-                                            <div className="profile-avatar-large">{getUserInitials()}</div>
+                                            <div className="profile-avatar-large">{getUserInitials(userAttributes)}</div>
                                             <div className="profile-info">
                                                 <p className="profile-name">{userAttributes?.name || t('common.user')}</p>
                                                 <p className="profile-email">{userAttributes?.email}</p>
@@ -291,6 +175,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                                 )}
                             </div>
 
+                            {/* Mobile Hamburger Toggle (Authenticated) */}
                             <button
                                 className="mobile-menu-button"
                                 onClick={() => {
@@ -306,6 +191,8 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                         <>
                             <LanguageToggle />
                             <ThemeToggle />
+                            
+                            {/* Guest Auth Controls */}
                             {showAuthControls && (
                                 <>
                                     <button className="auth-btn" onClick={() => onAuthClick('login')}>
@@ -317,6 +204,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                                 </>
                             )}
 
+                            {/* Mobile Hamburger Toggle (Guest) */}
                             <button
                                 className="mobile-menu-button"
                                 onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -329,6 +217,7 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
                 </div>
             </div>
 
+            {/* Mobile Menu Overlay */}
             {showMobileMenu && (
                 <div className="mobile-menu">
                     {isAuthenticated && !compactModeActive && (
@@ -356,9 +245,10 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
     );
 };
 
-export default Navigation;
 Navigation.propTypes = {
     showAuthControls: PropTypes.bool,
     onAuthClick: PropTypes.func,
     className: PropTypes.string,
 };
+
+export default Navigation;

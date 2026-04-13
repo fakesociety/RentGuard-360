@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { pollForAnalysis } from '@/features/analysis/services/analysisApi';
 import { uploadFile } from '@/features/upload/services/uploadApi';
-import { emitAppToast } from '@/utils/toast';
+import { emitAppToast } from '@/components/ui/toast/toast';
 
 export const useUpload = () => {
     const { t } = useLanguage();

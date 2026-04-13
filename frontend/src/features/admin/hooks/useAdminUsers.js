@@ -17,7 +17,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { getUsers, disableUser, enableUser, deleteUser } from '@/features/admin/services/adminApi';
-import { emitAppToast } from '@/utils/toast';
+import { emitAppToast } from '@/components/ui/toast/toast';
 import { copyToClipboard } from '@/features/contracts/utils/browserUtils';
 import { 
     STATUS_FILTER_KEYS, 

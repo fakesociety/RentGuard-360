@@ -20,7 +20,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { createShareLink, getShareLink, revokeShareLink } from '@/features/analysis/services/analysisApi';
 import { persistShareLink, clearShareLinkCache, getShareCacheKey } from '@/features/analysis/services/cacheService';
 import { copyTextToClipboard } from '@/features/analysis/utils/clipboardUtils';
-import { showAppToast as emitAppToast } from '@/utils/toast';
+import { showAppToast as emitAppToast } from '@/components/ui/toast/toast';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import useShareFile from '@/features/analysis/hooks/useShareFile';
 

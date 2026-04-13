@@ -16,7 +16,7 @@
  */
 import { useCallback, useState } from 'react';
 import { updateContract } from '@/features/contracts/services/contractsApi';
-import { showAppToast } from '@/utils/toast';
+import { showAppToast } from '@/components/ui/toast/toast';
 import { normalizeDraftFileName, normalizeFinalFileName } from '@/features/contracts/utils/fileUtils';
 
 /**

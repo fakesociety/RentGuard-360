@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { processContractClauses } from '@/features/analysis/utils/contractTextProcessor';
 import { consultClause } from '@/features/analysis/services/analysisApi';
 import { exportEditedContractToWord, exportEditedContractToWordBlob } from '@/features/analysis/services/ContractExportService';
-import { showAppToast } from '@/utils/toast';
+import { showAppToast } from '@/components/ui/toast/toast';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { extractFixText } from '@/features/analysis/utils/analysisUtils';
 import { extractClauseNumber } from '@/features/analysis/utils/stringUtils';

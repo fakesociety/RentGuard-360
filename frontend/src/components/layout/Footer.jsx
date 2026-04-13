@@ -1,22 +1,3 @@
-/**
- * ============================================
- *  Footer Component
- *  Global Application Footer
- * ============================================
- * 
- * STRUCTURE:
- * - Links logic based on authentication & permissions
- * - Authorship and legal texts
- * 
- * DEPENDENCIES:
- * - AuthContext, ThemeContext, LanguageContext
- * - react-router-dom
- * ============================================
- */
-
-/* ==========================================================================
- * 1. Imports
- * ========================================================================== */
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -25,18 +6,18 @@ import { Link } from 'react-router-dom';
 import { Github } from 'lucide-react';
 import './Footer.css';
 
-/* ==========================================================================
- * 2. Component Definition & Hooks
- * ========================================================================== */
+/**
+ * Global App Footer Component.
+ * Dynamically adjusts navigation links based on user authentication and admin status.
+ * Handles RTL/LTR layout directions and dark/light theme switching contextually.
+ */
 const Footer = () => {
     const { t, isRTL } = useLanguage();
     const { theme } = useTheme();
     const { isAuthenticated, isAdmin } = useAuth();
+    
     const currentYear = new Date().getFullYear();
 
-    /* ======================================================================
-     * 3. Render / JSX
-     * ====================================================================== */
     return (
         <footer className={`app-footer ${theme}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="footer-container">
@@ -48,16 +29,19 @@ const Footer = () => {
                     </div>
 
                     <div className="footer-nav">
+                        {/* Display minimal contact info for unauthenticated users (Guests) */}
                         {!isAuthenticated ? (
                             <div className="footer-col">
                                 <h4 className="footer-col-title">{t('footer.contactSectionTitle')}</h4>
                                 <Link to="/contact" className="footer-link">{t('nav.contact')}</Link>
                             </div>
                         ) : (
+                            /* Display full navigation dashboard for logged-in users */
                             <>
                                 <div className="footer-col">
                                     <h4 className="footer-col-title">{t('footer.quickLinksTitle')}</h4>
                                     <Link to="/" className="footer-link">{t('nav.home')}</Link>
+                                    {/* Hide pricing link from Admins as they don't need subscriptions */}
                                     {!isAdmin && <Link to="/pricing" className="footer-link">{t('nav.pricing')}</Link>}
                                     <Link to="/contact" className="footer-link">{t('nav.contact')}</Link>
                                 </div>

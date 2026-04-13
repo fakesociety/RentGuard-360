@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ============================================
  *  ScoreMethodology Component
  *  Explaination of how the risk score is calculated

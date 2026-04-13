@@ -23,7 +23,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { getContracts, deleteContract } from '@/features/contracts/services/contractsApi';
 import { getAnalysis, createShareLink } from '@/features/analysis/services/analysisApi';
 import { exportReportToWord } from '@/features/analysis/services/ReportExportService';
-import { showAppToast } from '@/utils/toast';
+import { showAppToast } from '@/components/ui/toast/toast';
 import { copyToClipboard } from '@/features/contracts/utils/browserUtils';
 import { useContractMetadataEditor } from '@/features/contracts/hooks/useContractMetadataEditor';
 
@@ -156,7 +156,7 @@ export const useContracts = (userId, t, isRTL) => {
             setDeleteConfirm(null);
 
             // Show a visual popup confirming deletion
-            import('@/utils/toast').then(({ emitAppToast }) => {
+            import('@/components/ui/toast/toast').then(({ emitAppToast }) => {
                 emitAppToast({
                     type: 'success',
                     title: t('contracts.deleteSuccessTitle'),

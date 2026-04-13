@@ -35,7 +35,7 @@ import AnalysisSidebar from '@/features/analysis/components/AnalysisSidebar';
 import { SharePanel } from '@/features/analysis/components/AnalysisModals';
 import { exportEditedContract } from '@/features/analysis/services/ContractExportService';
 import { copyTextToClipboard } from '@/features/analysis/utils/clipboardUtils';
-import { showAppToast as emitAppToast } from '@/utils/toast';
+import { showAppToast as emitAppToast } from '@/components/ui/toast/toast';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
 
