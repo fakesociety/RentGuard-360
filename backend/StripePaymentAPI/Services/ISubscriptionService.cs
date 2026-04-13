@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using StripePaymentAPI.Models;
 
 namespace StripePaymentAPI.Services
@@ -19,6 +20,6 @@ namespace StripePaymentAPI.Services
         bool IsAdminCaller(ClaimsPrincipal user);
         UserValidationResult ValidateUserAccess(ClaimsPrincipal user, string requestedUserId);
         UserValidationResult EnsureAdminAccess(ClaimsPrincipal user);
-        UserSubscription ResolveSubscriptionWithAliases(ClaimsPrincipal user, string requestedUserId);
+        Task<UserSubscription> ResolveSubscriptionWithAliasesAsync(ClaimsPrincipal user, string requestedUserId);
     }
 }

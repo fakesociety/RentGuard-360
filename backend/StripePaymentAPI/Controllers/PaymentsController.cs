@@ -93,7 +93,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult CreatePaymentIntent([FromBody] CreateIntentRequest request)
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] CreateIntentRequest request)
         {
             try
             {
@@ -120,7 +120,7 @@ namespace StripePaymentAPI.Controllers
                                 return confirmAccessResult;
                             }
 
-                            var confPackage = _repository.GetPackageById(pId);
+                            var confPackage = await _repository.GetPackageByIdAsync(pId);
                             if (confPackage != null)
                             {
                                 var transaction = new Models.Transaction
@@ -132,8 +132,8 @@ namespace StripePaymentAPI.Controllers
                                     Currency = existingIntent.Currency.ToUpper(),
                                     Status = "succeeded"
                                 };
-                                try { _repository.AddTransaction(transaction); } catch { /* Ignore */ }
-                                _repository.UpsertSubscription(uId, pId, confPackage.ScanLimit);
+                                try { await _repository.AddTransactionAsync(transaction); } catch { /* Ignore */ }
+                                await _repository.UpsertSubscriptionAsync(uId, pId, confPackage.ScanLimit);
 
                                 // Create a Stripe Invoice so it appears in Customer Portal
                                 if (!string.IsNullOrEmpty(existingIntent.CustomerId))
@@ -151,7 +151,7 @@ namespace StripePaymentAPI.Controllers
                                     );
                                 }
 
-                                _repository.DeletePendingPackageSelection(uId);
+                                await _repository.DeletePendingPackageSelectionAsync(uId);
                                 return Ok(new { success = true, isConfirm = true });
                             }
                         }
@@ -167,14 +167,14 @@ namespace StripePaymentAPI.Controllers
                 }
 
                 // Get the package from the database
-                Models.Package package = _repository.GetPackageById(request.PackageId);
+                Models.Package package = await _repository.GetPackageByIdAsync(request.PackageId);
 
                 if (package == null)
                 {
                     return NotFound(new { error = $"Package with ID {request.PackageId} was not found" });
                 }
 
-                UserSubscription existingSubscriptionForPurchase = _repository.GetSubscriptionByUserId(request.UserId);
+                UserSubscription existingSubscriptionForPurchase = await _repository.GetSubscriptionByUserIdAsync(request.UserId);
 
                 // Free package - no payment needed
                 if (package.Price <= 0)
@@ -189,8 +189,8 @@ namespace StripePaymentAPI.Controllers
                     }
 
                     // Directly assign the free package to the user
-                    _repository.UpsertSubscription(request.UserId, package.Id, package.ScanLimit);
-                    _repository.DeletePendingPackageSelection(request.UserId);
+                    await _repository.UpsertSubscriptionAsync(request.UserId, package.Id, package.ScanLimit);
+                    await _repository.DeletePendingPackageSelectionAsync(request.UserId);
 
                     return Ok(new
                     {
@@ -219,7 +219,7 @@ namespace StripePaymentAPI.Controllers
                     package.Name
                 );
                 
-                _repository.UpsertPendingPackageSelection(request.UserId, package.Id, paymentIntent.Id);
+                await _repository.UpsertPendingPackageSelectionAsync(request.UserId, package.Id, paymentIntent.Id);
 
                 return Ok(new
                 {
@@ -274,12 +274,12 @@ namespace StripePaymentAPI.Controllers
                 if (stripeEvent.Type == Events.PaymentIntentSucceeded)
                 {
                     var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                    _paymentProcessingService.ProcessPaymentIntentSucceeded(paymentIntent);
+                    await _paymentProcessingService.ProcessPaymentIntentSucceededAsync(paymentIntent);
                 }
                 else if (stripeEvent.Type == Events.PaymentIntentPaymentFailed)
                 {
                     var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                    _paymentProcessingService.ProcessPaymentIntentFailed(paymentIntent);
+                    await _paymentProcessingService.ProcessPaymentIntentFailedAsync(paymentIntent);
                 }
 
                 return Ok();
@@ -310,7 +310,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult GetSubscription([FromQuery] string userId)
+        public async Task<IActionResult> GetSubscription([FromQuery] string userId)
         {
             try
             {
@@ -320,7 +320,7 @@ namespace StripePaymentAPI.Controllers
                     return accessResult;
                 }
 
-                UserSubscription subscription = _subscriptionService.ResolveSubscriptionWithAliases(User, userId);
+                UserSubscription subscription = await _subscriptionService.ResolveSubscriptionWithAliasesAsync(User, userId);
 
                 if (subscription == null && _subscriptionService.IsAdminCaller(User))
                 {
@@ -341,7 +341,7 @@ namespace StripePaymentAPI.Controllers
                 }
 
                 // Also get the package name for display
-                Models.Package package = _repository.GetPackageById(subscription.PackageId);
+                Models.Package package = await _repository.GetPackageByIdAsync(subscription.PackageId);
 
                 return Ok(new
                 {
@@ -371,7 +371,7 @@ namespace StripePaymentAPI.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult GetTransactions([FromQuery] string userId)
+        public async Task<IActionResult> GetTransactions([FromQuery] string userId)
         {
             try
             {
@@ -392,7 +392,7 @@ namespace StripePaymentAPI.Controllers
                 List<Models.Transaction> allTransactions = new List<Models.Transaction>();
                 foreach (string candidate in candidates)
                 {
-                    allTransactions.AddRange(_repository.GetTransactionsByUserId(candidate));
+                    allTransactions.AddRange(await _repository.GetTransactionsByUserIdAsync(candidate));
                 }
 
                 // Deduplicate by Transaction Id (if local DB returned same rows somehow) and sort by date
@@ -427,7 +427,7 @@ namespace StripePaymentAPI.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult DeductScan([FromBody] DeductRequest request)
+        public async Task<IActionResult> DeductScan([FromBody] DeductRequest request)
         {
             try
             {
@@ -452,10 +452,10 @@ namespace StripePaymentAPI.Controllers
                     });
                 }
 
-                UserSubscription existingSubscription = _subscriptionService.ResolveSubscriptionWithAliases(User, request.UserId);
+                UserSubscription existingSubscription = await _subscriptionService.ResolveSubscriptionWithAliasesAsync(User, request.UserId);
                 string targetUserId = existingSubscription?.UserId ?? request.UserId;
 
-                bool success = _repository.DeductScan(targetUserId);
+                bool success = await _repository.DeductScanAsync(targetUserId);
 
                 if (!success)
                 {
@@ -467,7 +467,7 @@ namespace StripePaymentAPI.Controllers
                 }
 
                 // Get updated subscription
-                UserSubscription sub = _repository.GetSubscriptionByUserId(targetUserId);
+                UserSubscription sub = await _repository.GetSubscriptionByUserIdAsync(targetUserId);
 
                 return Ok(new
                 {
@@ -487,7 +487,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public IActionResult DeductScanInternal([FromBody] DeductRequest request)
+        public async Task<IActionResult> DeductScanInternal([FromBody] DeductRequest request)
         {
             try
             {
@@ -501,7 +501,7 @@ namespace StripePaymentAPI.Controllers
                     return BadRequest(new { error = "UserId is required" });
                 }
 
-                bool success = _repository.DeductScan(request.UserId);
+                bool success = await _repository.DeductScanAsync(request.UserId);
                 if (!success)
                 {
                     return BadRequest(new
@@ -511,7 +511,7 @@ namespace StripePaymentAPI.Controllers
                     });
                 }
 
-                UserSubscription sub = _repository.GetSubscriptionByUserId(request.UserId);
+                UserSubscription sub = await _repository.GetSubscriptionByUserIdAsync(request.UserId);
                 return Ok(new
                 {
                     message = "Scan credit deducted successfully",
@@ -530,7 +530,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public IActionResult GetSubscriptionsInternal([FromBody] InternalSubscriptionsRequest request)
+        public async Task<IActionResult> GetSubscriptionsInternal([FromBody] InternalSubscriptionsRequest request)
         {
             try
             {
@@ -551,7 +551,7 @@ namespace StripePaymentAPI.Controllers
                     return Ok(new { subscriptions = new List<object>() });
                 }
 
-                List<object> subscriptions = _adminStatsRepository.GetSubscriptionsInternal(userIds);
+                List<object> subscriptions = await _adminStatsRepository.GetSubscriptionsInternalAsync(userIds);
 
                 return Ok(new { subscriptions });
             }
@@ -570,7 +570,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public IActionResult DeleteSubscription([FromQuery] string userId)
+        public async Task<IActionResult> DeleteSubscription([FromQuery] string userId)
         {
             try
             {
@@ -585,7 +585,7 @@ namespace StripePaymentAPI.Controllers
                     return Forbid();
                 }
 
-                bool deleted = _repository.DeleteSubscriptionByUserId(userId);
+                bool deleted = await _repository.DeleteSubscriptionByUserIdAsync(userId);
                 return Ok(new
                 {
                     success = true,
@@ -602,7 +602,7 @@ namespace StripePaymentAPI.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public IActionResult GetAdminStripeStats()
+        public async Task<IActionResult> GetAdminStripeStats()
         {
             try
             {
@@ -612,7 +612,7 @@ namespace StripePaymentAPI.Controllers
                     return adminAccess;
                 }
 
-                object sqlSummary = _adminStatsRepository.GetPlatformOverview();
+                object sqlSummary = await _adminStatsRepository.GetPlatformOverviewAsync();
 
                 object stripeSummary = _stripeService.GetAdminStripeSummary();
 

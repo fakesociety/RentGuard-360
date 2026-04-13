@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using StripePaymentAPI.Models;
 using StripePaymentAPI.Repositories;
 
@@ -111,7 +112,7 @@ namespace StripePaymentAPI.Services
             return new UserValidationResult { IsValid = true, IsAdmin = true };
         }
 
-        public UserSubscription ResolveSubscriptionWithAliases(ClaimsPrincipal user, string requestedUserId)
+        public async Task<UserSubscription> ResolveSubscriptionWithAliasesAsync(ClaimsPrincipal user, string requestedUserId)
         {
             IEnumerable<string> candidates = new[] { requestedUserId }
                 .Concat(GetAuthenticatedUserAliases(user))
@@ -121,7 +122,7 @@ namespace StripePaymentAPI.Services
 
             foreach (string candidate in candidates)
             {
-                UserSubscription subscription = _repository.GetSubscriptionByUserId(candidate);
+                UserSubscription subscription = await _repository.GetSubscriptionByUserIdAsync(candidate);
                 if (subscription == null)
                 {
                     continue;
@@ -130,8 +131,8 @@ namespace StripePaymentAPI.Services
                 if (!string.Equals(subscription.UserId, requestedUserId, StringComparison.OrdinalIgnoreCase))
                 {
                     // Migrate to the currently requested user identity to prevent future mismatches.
-                    UserSubscription newSub = _repository.UpsertSubscription(requestedUserId, subscription.PackageId, subscription.ScansRemaining);
-                    _repository.DeleteSubscriptionByUserId(subscription.UserId);
+                    UserSubscription newSub = await _repository.UpsertSubscriptionAsync(requestedUserId, subscription.PackageId, subscription.ScansRemaining);
+                    await _repository.DeleteSubscriptionByUserIdAsync(subscription.UserId);
                     return newSub;
                 }
 

@@ -2,6 +2,7 @@ using Stripe;
 using StripePaymentAPI.Models;
 using StripePaymentAPI.Repositories;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StripePaymentAPI.Services
 {
@@ -18,14 +19,21 @@ namespace StripePaymentAPI.Services
             _stripeService = stripeService;
         }
 
-        public void ProcessPaymentIntentSucceeded(PaymentIntent paymentIntent)
+        public async Task ProcessPaymentIntentSucceededAsync(PaymentIntent paymentIntent)
         {
+            // Idempotency check: Process only if we haven't seen this Stripe payment yet
+            bool alreadyProcessed = await _repository.TransactionExistsAsync(paymentIntent.Id);
+            if (alreadyProcessed)
+            {
+                return; // Silently acknowledge duplicate webhook (200 OK)
+            }
+
             // Extract metadata we stored when creating the PaymentIntent
             string userId = paymentIntent.Metadata["userId"];
             int packageId = int.Parse(paymentIntent.Metadata["packageId"]);
 
             // Get package details to know scan limit
-            Package package = _repository.GetPackageById(packageId);
+            Package package = await _repository.GetPackageByIdAsync(packageId);
 
             if (package != null)
             {
@@ -40,10 +48,10 @@ namespace StripePaymentAPI.Services
                     Status = "succeeded"
                 };
 
-                _repository.AddTransaction(transaction);
+                await _repository.AddTransactionAsync(transaction);
 
                 // Update the user's subscription (UPSERT)
-                _repository.UpsertSubscription(userId, packageId, package.ScanLimit);
+                await _repository.UpsertSubscriptionAsync(userId, packageId, package.ScanLimit);
 
                 if (!string.IsNullOrEmpty(paymentIntent.CustomerId))
                 {
@@ -59,12 +67,18 @@ namespace StripePaymentAPI.Services
                         paymentIntent.Id
                     );
                 }
-                _repository.DeletePendingPackageSelection(userId);
+                await _repository.DeletePendingPackageSelectionAsync(userId);
             }
         }
 
-        public void ProcessPaymentIntentFailed(PaymentIntent paymentIntent)
+        public async Task ProcessPaymentIntentFailedAsync(PaymentIntent paymentIntent)
         {
+            bool alreadyProcessed = await _repository.TransactionExistsAsync(paymentIntent.Id);
+            if (alreadyProcessed)
+            {
+                return;
+            }
+
             string userId = paymentIntent.Metadata.ContainsKey("userId")
                 ? paymentIntent.Metadata["userId"] : "unknown";
             int packageId = paymentIntent.Metadata.ContainsKey("packageId")
@@ -83,7 +97,7 @@ namespace StripePaymentAPI.Services
                     Status = "failed"
                 };
 
-                _repository.AddTransaction(transaction);
+                await _repository.AddTransactionAsync(transaction);
             }
         }
     }

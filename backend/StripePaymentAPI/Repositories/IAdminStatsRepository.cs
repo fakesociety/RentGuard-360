@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StripePaymentAPI.Repositories
 {
     public interface IAdminStatsRepository
     {
-        object GetPlatformOverview();
-        List<object> GetSubscriptionsInternal(List<string> userIds);
+        Task<object> GetPlatformOverviewAsync();
+        Task<List<object>> GetSubscriptionsInternalAsync(List<string> userIds);
     }
 }

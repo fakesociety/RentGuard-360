@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace StripePaymentAPI.Repositories
 {
@@ -14,7 +15,7 @@ namespace StripePaymentAPI.Repositories
             _connectionString = SQLPaymentRepository.ActiveConnectionString ?? connectionString;
         }
 
-        public object GetPlatformOverview()
+        public async Task<object> GetPlatformOverviewAsync()
         {
             decimal totalRevenue = 0m;
             int totalTransactions = 0;
@@ -42,7 +43,7 @@ namespace StripePaymentAPI.Repositories
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string overviewSql = @"
 SELECT
@@ -55,9 +56,9 @@ FROM Transactions;
 SELECT COUNT(*) AS ActiveSubscribers FROM UserSubscriptions;";
 
                 using (SqlCommand cmd = new SqlCommand(overviewSql, connection))
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (reader.Read())
+                    if (await reader.ReadAsync())
                     {
                         totalTransactions = Convert.ToInt32(reader["TotalTransactions"]);
                         successfulTransactions = Convert.ToInt32(reader["SuccessfulTransactions"]);
@@ -66,7 +67,7 @@ SELECT COUNT(*) AS ActiveSubscribers FROM UserSubscriptions;";
                         avgOrderValue = Convert.ToDecimal(reader["AvgOrderValue"]);
                     }
 
-                    if (reader.NextResult() && reader.Read())
+                    if (await reader.NextResultAsync() && await reader.ReadAsync())
                     {
                         activeSubscribers = Convert.ToInt32(reader["ActiveSubscribers"]);
                     }
@@ -79,9 +80,9 @@ JOIN Packages p ON p.Id = s.PackageId
 GROUP BY p.Name
 ORDER BY SubscriberCount DESC;";
                 using (SqlCommand cmdBundles = new SqlCommand(bundlesSql, connection))
-                using (SqlDataReader bundlesReader = cmdBundles.ExecuteReader())
+                using (SqlDataReader bundlesReader = await cmdBundles.ExecuteReaderAsync())
                 {
-                    while (bundlesReader.Read())
+                    while (await bundlesReader.ReadAsync())
                     {
                         bundleBreakdown.Add(new
                         {
@@ -97,9 +98,9 @@ FROM Transactions t
 JOIN Packages p ON p.Id = t.PackageId
 ORDER BY t.CreatedAt DESC;";
                 using (SqlCommand cmdRecent = new SqlCommand(recentSql, connection))
-                using (SqlDataReader recentReader = cmdRecent.ExecuteReader())
+                using (SqlDataReader recentReader = await cmdRecent.ExecuteReaderAsync())
                 {
-                    while (recentReader.Read())
+                    while (await recentReader.ReadAsync())
                     {
                         recentTransactions.Add(new
                         {
@@ -127,7 +128,7 @@ ORDER BY t.CreatedAt DESC;";
             };
         }
 
-        public List<object> GetSubscriptionsInternal(List<string> userIds)
+        public async Task<List<object>> GetSubscriptionsInternalAsync(List<string> userIds)
         {
             List<object> subscriptions = new List<object>();
 
@@ -136,7 +137,6 @@ ORDER BY t.CreatedAt DESC;";
                 return subscriptions;
             }
 
-            // Ensure distinct users taking only 200
             List<string> distinctUsers = userIds
                 .Where(u => !string.IsNullOrWhiteSpace(u))
                 .Select(u => u.Trim())
@@ -150,7 +150,7 @@ ORDER BY t.CreatedAt DESC;";
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string inParams = string.Join(",", distinctUsers.Select((_, i) => $"@u{i}"));
                 string sql = $@"
@@ -166,9 +166,9 @@ WHERE s.UserId IN ({inParams});";
                         cmd.Parameters.AddWithValue($"@u{i}", distinctUsers[i]);
                     }
 
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync())
                         {
                             int scansRemaining = Convert.ToInt32(reader["ScansRemaining"]);
                             bool isUnlimited = scansRemaining == -1;
@@ -195,7 +195,6 @@ WHERE s.UserId IN ({inParams});";
                     }
                 }
 
-                // Fallback for pending
                 List<string> missingUsers = distinctUsers
                     .Where(u => !usersWithActiveSubscription.Contains(u))
                     .ToList();
@@ -218,9 +217,9 @@ WHERE ps.UserId IN ({inPending});";
                                 cmd.Parameters.AddWithValue($"@p{i}", missingUsers[i]);
                             }
 
-                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                             {
-                                while (reader.Read())
+                                while (await reader.ReadAsync())
                                 {
                                     subscriptions.Add(new
                                     {
@@ -241,7 +240,6 @@ WHERE ps.UserId IN ({inPending});";
                     }
                     catch (SqlException)
                     {
-                        // Pending table may not exist yet
                     }
                 }
             }

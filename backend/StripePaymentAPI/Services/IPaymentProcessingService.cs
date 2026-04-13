@@ -1,10 +1,11 @@
 using Stripe;
+using System.Threading.Tasks;
 
 namespace StripePaymentAPI.Services
 {
     public interface IPaymentProcessingService
     {
-        void ProcessPaymentIntentSucceeded(PaymentIntent paymentIntent);
-        void ProcessPaymentIntentFailed(PaymentIntent paymentIntent);
+        Task ProcessPaymentIntentSucceededAsync(PaymentIntent paymentIntent);
+        Task ProcessPaymentIntentFailedAsync(PaymentIntent paymentIntent);
     }
 }
