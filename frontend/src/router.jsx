@@ -38,14 +38,16 @@ const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'));
 
 // Helper components for conditional public/protected routes
 const ConditionalPricingRoute = () => {
-    const { isAuthenticated, isAdmin } = useAuth();
+    const { isAuthenticated, isAdmin, isLoading: isAuthLoading } = useAuth();
+    if (isAuthLoading) return null; // Avoid blink by waiting for auth to resolve
     if (!isAuthenticated) return <PricingPublic />;
     if (isAdmin) return <Navigate to="/dashboard" replace />;
     return <ProtectedRoute><PricingPage /></ProtectedRoute>;
 };
 
 const ConditionalContactRoute = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+    if (isAuthLoading) return null; // Avoid blink by waiting for auth to resolve
     if (!isAuthenticated) return <ContactPublic />;
     return <ProtectedRoute><RequireActivePlanRoute><ContactPage /></RequireActivePlanRoute></ProtectedRoute>;
 };

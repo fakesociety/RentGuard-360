@@ -119,17 +119,16 @@ const PricingPage = () => {
                                 return true;
                             }).sort((a, b) => isRTL ? b.price - a.price : a.price - b.price);
 
-                            return displayPackages.map((pkg, index) => {
+                            return displayPackages.map(pkg => {
                                 const byId = currentPackageId > 0 && Number(pkg.id) === currentPackageId;
                                 const byName = normalizePlanName(currentPlan) === normalizePlanName(pkg.name);
                                 const isCurrentPlan = byId || byName;
                                 const isPopular = pkg.name === 'Basic';
 
-                            return (
+                                return (
                                 <div
                                     key={pkg.id}
-                                    className={`pricing-card-wrapper animate-slideUp ${isPopular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}
-                                    style={{ animationDelay: `${index * 150}ms` }}
+                                    className={`pricing-card-wrapper ${isPopular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}
                                 >
                                     {isPopular && (
                                         <div className="popular-badge">
