@@ -16,104 +16,25 @@
  *
  * ============================================
  */
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
-import { getPackages } from '@/features/billing/services/stripeApi';
+import { usePricing } from '@/features/billing/hooks/usePricing';
+import { getPackageIcon, getPackageFeatures } from '@/features/billing/utils/pricingUtils';
+import { calculateDisplayPrice } from '@/utils/formatUtils';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import '../billing/PricingPage.css';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
-// Hardcoded fallback packages when backend (SQL Server) is unavailable.
-const FALLBACK_PACKAGES = [
-    { id: 'free', name: 'Free', price: 0, scanLimit: 1 },
-    { id: 'basic', name: 'Basic', price: 39, scanLimit: 5 },
-    { id: 'pro', name: 'Pro', price: 79, scanLimit: 15 },
-];
-
-
 const PricingPublic = () => {
     const { t, isRTL } = useLanguage();
     const navigate = useNavigate();
 
-    const [packages, setPackages] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error] = useState(null);
-
-    // Fetch packages on mount — only show Free / Basic / Pro for public page
-    useEffect(() => {
-        const fetchPackages = async () => {
-            try {
-                setIsLoading(true);
-                const data = await getPackages();
-                if (data && Array.isArray(data) && data.length) {
-                    const allowed = new Set(['free', 'basic', 'pro']);
-                    const filtered = data.filter((pkg) => {
-                        const name = (pkg.name || '').toLowerCase();
-                        return allowed.has(name);
-                    });
-                    setPackages(filtered.length ? filtered : FALLBACK_PACKAGES);
-                } else {
-                    setPackages(FALLBACK_PACKAGES);
-                }
-            } catch (err) {
-                console.warn('PricingPublic: using fallback packages', err.message);
-                setPackages(FALLBACK_PACKAGES);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchPackages();
-    }, []);
+    const { packages, isLoading, error } = usePricing();
 
     const handleSelectPackage = () => {
         navigate('/?auth=register');
-    };
-
-    const getPackageIcon = (name) => {
-        switch (name) {
-            case 'Free':
-                return (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                        <path d="M2 17l10 5 10-5" />
-                        <path d="M2 12l10 5 10-5" />
-                    </svg>
-                );
-            case 'Basic':
-                return (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                    </svg>
-                );
-            case 'Pro':
-                return (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-                    </svg>
-                );
-            default:
-                return null;
-        }
-    };
-
-    const getFeatures = (pkg) => {
-        const features = {
-            Free: t('pricing.featuresFree', { returnObjects: true }),
-            Basic: t('pricing.featuresBasic', { returnObjects: true }),
-            Pro: t('pricing.featuresPro', { returnObjects: true }),
-        };
-        return features[pkg.name] || [];
-    };
-
-    const getDisplayPriceAndCurrency = (basePrice) => {
-        if (basePrice <= 0) return { price: 0, currency: '' };
-        if (isRTL) {
-            return { price: basePrice, currency: '₪' };
-        }
-        // Conversion rate roughly 3.7
-        return { price: Math.round(basePrice / 3.7), currency: '$' };
     };
 
     const normalizePlanName = (value) => String(value || '').trim().toLowerCase();
@@ -153,6 +74,7 @@ const PricingPublic = () => {
                 <section className="pricing-cards-section">
                     <div className="pricing-cards-grid">
                         {packages
+                            .filter(pkg => ['free', 'basic', 'pro'].includes(normalizePlanName(pkg.name)))
                             .sort((a, b) => isRTL ? b.price - a.price : a.price - b.price)
                             .map((pkg, index) => {
                                 const isPopular = pkg.name === 'Basic';
@@ -182,11 +104,11 @@ const PricingPublic = () => {
                                                 {pkg.price <= 0 ? (
                                                     <span className="price-amount free">{t('pricing.free')}</span>
                                                 ) : (() => {
-                                                    const displayInfo = getDisplayPriceAndCurrency(pkg.price);
+                                                    const { displayPrice, displayCurrency } = calculateDisplayPrice(pkg.price, isRTL);
                                                     return (
                                                         <>
-                                                            <span className="price-currency">{displayInfo.currency}</span>
-                                                            <span className="price-amount">{displayInfo.price}</span>
+                                                            <span className="price-currency">{displayCurrency}</span>
+                                                            <span className="price-amount">{displayPrice}</span>
                                                         </>
                                                     );
                                                 })()}
@@ -201,7 +123,7 @@ const PricingPublic = () => {
                                             </div>
 
                                             <ul className="pricing-features">
-                                                {getFeatures(pkg).map((feature, i) => (
+                                                {getPackageFeatures(pkg.name, t).map((feature, i) => (
                                                     <li key={i} className="pricing-feature">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" strokeWidth="2.5">
                                                             <polyline points="20,6 9,17 4,12" />

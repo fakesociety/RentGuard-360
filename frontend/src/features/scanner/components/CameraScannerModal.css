@@ -3,7 +3,7 @@
    ========================================================= */
 
 /* =========================================================
-    === 1. MODAL WRAPPER ===
+    ===  MODAL WRAPPER ===
     ========================================================= */
 .scanner-modal-overlay {
     position: fixed;
@@ -28,7 +28,7 @@
 }
 
 /* =========================================================
-    === 2. HEADER & CLOSE BUTTON ===
+    ===  HEADER & CLOSE BUTTON ===
     ========================================================= */
 .scanner-modal-header {
     position: absolute;
@@ -58,7 +58,7 @@
 }
 
 /* =========================================================
-    === 3. CAMERA VIEWPORT ===
+    ===  CAMERA VIEWPORT ===
     ========================================================= */
 .scanner-modal-body {
     display: block;
@@ -87,7 +87,7 @@
 }
 
 /* =========================================================
-    === 4. SPOTLIGHT OVERLAY & FOCUS GUIDE ===
+    ===  SPOTLIGHT OVERLAY & FOCUS GUIDE ===
     ========================================================= */
 .scanner-spotlight-overlay {
     position: absolute;
@@ -156,7 +156,7 @@
 .focus-corners-bottom::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-radius: 0 0 16px 0; }
 
 /* =========================================================
-    === 5. BOTTOM CONTROLS & CAPTURE ACTIONS ===
+    ===  BOTTOM CONTROLS & CAPTURE ACTIONS ===
     ========================================================= */
 .scanner-controls-wrapper {
     position: absolute;
@@ -214,7 +214,7 @@
 }
 
 /* =========================================================
-    === 6. THUMBNAIL GALLERY ===
+    ===  THUMBNAIL GALLERY ===
     ========================================================= */
 .scanner-gallery-panel {
     border: none;
@@ -282,7 +282,7 @@
 }
 
 /* =========================================================
-    === 7. EXPANDED IMAGE PREVIEW ===
+    ===  EXPANDED IMAGE PREVIEW ===
     ========================================================= */
 .scanner-expanded-overlay {
     position: fixed;
@@ -324,7 +324,7 @@
 }
 
 /* =========================================================
-    === 8. CROP OVERLAY FLOW ===
+    ===  CROP OVERLAY FLOW ===
     ========================================================= */
 .scanner-crop-overlay {
     position: absolute;
@@ -426,7 +426,7 @@
 }
 
 /* =========================================================
-   === 9. CAMERA ERROR OVERLAY ===
+   ===  CAMERA ERROR OVERLAY ===
    ========================================================= */
 .scanner-error-overlay {
     position: absolute;

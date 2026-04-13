@@ -6,6 +6,7 @@ const solveLinearSystem = (matrix, vector) => {
     const n = vector.length;
     const a = matrix.map((row, i) => [...row, vector[i]]);
 
+    // Gaussian elimination with partial pivoting for better numerical stability.
     for (let col = 0; col < n; col += 1) {
         let pivot = col;
         for (let row = col + 1; row < n; row += 1) {
@@ -121,6 +122,7 @@ const sumRegion = (integral, stride, x0, y0, x1, y1) => {
 };
 
 export const perspectiveWarp = (sourceData, srcWidth, srcHeight, srcQuad) => {
+    // Estimate output page dimensions from opposite edges so skewed captures become rectangular pages.
     const topWidth = distance(srcQuad[0], srcQuad[1]);
     const bottomWidth = distance(srcQuad[3], srcQuad[2]);
     const leftHeight = distance(srcQuad[0], srcQuad[3]);
@@ -136,6 +138,7 @@ export const perspectiveWarp = (sourceData, srcWidth, srcHeight, srcQuad) => {
         { x: 0, y: outHeight - 1 },
     ];
 
+    // Build inverse mapping (destination -> source) to avoid holes in the output image.
     const h = buildHomography(dstQuad, srcQuad);
 
     const out = new Uint8ClampedArray(outWidth * outHeight * 4);
@@ -174,10 +177,12 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
     const pixelCount = width * height;
     const luma = new Float32Array(pixelCount);
 
+    // Convert RGB to luminance once; downstream processing operates on grayscale intensities.
     for (let i = 0, p = 0; i < pixelCount; i += 1, p += 4) {
         luma[i] = (rgba[p] * 0.299) + (rgba[p + 1] * 0.587) + (rgba[p + 2] * 0.114);
     }
 
+    // 3x3 weighted denoise pass reduces sensor noise before local contrast estimation.
     const denoised = new Float32Array(pixelCount);
     for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
@@ -205,6 +210,7 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
         squares[i] = denoised[i] * denoised[i];
     }
 
+    // Integral images make local mean/variance queries O(1) per pixel.
     const { integral: sumIntegral, stride } = buildIntegralImage(denoised, width, height);
     const { integral: sqIntegral } = buildIntegralImage(squares, width, height);
 
@@ -215,6 +221,7 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
 
     const normalized = new Float32Array(pixelCount);
 
+    // Adaptive illumination correction + local contrast enhancement for scanned-paper look.
     for (let y = 0; y < height; y += 1) {
         const y0 = Math.max(0, y - radius);
         const y1 = Math.min(height, y + radius + 1);
@@ -240,6 +247,7 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
         }
     }
 
+    // Mild unsharp mask to improve text edge crispness without harsh binary thresholding.
     const amount = 0.4;
     const out = new Uint8ClampedArray(pixelCount * 4);
 

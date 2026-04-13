@@ -37,6 +37,7 @@ const dataUrlToBlob = async (dataUrl) => {
 const scaleSourceForProcessing = (image) => {
     const sourceWidth = image.naturalWidth || image.width;
     const sourceHeight = image.naturalHeight || image.height;
+    // Cap processing resolution to keep pixel algorithms fast on mobile devices.
     const longest = Math.max(sourceWidth, sourceHeight);
     const scale = longest > MAX_PROCESSING_SIDE ? (MAX_PROCESSING_SIDE / longest) : 1;
 
@@ -127,6 +128,8 @@ export const getCroppedImg = async (imageSrc, pixelCrop) => {
     }
 
     const sourceFrame = sourceCtx.getImageData(0, 0, srcWidth, srcHeight);
+
+    // Convert viewport crop (display pixels) into source-canvas pixel coordinates.
     const scaledCrop = {
         x: pixelCrop.x * scale,
         y: pixelCrop.y * scale,
@@ -134,6 +137,7 @@ export const getCroppedImg = async (imageSrc, pixelCrop) => {
         height: pixelCrop.height * scale,
     };
 
+    // Pipeline: rectify perspective -> enhance scan quality -> encode to JPEG data URL.
     const srcQuad = getRectCorners(scaledCrop);
     const warped = perspectiveWarp(sourceFrame.data, srcWidth, srcHeight, srcQuad);
     const enhanced = applyAdaptiveSmartScan(warped.data, warped.width, warped.height);
@@ -149,6 +153,7 @@ export const compressCaptureDataUrl = async (dataUrl, options = {}) => {
     const maxWidth = options.maxWidth ?? DEFAULT_MAX_WIDTH;
 
     const sourceBlob = await dataUrlToBlob(dataUrl);
+    // Use object URLs to avoid base64 bloat while decoding/encoding large captures.
     const sourceUrl = URL.createObjectURL(sourceBlob);
 
     try {

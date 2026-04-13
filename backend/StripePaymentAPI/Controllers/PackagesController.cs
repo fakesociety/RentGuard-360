@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using StripePaymentAPI.Models;
 using StripePaymentAPI.Repositories;
@@ -37,11 +38,11 @@ namespace StripePaymentAPI.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult GetAllPackages()
+        public async Task<IActionResult> GetAllPackages()
         {
             try
             {
-                List<Package> packages = _repository.GetAllPackages();
+                List<Package> packages = await _repository.GetAllPackagesAsync();
                 return Ok(packages);
             }
             catch (Exception ex)
@@ -65,11 +66,11 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult GetPackageById(int id)
+        public async Task<IActionResult> GetPackageById(int id)
         {
             try
             {
-                Package package = _repository.GetPackageById(id);
+                Package package = await _repository.GetPackageByIdAsync(id);
 
                 if (package == null)
                 {
@@ -99,7 +100,7 @@ namespace StripePaymentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult GetPackageByName(string name)
+        public async Task<IActionResult> GetPackageByName(string name)
         {
             try
             {
@@ -108,7 +109,7 @@ namespace StripePaymentAPI.Controllers
                     return BadRequest(new { error = "Package name cannot be empty" });
                 }
 
-                List<Package> packages = _repository.GetAllPackages();
+                List<Package> packages = await _repository.GetAllPackagesAsync();
                 
                 // Case-insensitive lookup by package name
                 Package package = packages.FirstOrDefault(p => 

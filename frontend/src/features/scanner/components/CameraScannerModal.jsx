@@ -110,6 +110,11 @@ const CameraScannerModal = ({
         onClose();
     };
 
+    /**
+     * Captures a single frame from the live camera stream and transitions the UI
+     * into crop mode only after a valid frame exists.
+     * This prevents downstream crop/processing steps from running on empty input.
+     */
     const handleCapture = async () => {
         clearError();
 
@@ -143,6 +148,10 @@ const CameraScannerModal = ({
         }
     };
 
+    /**
+     * Applies the selected crop using source-image coordinates, then runs the
+     * processing pipeline while enforcing a minimum animation time for stable UX feedback.
+     */
     const handleApplyCrop = async () => {
         if (!pendingCapture || !completedCrop || !pendingImageRef.current) {
             setErrorMessage('Adjust the crop area before confirming.');
@@ -163,6 +172,7 @@ const CameraScannerModal = ({
                 height: completedCrop.height * scaleY,
             };
 
+            // Keep scan animation visible long enough for user feedback, even on fast devices.
             const minimumScanDelay = new Promise((resolve) => {
                 clearScanTimer();
                 scanTimerRef.current = setTimeout(resolve, SCAN_ANIMATION_MS);
@@ -185,6 +195,10 @@ const CameraScannerModal = ({
         }
     };
 
+    /**
+     * Builds a PDF from scanned pages and blocks completion when file size would
+     * exceed upload constraints, so users can correct the scan before leaving the modal.
+     */
     const handleCreatePdf = async () => {
         if (!pages.length) {
             setErrorMessage('Capture at least one page before creating the PDF.');
@@ -201,6 +215,7 @@ const CameraScannerModal = ({
                 marginMm: 8,
             });
 
+            // Guardrail for the backend upload limit to prevent a failed upload after scanning.
             if (pdfFile.size > PDF_MAX_BYTES) {
                 setErrorMessage(
                     `Generated PDF is ${formatMb(pdfFile.size)} and exceeds the 5 MB upload limit. Remove a page and try again.`
@@ -220,16 +235,22 @@ const CameraScannerModal = ({
     return ReactDOM.createPortal(
         <div className="scanner-modal-overlay">
             <div className="scanner-modal" onClick={(e) => e.stopPropagation()}>
-                
-                {/* --- Header --- */}
+
+                {/* ========================================================= */}
+                {/* === 1. HEADER SECTION === */}
+                {/* ========================================================= */}
                 <div className="scanner-modal-header">
                     <button type="button" className="scanner-close" onClick={handleClose}>✕</button>
                 </div>
 
-                {/* --- Main Body --- */}
+                {/* ========================================================= */}
+                {/* === 2. MAIN BODY === */}
+                {/* ========================================================= */}
                 <div className="scanner-modal-body">
-                    
-                    {/*  Camera Layer */}
+
+                    {/* ========================================================= */}
+                    {/* === 2.1 CAMERA LAYER === */}
+                    {/* ========================================================= */}
                     <div className="scanner-camera-panel">
                         <Webcam
                             ref={webcamRef}
@@ -257,7 +278,10 @@ const CameraScannerModal = ({
                             }}
                         />
 
-                                                {error && (
+                        {/* ========================================================= */}
+                        {/* === 2.2 CAMERA ERROR OVERLAY === */}
+                        {/* ========================================================= */}
+                        {error && (
                             <div className="scanner-error-overlay" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
                                 <span className="scanner-error-icon">📷</span>
                                 <h3 className="scanner-error-title">{t('upload.cameraBlockedTitle')}</h3>
@@ -274,7 +298,9 @@ const CameraScannerModal = ({
                         )}
                     </div>
 
-                    {/*  Spotlight Overlay Layer */}
+                    {/* ========================================================= */}
+                    {/* === 2.3 SPOTLIGHT OVERLAY LAYER === */}
+                    {/* ========================================================= */}
                     <div className="scanner-spotlight-overlay">
                         <div className="scanner-focus-box">
                             <div className="focus-corners-bottom"></div>
@@ -284,9 +310,11 @@ const CameraScannerModal = ({
                         </div>
                     </div>
 
-                    {/*  Bottom Controls Layer */}
+                    {/* ========================================================= */}
+                    {/* === 2.4 BOTTOM CONTROLS LAYER === */}
+                    {/* ========================================================= */}
                     <div className="scanner-controls-wrapper">
-                        
+
                         <div className="scanner-gallery-panel">
                             <ScannerThumbnailGallery
                                 pages={pages}
@@ -298,7 +326,7 @@ const CameraScannerModal = ({
                         </div>
 
                         <div className="capture-btn-wrapper">
-                            
+
                             <button 
                                 type="button"
                                 className="shutter-button"
@@ -319,6 +347,9 @@ const CameraScannerModal = ({
                         </div>
                     </div>
 
+                    {/* ========================================================= */}
+                    {/* === 2.5 CROP OVERLAY FLOW === */}
+                    {/* ========================================================= */}
                     {pendingCapture && (
                         <div className="scanner-crop-overlay">
                             <div className={`scanner-crop-stage ${isAutoScanning ? 'scan-lock' : ''}`}>
@@ -370,12 +401,16 @@ const CameraScannerModal = ({
                             </div>
                         </div>
                     )}
-
                 </div>
 
+                {/* ========================================================= */}
+                {/* === 3. TOP-LEVEL ERROR BANNER === */}
+                {/* ========================================================= */}
                 {error && <div className="scanner-error">{error}</div>}
 
-                {/* --- Expanded Page Overlay --- */}
+                {/* ========================================================= */}
+                {/* === 4. EXPANDED PAGE PREVIEW OVERLAY === */}
+                {/* ========================================================= */}
                 {expandedPage && (
                     <div className="scanner-expanded-overlay" onClick={() => setExpandedPageId(null)}>
                         <div className="scanner-expanded-content" onClick={(e) => e.stopPropagation()}>
