@@ -1,3 +1,19 @@
+/**
+ * ============================================
+ *  useScannerUIState Hook
+ *  UI state manager for scanner modal flow
+ * ============================================
+ *
+ * STRUCTURE:
+ * - Camera lifecycle state (active/inactive)
+ * - Crop flow state (pending image, crop bounds)
+ * - Async UI state (capturing, auto-scan, PDF build)
+ * - Shared UI helpers (error handling, reset handlers)
+ *
+ * DEPENDENCIES:
+ * - React useState, useCallback
+ * ============================================
+ */
 import { useCallback, useState } from 'react';
 
 export const useScannerUIState = () => {

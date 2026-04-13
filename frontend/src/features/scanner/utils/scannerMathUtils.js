@@ -1,3 +1,20 @@
+/**
+ * ============================================
+ *  scannerMathUtils Utility
+ *  Small geometry helper utilities for scanner modules
+ * ============================================
+ *
+ * STRUCTURE:
+ * - Pixel crop normalization helpers
+ *
+ * RESPONSIBILITY:
+ * - Converts crop rectangle input into explicit corner points.
+ * - Provides reusable, side-effect-free helpers shared by scanner services.
+ *
+ * DEPENDENCIES:
+ * - None
+ * ============================================
+ */
 export const getRectCorners = (pixelCrop) => {
     const left = Math.round(pixelCrop.x);
     const top = Math.round(pixelCrop.y);
