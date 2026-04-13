@@ -1,3 +1,22 @@
+/**
+ * ============================================
+ *  scannerAlgorithms Service
+ *  Heavy pixel-processing algorithms for scanner pipeline
+ * ============================================
+ *
+ * STRUCTURE:
+ * - Geometric correction (homography + perspective warp)
+ * - Local-statistics enhancement (adaptive smart scan)
+ * - Edge sharpening and grayscale normalization
+ *
+ * RESPONSIBILITY:
+ * - Performs compute-intensive image math on pixel buffers.
+ * - Stays independent from browser orchestration concerns (Image/Blob/Canvas lifecycle).
+ *
+ * DEPENDENCIES:
+ * - Typed arrays and pure math helpers (internal to this file)
+ * ============================================
+ */
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
