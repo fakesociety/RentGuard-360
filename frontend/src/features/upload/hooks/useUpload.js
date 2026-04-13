@@ -22,6 +22,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { pollForAnalysis } from '@/features/analysis/services/analysisApi';
 import { uploadFile } from '@/features/upload/services/uploadApi';
 import { emitAppToast } from '@/utils/toast';
+import { delay, isRetryableError, validateFile } from '../utils/uploadUtils';
 
 export const useUpload = () => {
     const { t } = useLanguage();
@@ -146,28 +147,6 @@ export const useUpload = () => {
         };
     }, []);
 
-    // ------------------------------------------------------------------------
-    // PRE-FLIGHT VALIDATION: MIME types, 10MB limits, PDF/DOC/JPEG integrity
-    // ------------------------------------------------------------------------
-    const validateFile = (file) => {
-        const maxSize = 5 * 1024 * 1024;
-        const minSize = 30 * 1024;
-        const maxFileNameLength = 100;
-        if (!file.type.includes('pdf')) {
-            return t('upload.pdfOnly');
-        }
-        if (file.size > maxSize) {
-            return t('upload.fileTooLarge');
-        }
-        if (file.size < minSize) {
-            return t('upload.fileTooSmall');
-        }
-        if (file.name.length > maxFileNameLength) {
-            return t('upload.fileNameTooLong');
-        }
-        return null;
-    };
-
     const handleFileSelect = (selectedFile) => {
         if (!canChooseFile) {
             setError(blockReason);
@@ -176,7 +155,7 @@ export const useUpload = () => {
 
         setError('');
         setUploadSuccess(false);
-        const validationError = validateFile(selectedFile);
+        const validationError = validateFile(selectedFile, t);
         if (validationError) {
             setError(validationError);
             return;
@@ -227,17 +206,6 @@ export const useUpload = () => {
     const handleScannerComplete = (scannedPdfFile) => {
         handleFileSelect(scannedPdfFile);
         setShowScannerModal(false);
-    };
-
-    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    const isRetryableError = (err) => {
-        const msg = (err?.message || '').toLowerCase();
-        return msg.includes('internal server error') ||
-               msg.includes('502') || msg.includes('503') ||
-               msg.includes('bad gateway') ||
-               msg.includes('service unavailable') ||
-               msg.includes('timed out');
     };
 
     const handleUpload = async () => {

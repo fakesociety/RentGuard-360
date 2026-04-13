@@ -64,6 +64,7 @@ export const useContractMetadataEditor = ({ userId, t, onApplyLocalUpdate, onAft
             const updatedContract = {
                 contractId: editModal.contractId,
                 fileName: updates.fileName,
+                propertyAddress: updates.propertyAddress,
                 landlordName: updates.landlordName,
             };
 

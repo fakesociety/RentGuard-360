@@ -17,17 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, CheckCircle2, FilePenLine, FileText, Files, Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import FileDropZone from '@/components/ui/FileDropZone';
+import { formatFileSize, stripPdfExtension } from '../utils/uploadUtils';
 import './UploadDropzone.css';
-
-const formatFileSize = (bytes, t) => {
-    if (bytes === 0) return `0 ${t('upload.fileSizeByte')}`;
-    const k = 1024;
-    const sizes = [t('upload.fileSizeByte'), 'KB', 'MB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-const stripPdfExtension = (fileName = '') => String(fileName).replace(/\.pdf$/i, '');
 
 const UploadDropzone = ({
     file,

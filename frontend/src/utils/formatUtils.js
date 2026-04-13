@@ -26,7 +26,6 @@ export const localizeBundleName = (key, raw, t) => {
 export const formatTime = (seconds, t) => {
     if (!seconds) return '—';
     if (seconds < 60) return `${Math.round(seconds)} ${t('admin.seconds')}`;
-    return `${Math.round(seconds / 60)} ${t('admin.minutes')}`;
 };
 
 export const USD_EXCHANGE_RATE = 3.7;
