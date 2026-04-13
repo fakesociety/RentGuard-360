@@ -43,12 +43,12 @@ const PricingPage = () => {
     const getLastPurchaseDateTime = () => {
         const updatedAt = subscription?.updatedAt || subscription?.UpdatedAt;
         if (!updatedAt) {
-            return isRTL ? 'לא זמין' : 'N/A';
+            return t('pricing.notAvailable');
         }
 
         const date = new Date(updatedAt);
         if (Number.isNaN(date.getTime())) {
-            return isRTL ? 'לא זמין' : 'N/A';
+            return t('pricing.notAvailable');
         }
 
         const locale = isRTL ? 'he-IL' : 'en-US';
@@ -62,7 +62,7 @@ const PricingPage = () => {
             minute: '2-digit',
         });
 
-        return isRTL ? `${datePart} בשעה ${timePart}` : `${datePart} at ${timePart}`;
+        return t('pricing.atTime', { date: datePart, time: timePart });
     };
 
     if (isLoading) {
@@ -95,7 +95,7 @@ const PricingPage = () => {
 
                     {currentPlan && (
                         <div className="current-plan-banner">
-                            <span className="current-plan-label">{isRTL ? 'חבילה אחרונה' : 'Last Bundle'}</span>
+                            <span className="current-plan-label">{t('pricing.lastBundle')}</span>
                             <span className="current-plan-name">{currentPlan}</span>
                             <span className="current-plan-scans">
                                 {getLastPurchaseDateTime()}
