@@ -57,8 +57,10 @@
   cursor: not-allowed;
 }
 
-.chat-contract-trigger:hover:not(:disabled) {
-  border-color: color-mix(in oklab, var(--chat-select-arrow) 68%, #ffffff 32%);
+@media (hover: hover) and (pointer: fine) {
+  .chat-contract-trigger:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--chat-select-arrow) 68%, #ffffff 32%);
+  }
 }
 
 .chat-contract-trigger:focus-visible {
@@ -145,8 +147,10 @@
   text-align: right;
 }
 
-.chat-contract-option:hover {
-  background: color-mix(in oklab, var(--chat-primary) 10%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .chat-contract-option:hover {
+    background: color-mix(in oklab, var(--chat-primary) 10%, transparent);
+  }
 }
 
 .chat-contract-option.active {
@@ -166,10 +170,12 @@
   transition: background 180ms ease;
 }
 
-.chat-widget-clear:hover:not(:disabled) {
-  background: #dc2626;
-  color: #ffffff;
-  border-color: #b91c1c;
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget-clear:hover:not(:disabled) {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #b91c1c;
+  }
 }
 
 .chat-widget-clear:disabled {
@@ -193,8 +199,10 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .chat-contract-trigger:hover:not(:disabled) {
-  border-color: #4d6786;
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .chat-contract-trigger:hover:not(:disabled) {
+    border-color: #4d6786;
+  }
 }
 
 [data-theme="dark"] .chat-contract-dropdown {
@@ -212,8 +220,10 @@
   background: transparent;
 }
 
-[data-theme="dark"] .chat-contract-option:hover {
-  background: rgba(78, 225, 195, 0.12);
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .chat-contract-option:hover {
+    background: rgba(78, 225, 195, 0.12);
+  }
 }
 
 [data-theme="dark"] .chat-contract-option.active {

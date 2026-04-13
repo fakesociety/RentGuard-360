@@ -53,8 +53,10 @@
   color: var(--chat-field-text);
 }
 
-.chat-widget-confirm-cancel:hover {
-  background: color-mix(in oklab, var(--chat-bg-page) 55%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget-confirm-cancel:hover {
+    background: color-mix(in oklab, var(--chat-bg-page) 55%, transparent);
+  }
 }
 
 .chat-widget-confirm-danger {
@@ -63,8 +65,10 @@
   color: #fff;
 }
 
-.chat-widget-confirm-danger:hover {
-  background: #dc2626;
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget-confirm-danger:hover {
+    background: #dc2626;
+  }
 }
 
 [data-theme="dark"] .chat-widget-confirm-card {

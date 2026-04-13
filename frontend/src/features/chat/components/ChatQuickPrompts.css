@@ -17,15 +17,19 @@
   transition: background 180ms ease, border-color 180ms ease;
 }
 
-.chat-widget-prompt-chip:hover {
-  background: var(--chat-prompt-hover);
-  border-color: #9cefc9;
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget-prompt-chip:hover {
+    background: var(--chat-prompt-hover);
+    border-color: #9cefc9;
+  }
 }
 
 [data-theme="dark"] .chat-widget-prompt-chip {
   background: #1a2638;
 }
 
-[data-theme="dark"] .chat-widget-prompt-chip:hover {
-  background: #1f3a34;
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .chat-widget-prompt-chip:hover {
+    background: #1f3a34;
+  }
 }

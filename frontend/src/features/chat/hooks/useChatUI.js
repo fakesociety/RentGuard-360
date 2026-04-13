@@ -16,36 +16,49 @@ export function useChatUI(locationPathname) {
     useEffect(() => {
         if (open) {
             trackChatEvent('chat_opened', { route: locationPathname });
+            window.dispatchEvent(new CustomEvent('rg:chat-panel-opened'));
+        } else {
+            window.dispatchEvent(new CustomEvent('rg:chat-panel-closed'));
         }
     }, [open, locationPathname]);
+
+    useEffect(() => {
+        const handleNavOpened = () => {
+            if (open) {
+                closePanel();
+            }
+        };
+
+        window.addEventListener('rg:nav-menu-opened', handleNavOpened);
+        return () => window.removeEventListener('rg:nav-menu-opened', handleNavOpened);
+    }, [open]);
 
     useEffect(() => {
         const updateFooterOffset = () => {
             const isMobile = window.innerWidth <= 768;
             const baseOffset = isMobile ? 12 : 24;
-            const footer = document.querySelector('.app-footer');
-            const footerRect = footer?.getBoundingClientRect();
-            const footerOverlap = footerRect ? Math.max(0, window.innerHeight - footerRect.top) : 0;
+            
+            let nextOffset = baseOffset;
 
-            let nextOffset = baseOffset + footerOverlap;
-
-            if (isMobile) {
-                const nav = document.querySelector('.nav-container');
-                const panelNode = widgetRef.current?.querySelector('.chat-widget-panel');
-                const launcherNode = widgetRef.current?.querySelector('.chat-widget-launcher');
-                const activeNode = (open && panelNode) ? panelNode : launcherNode;
-                const widgetHeight = activeNode?.getBoundingClientRect().height || (open ? 560 : 56);
-
-                const riseCap = Math.round(window.innerHeight * 0.26);
-                nextOffset = Math.min(nextOffset, baseOffset + riseCap);
-
-                // חזרנו ללוגיקה הישנה שהגנה על הנאב באר, אבל הוספנו את הבדיקה "open"
-                // כדי שזה יקרה רק כשהצ'אט פתוח ולא ימשוך את הכפתור למטה.
-                if (nav && widgetHeight > 0 && open) {
-                    const navBottom = nav.getBoundingClientRect().bottom;
-                    const minTopGap = 20;
-                    const maxOffsetBeforeNav = Math.max(baseOffset, window.innerHeight - navBottom - widgetHeight - minTopGap);
-                    nextOffset = Math.min(nextOffset, maxOffsetBeforeNav);
+            if (!isMobile) {
+                const footer = document.querySelector('.app-footer') || document.querySelector('footer');
+                const footerRect = footer?.getBoundingClientRect();
+                const footerOverlap = footerRect ? Math.max(0, window.innerHeight - footerRect.top) : 0;
+                
+                if (!open && !isClosing) {
+                    // Small / closed chat: Keep above footer so it doesn't hide it
+                    nextOffset += footerOverlap;
+                } else {
+                    // Open chat: Allow it to overlay the footer, just guard against the top navbar
+                    const nav = document.querySelector('.nav-container') || document.querySelector('nav');
+                    const widgetHeight = widgetRef.current?.querySelector('.chat-widget-panel')?.getBoundingClientRect().height || 560;
+                    
+                    if (nav && widgetHeight > 0) {
+                        const navBottom = nav.getBoundingClientRect().bottom;
+                        const minTopGap = 20;
+                        const maxOffsetBeforeNav = Math.max(baseOffset, window.innerHeight - navBottom - widgetHeight - minTopGap);
+                        nextOffset = Math.min(nextOffset, maxOffsetBeforeNav);
+                    }
                 }
             }
 
@@ -62,7 +75,7 @@ export function useChatUI(locationPathname) {
             window.removeEventListener('resize', updateFooterOffset);
             window.visualViewport?.removeEventListener('resize', updateFooterOffset);
         };
-    }, [open]);
+    }, [open, isClosing]);
 
     useEffect(() => {
         return () => {
@@ -75,12 +88,6 @@ export function useChatUI(locationPathname) {
 
     useEffect(() => {
         const updatePaletteBySection = () => {
-            const isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                setUseWhyPalette(false);
-                return;
-            }
-
             const isDashboardRoute = locationPathname === '/dashboard';
             if (!isDashboardRoute) {
                 setUseWhyPalette(false);

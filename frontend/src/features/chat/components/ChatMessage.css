@@ -115,9 +115,11 @@
   cursor: pointer;
   transition: color 180ms ease, border-color 180ms ease;
 }
-.chat-msg-copy:hover {
-  color: #0f172a;
-  border-color: #93c5ad;
+@media (hover: hover) and (pointer: fine) {
+  .chat-msg-copy:hover {
+    color: #0f172a;
+    border-color: #93c5ad;
+  }
 }
 .chat-msg-copy span {
   line-height: 1;
@@ -164,9 +166,11 @@
   color: #f0fdf4;
   border-color: rgba(255, 255, 255, 0.46);
 }
-.chat-msg.user .chat-msg-copy:hover {
-  border-color: rgba(255, 255, 255, 0.85);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .chat-msg.user .chat-msg-copy:hover {
+    border-color: rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+  }
 }
 .chat-msg-source {
   margin-top: 8px;

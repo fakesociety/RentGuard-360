@@ -70,6 +70,22 @@ const Navigation = ({ showAuthControls = false, onAuthClick = () => {}, classNam
     }, []);
 
     useEffect(() => {
+        if (showProfileMenu || showMobileMenu) {
+            window.dispatchEvent(new CustomEvent('rg:nav-menu-opened'));
+        }
+    }, [showProfileMenu, showMobileMenu]);
+
+    useEffect(() => {
+        const handleChatOpened = () => {
+            setShowProfileMenu(false);
+            setShowMobileMenu(false);
+        };
+
+        window.addEventListener('rg:chat-panel-opened', handleChatOpened);
+        return () => window.removeEventListener('rg:chat-panel-opened', handleChatOpened);
+    }, []);
+
+    useEffect(() => {
         const updateCompactMode = () => {
             try {
                 setCompactMobileNavEnabled(localStorage.getItem(MOBILE_NAV_COMPACT_PREF_KEY) === 'true');

@@ -34,8 +34,10 @@
   cursor: pointer;
   transition: background 180ms ease;
 }
-.chat-widget-input-row button:hover:not(:disabled) {
-  background: var(--chat-primary-hover);
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget-input-row button:hover:not(:disabled) {
+    background: var(--chat-primary-hover);
+  }
 }
 .chat-widget-input-row button:disabled {
   opacity: 0.6;

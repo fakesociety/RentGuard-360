@@ -73,9 +73,11 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   color: #0f172a;
 }
-.chat-widget.context-why .chat-widget-close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  border-color: rgba(0, 0, 0, 0.2);
+@media (hover: hover) and (pointer: fine) {
+  .chat-widget.context-why .chat-widget-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
 }
 [data-theme="dark"] .chat-widget-header {
   background: rgba(16, 185, 129, 0.85);
