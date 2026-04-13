@@ -17,6 +17,12 @@ var builder = WebApplication.CreateBuilder(args);
 //    This prevents tight coupling (no 'new' inside the controller).
 // =============================================================================
 builder.Services.AddScoped<IPaymentRepository, SQLPaymentRepository>();
+builder.Services.AddScoped<IAdminStatsRepository>(provider =>
+    new SQLAdminStatsRepository(builder.Configuration.GetConnectionString("PaymentsDB")));
+    
+builder.Services.AddScoped<StripePaymentAPI.Services.ISubscriptionService, StripePaymentAPI.Services.SubscriptionService>();
+builder.Services.AddScoped<StripePaymentAPI.Services.IStripeService, StripePaymentAPI.Services.StripeService>();
+builder.Services.AddScoped<StripePaymentAPI.Services.IPaymentProcessingService, StripePaymentAPI.Services.PaymentProcessingService>();
 
 // =============================================================================
 // 1.5 AUTHENTICATION (COGNITO JWT)

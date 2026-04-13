@@ -28,7 +28,6 @@ import { useCheckout } from '@/features/billing/hooks/useCheckout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CheckoutForm from '@/features/billing/components/CheckoutForm';
-import { calculateDisplayPrice } from '@/utils/formatUtils';
 import './CheckoutPage.css';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
@@ -112,12 +111,13 @@ const CheckoutPage = () => {
                                 </div>
                                 <div className="order-note">
                                     <p className="order-note-title">
-                                        {t('checkout.included')}
+                                        {t('checkout.includedTitle')}
                                     </p>
                                     <p className="order-note-text">
-                                        {isRTL
-                                            ? `גישה לחבילת ${pkg?.name ? t(`pricing.${pkg.name.toLowerCase()}`) : ''}, כולל ${pkg?.scanLimit} סריקות.`
-                                            : `Access to the ${pkg?.name || ''} bundle, including ${pkg?.scanLimit} contract scans.`}
+                                        {t('checkout.includedDesc', { 
+                                            plan: pkg?.name ? t(`pricing.${pkg.name.toLowerCase()}`) : '',
+                                            scans: pkg?.scanLimit 
+                                        })}
                                     </p>
                                     <ul className="order-trust-list">
                                         <li>
@@ -146,7 +146,7 @@ const CheckoutPage = () => {
                                     <span className="stripe-wordmark">stripe</span>
                                 </div>
                                 <span className="payment-trust-text">
-                                    {isRTL ? 'תשלום מאובטח ומוצפן' : 'Encrypted and secure payment'}
+                                    {t('checkout.secureEncryption')}
                                 </span>
                             </div>
                             {clientSecret && (
