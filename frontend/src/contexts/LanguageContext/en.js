@@ -442,7 +442,14 @@ export const en = {
         "serverTemporaryError": "The server is temporarily busy. We retried automatically but it didn't work. Please try again in a few seconds."
     },
     "scanner": {
-        "focus_guidance": "Please align the document within the frame and capture from directly above for best results."
+        "focus_guidance": "Please align the document within the frame and capture from directly above for best results.",
+        "adjustCropArea": "Adjust the crop area before confirming.",
+        "applyingCrop": "Applying...",
+        "applyCrop": "Apply Crop",
+        "buildingPdf": "Building...",
+        "done": "Done",
+        "deletePage": "Delete page",
+        "scannedPagesGallery": "Scanned pages gallery"
     },
     "analysis": {
         "shareExpiryDays": "Expires in {days} days",

@@ -17,6 +17,16 @@
  * - Typed arrays and pure math helpers (internal to this file)
  * ============================================
  */
+export const SCAN_CONFIG = {
+    radiusSizePct: 0.035,
+    radiusMin: 10,
+    radiusMax: 32,
+    targetPaper: 240,
+    detailGain: 0.5,
+    localContrast: 1.12,
+    unsharpAmount: 0.4
+};
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -233,10 +243,14 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
     const { integral: sumIntegral, stride } = buildIntegralImage(denoised, width, height);
     const { integral: sqIntegral } = buildIntegralImage(squares, width, height);
 
-    const radius = clamp(Math.round(Math.min(width, height) * 0.035), 10, 32);
-    const targetPaper = 240;
-    const detailGain = 0.5;
-    const localContrast = 1.12;
+    const radius = clamp(
+        Math.round(Math.min(width, height) * SCAN_CONFIG.radiusSizePct), 
+        SCAN_CONFIG.radiusMin, 
+        SCAN_CONFIG.radiusMax
+    );
+    const targetPaper = SCAN_CONFIG.targetPaper;
+    const detailGain = SCAN_CONFIG.detailGain;
+    const localContrast = SCAN_CONFIG.localContrast;
 
     const normalized = new Float32Array(pixelCount);
 
@@ -267,7 +281,7 @@ export const applyAdaptiveSmartScan = (rgba, width, height) => {
     }
 
     // Mild unsharp mask to improve text edge crispness without harsh binary thresholding.
-    const amount = 0.4;
+    const amount = SCAN_CONFIG.unsharpAmount;
     const out = new Uint8ClampedArray(pixelCount * 4);
 
     for (let y = 0; y < height; y += 1) {

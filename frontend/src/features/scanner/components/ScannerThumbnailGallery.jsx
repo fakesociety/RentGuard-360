@@ -20,6 +20,7 @@ const ScannerThumbnailGallery = ({
     onSelect,
     onDelete,
     onExpand,
+    t = (str) => str,
 }) => {
     
     if (!pages.length) {
@@ -28,12 +29,20 @@ const ScannerThumbnailGallery = ({
 
     // Horizontal Gallery 
     return (
-        <div className="scanner-gallery" aria-label="Scanned pages gallery">
+        <div className="scanner-gallery" aria-label={t('scanner.scannedPagesGallery') || "Scanned pages gallery"}>
             {pages.map((page, index) => (
                 <div
                     key={page.id}
+                    role="button"
+                    tabIndex={0}
                     className={`scanner-thumb ${activePageId === page.id ? 'active' : ''}`}
                     onClick={() => onSelect(page.id)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelect(page.id);
+                        }
+                    }}
                 >
                     {/* Thumbnail Image */}
                     <button
@@ -58,7 +67,7 @@ const ScannerThumbnailGallery = ({
                             e.stopPropagation(); // Prevents triggering the expand/select actions
                             onDelete(page.id);
                         }}
-                        aria-label="Delete page"
+                        aria-label={t('scanner.deletePage') || "Delete page"}
                     >
                         ✕
                     </button>

@@ -15,7 +15,7 @@
  * - useScanPages hook
  * ============================================
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Webcam from 'react-webcam';
 import ReactCrop from 'react-image-crop';
@@ -80,6 +80,12 @@ const CameraScannerModal = ({
         removePage,
         clearPages,
     } = useScanPages();
+
+    useEffect(() => {
+        return () => {
+            stopCamera();
+        };
+    }, [stopCamera]);
 
     const expandedPage = useMemo(
         () => pages.find((item) => item.id === expandedPageId) || null,
@@ -154,7 +160,7 @@ const CameraScannerModal = ({
      */
     const handleApplyCrop = async () => {
         if (!pendingCapture || !completedCrop || !pendingImageRef.current) {
-            setErrorMessage('Adjust the crop area before confirming.');
+            setErrorMessage(t('scanner.adjustCropArea') || 'Adjust the crop area before confirming.');
             return;
         }
 
@@ -322,6 +328,7 @@ const CameraScannerModal = ({
                                 onSelect={setActivePageId}
                                 onDelete={removePage}
                                 onExpand={setExpandedPageId}
+                                t={t}
                             />
                         </div>
 
@@ -342,7 +349,7 @@ const CameraScannerModal = ({
                                 onClick={handleCreatePdf}
                                 disabled={!pages.length || isBuildingPdf || isCapturing || Boolean(pendingCapture)}
                             >
-                                {isBuildingPdf ? 'Building...' : `Done (${pages.length})`}
+                                {isBuildingPdf ? (t('scanner.buildingPdf') || 'Building...') : `${t('scanner.done') || 'Done'} (${pages.length})`}
                             </button>
                         </div>
                     </div>
@@ -394,7 +401,7 @@ const CameraScannerModal = ({
                                             onClick={handleApplyCrop}
                                             disabled={isCapturing}
                                         >
-                                            {isCapturing ? 'Applying...' : 'Apply Crop'}
+                                            {isCapturing ? (t('scanner.applyingCrop') || 'Applying...') : (t('scanner.applyCrop') || 'Apply Crop')}
                                         </button>
                                     </div>
                                 )}

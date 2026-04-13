@@ -35,15 +35,18 @@ export const useScanPages = () => {
 
     const removePage = useCallback((pageId) => {
         setPages((prev) => {
-            const target = prev.find((item) => item.id === pageId);
-            if (target) {
-                revokeImageUrl(target);
-            }
+            const index = prev.findIndex((item) => item.id === pageId);
+            if (index === -1) return prev;
+            
+            const target = prev[index];
+            revokeImageUrl(target);
 
             const next = prev.filter((item) => item.id !== pageId);
             setActivePageId((current) => {
                 if (current !== pageId) return current;
-                return next[0]?.id ?? null;
+                if (next.length === 0) return null;
+                const nextIndex = Math.min(index, next.length - 1);
+                return next[nextIndex].id;
             });
             return next;
         });
