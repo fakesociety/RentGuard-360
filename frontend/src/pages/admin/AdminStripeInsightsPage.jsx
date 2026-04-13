@@ -3,15 +3,15 @@
  *  AdminStripeInsights
  *  Revenue and Payment Analytics
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Core Stripe metrics (MRR, refunds, conversions)
  * - Package distributions
  * - Raw transactions table
- * 
+ *
  * DEPENDENCIES:
  * - useAdminStripeInsights hook
- * - admin components (AdminStripeCards, AdminStripePanels)
+ * - admin components (AdminStripeCards, AdminStripePanels, AdminStripeTable)
  * ============================================
  */
 import React from 'react';
@@ -19,12 +19,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAdminStripeInsights } from '@/features/admin/hooks/useAdminStripeInsights';
-import { AlertTriangle, CreditCard, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CreditCard } from 'lucide-react';
 import { AdminStripeCards } from '@/features/admin/components/AdminStripeCards';
 import { AdminStripePanels } from '@/features/admin/components/AdminStripePanels';
 import { AdminStripeTable } from '@/features/admin/components/AdminStripeTable';
 import './AdminStripeInsightsPage.css';
-import { formatMoney, shortUserId, localizeBundleName } from '@/utils/formatUtils';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
 
 
@@ -85,21 +84,19 @@ const AdminStripeInsights = () => {
                 {loading ? (
                     <div className="loading-state stripe-insights-loading">
                         <GlobalSpinner size={40} />
-
                     </div>
                 ) : (
                     <div className="stats-dashboard stripe-stats-dashboard">
-                        <AdminStripeCards 
+                        <AdminStripeCards
                             sql={sql}
                             stripe={stripe}
                             successRate={successRate}
                             displayCurrency={displayCurrency}
                             locale={locale}
                             t={t}
-                            formatMoney={formatMoney}
                         />
 
-                        <AdminStripePanels 
+                        <AdminStripePanels
                             sql={sql}
                             stripe={stripe}
                             conversionRate={conversionRate}
@@ -109,19 +106,14 @@ const AdminStripeInsights = () => {
                             displayCurrency={displayCurrency}
                             locale={locale}
                             t={t}
-                            isRTL={isRTL}
-                            formatMoney={formatMoney}
-                            localizeBundleName={localizeBundleName}
                         />
 
-                        <AdminStripeTable 
+                        <AdminStripeTable
                             data={data}
                             sql={sql}
                             derivedCurrencies={derivedCurrencies}
                             locale={locale}
                             t={t}
-                            formatMoney={formatMoney}
-                            shortUserId={shortUserId}
                         />
                     </div>
                 )}
@@ -131,4 +123,3 @@ const AdminStripeInsights = () => {
 };
 
 export default AdminStripeInsights;
-

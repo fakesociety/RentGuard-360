@@ -3,28 +3,23 @@
  *  AdminDashboardCards Component
  *  Overview cards for the main admin dashboard
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - High-level metrics
  * - Trend indicators
- * 
+ *
  * DEPENDENCIES:
- * - None
+ * - formatUtils (formatTime)
  * ============================================
  */
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { FileText, CheckCircle, Users, Clock } from 'lucide-react';
+import { formatTime } from '@/utils/formatUtils';
 import './AdminDashboardCards.css';
 
 const AdminDashboardCards = ({ stats }) => {
     const { t } = useLanguage();
-
-    const formatTime = (seconds) => {
-        if (!seconds) return '—';
-        if (seconds < 60) return `${Math.round(seconds)} ${t('admin.seconds')}`;
-        return `${Math.round(seconds / 60)} ${t('admin.minutes')}`;
-    };
 
     return (
         <div className="summary-cards">
@@ -60,7 +55,7 @@ const AdminDashboardCards = ({ stats }) => {
                     <Clock size={24} />
                 </div>
                 <div className="card-info">
-                    <span className="card-value">{formatTime(stats?.analysis?.avgAnalysisTimeSeconds)}</span>
+                    <span className="card-value">{formatTime(stats?.analysis?.avgAnalysisTimeSeconds, t)}</span>
                     <span className="card-label">{t('admin.avgAnalysisTime')}</span>
                 </div>
             </div>

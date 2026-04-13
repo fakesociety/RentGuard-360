@@ -243,6 +243,15 @@
     font-size: 0.8125rem;
 }
 
+.no-data-padded {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.modal-message-text {
+    white-space: pre-line;
+}
+
 .stats-footer {
     text-align: center;
     font-size: 0.6875rem;

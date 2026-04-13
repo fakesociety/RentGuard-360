@@ -1,0 +1,67 @@
+/* ============================================
+   AdminUsersModals - Confirmation dialog styles
+   ============================================ */
+
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.admin-modal {
+    background: var(--admin-card-bg, rgba(30, 41, 59, 0.98));
+    border: 1px solid var(--admin-card-border, rgba(51, 65, 85, 0.5));
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.admin-modal h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--admin-text, #f8fafc);
+    margin-bottom: 12px;
+}
+
+.admin-modal .modal-message-text {
+    color: var(--admin-text-secondary, #94a3b8);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.admin-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.admin-modal.modal-warning {
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.admin-modal.modal-error {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Light mode */
+.admin-modal-overlay.light .admin-modal {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+.admin-modal-overlay.light .admin-modal h3 {
+    color: #0f172a;
+}
+
+.admin-modal-overlay.light .admin-modal .modal-message-text {
+    color: #475569;
+}

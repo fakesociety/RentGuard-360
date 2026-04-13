@@ -3,21 +3,17 @@
  *  AdminSidebar Component
  *  Navigation panel for admin section
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Nav links definition
  * - Theme/Language toggles embed
  * - Logout logic
- * 
+ *
  * DEPENDENCIES:
  * - AuthContext, ThemeContext, LanguageContext
  * - react-router-dom
  * ============================================
  */
-
-/* ==========================================================================
- * 1. Imports
- * ========================================================================== */
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,55 +26,28 @@ import {
     Users,
     BarChart3,
     CreditCard,
-    Settings,
     Shield,
     LogOut,
     ArrowLeft
 } from 'lucide-react';
 import './AdminSidebar.css';
 
-/* ==========================================================================
- * 2. Component Definition & Hooks
- * ========================================================================== */
 const AdminSidebar = ({ onNavigate }) => {
     const { userAttributes, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
 
-    /* ======================================================================
-     * 3. Navigation Configuration
-     * ====================================================================== */
     const navItems = [
-        {
-            path: '/admin',
-            icon: LayoutDashboard,
-            label: t('admin.dashboard') || 'Dashboard',
-            end: true
-        },
-        {
-            path: '/admin/users',
-            icon: Users,
-            label: t('admin.usersTab') || 'Users'
-        },
-        {
-            path: '/admin/analytics',
-            icon: BarChart3,
-            label: t('admin.analytics') || 'Analytics'
-        },
-        {
-            path: '/admin/stripe',
-            icon: CreditCard,
-            label: t('admin.stripeTab') || 'Stripe Insights'
-        }
+        { path: '/admin', icon: LayoutDashboard, label: t('admin.dashboard'), end: true },
+        { path: '/admin/users', icon: Users, label: t('admin.usersTab') },
+        { path: '/admin/analytics', icon: BarChart3, label: t('admin.analytics') },
+        { path: '/admin/stripe', icon: CreditCard, label: t('admin.stripeTab') }
     ];
 
-    /* ======================================================================
-     * 4. Render / JSX
-     * ====================================================================== */
     return (
         <aside className={`admin-sidebar ${isDark ? 'dark' : 'light'}`}>
             <div className="sidebar-header">
-                <Link to="/dashboard" className="sidebar-logo" title={t('nav.backToDashboard') || 'Back to Dashboard'}>
+                <Link to="/dashboard" className="sidebar-logo" title={t('nav.backToDashboard')}>
                     <Shield className="logo-icon" />
                     <span className="logo-text">RentGuard</span>
                 </Link>
@@ -87,7 +56,7 @@ const AdminSidebar = ({ onNavigate }) => {
             <div className="sidebar-back-link">
                 <Link to="/dashboard" className="back-link" onClick={onNavigate}>
                     <ArrowLeft size={16} />
-                    <span>{t('nav.backToDashboard') || 'Back to Dashboard'}</span>
+                    <span>{t('nav.backToDashboard')}</span>
                 </Link>
             </div>
 
@@ -123,17 +92,17 @@ const AdminSidebar = ({ onNavigate }) => {
                     </div>
                     <div className="user-info">
                         <span className="user-name">{userAttributes?.name || 'Admin'}</span>
-                        <span className="user-role">{t('admin.administrator') || 'Administrator'}</span>
+                        <span className="user-role">{t('admin.administrator')}</span>
                     </div>
                 </div>
 
                 <button
                     className="sidebar-footer-btn logout-btn"
                     onClick={logout}
-                    title={t('nav.logout') || 'Logout'}
+                    title={t('nav.logout')}
                 >
                     <LogOut size={18} />
-                    <span>{t('nav.logout') || 'Logout'}</span>
+                    <span>{t('nav.logout')}</span>
                 </button>
             </div>
         </aside>

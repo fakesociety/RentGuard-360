@@ -3,27 +3,30 @@
  *  AdminDashboardCharts Component
  *  Charts and graphs for the main dashboard
  * ============================================
- * 
+ *
  * STRUCTURE:
- * - Chart.js integrations
- * - Time-series data
- * 
+ * - Contracts over time chart
+ * - User registrations chart
+ *
  * DEPENDENCIES:
- * - chart.js / react-chartjs-2
+ * - DateRangeSelector
+ * - chartUIUtils (CHART_COLORS)
  * ============================================
  */
 import React, { useRef, useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { TrendingUp, UserPlus } from 'lucide-react';
+import { CHART_COLORS } from '@/features/admin/utils/chartUIUtils';
+import DateRangeSelector from '@/features/admin/components/DateRangeSelector';
 import './AdminDashboardCharts.css';
 
-const AdminDashboardCharts = ({ 
-    dateRange, 
-    setDateRange, 
-    userDateRange, 
-    setUserDateRange, 
-    contractsChartDataset, 
+const AdminDashboardCharts = ({
+    dateRange,
+    setDateRange,
+    userDateRange,
+    setUserDateRange,
+    contractsChartDataset,
     userChartDataset,
     labelColor,
     gridColor
@@ -32,7 +35,6 @@ const AdminDashboardCharts = ({
     const chartContainerRef = useRef(null);
     const [chartWidth, setChartWidth] = useState(450);
 
-    // Responsive chart width
     useEffect(() => {
         const updateWidth = () => {
             if (chartContainerRef.current) {
@@ -50,6 +52,26 @@ const AdminDashboardCharts = ({
         };
     }, []);
 
+    const chartSx = {
+        '& .MuiAreaElement-root': { fillOpacity: 0.3 },
+        '& .MuiChartsAxis-tickLabel': { fill: labelColor },
+        '& .MuiChartsAxis-line': { stroke: labelColor },
+        '& .MuiChartsGrid-line': { stroke: gridColor },
+    };
+
+    const xAxisConfig = {
+        dataKey: 'date',
+        scaleType: 'time',
+        valueFormatter: (date) => date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { day: 'numeric', month: 'numeric' }),
+        tickLabelStyle: { fill: labelColor, fontSize: 10, angle: -45, textAnchor: 'end' },
+    };
+
+    const yAxisConfig = {
+        tickLabelStyle: { fill: labelColor, fontSize: 11 },
+        tickMinStep: 1,
+        min: 0,
+    };
+
     return (
         <div className="dashboard-charts-row">
             {/* Contracts Over Time */}
@@ -59,64 +81,24 @@ const AdminDashboardCharts = ({
                         <TrendingUp size={16} />
                         {t('admin.analyzedOverTime')}
                     </h3>
-                    <div className="date-range-selector">
-                        <div className="date-range-buttons">
-                            {['7d', '30d', 'month', 'year', 'all'].map(range => (
-                                <button
-                                    key={range}
-                                    className={`range-btn ${dateRange === range ? 'active' : ''}`}
-                                    onClick={() => setDateRange(range)}
-                                >
-                                    {range === '7d' ? `7 ${t('admin.days')}` :
-                                        range === '30d' ? `30 ${t('admin.days')}` :
-                                            range === 'month' ? t('admin.thisMonth') :
-                                                range === 'year' ? t('admin.thisYear') :
-                                                    t('admin.allTime')}
-                                </button>
-                            ))}
-                            <select
-                                className="year-picker"
-                                value={dateRange.match(/^\d{4}$/) ? dateRange : ''}
-                                onChange={(e) => e.target.value && setDateRange(e.target.value)}
-                            >
-                                <option value="" disabled>{t('admin.selectYear')}</option>
-                                {[2026, 2025].map(year => (
-                                    <option key={year} value={String(year)}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <DateRangeSelector value={dateRange} onChange={setDateRange} />
                 </div>
                 <div className="chart-container line-chart-container" dir="ltr">
                     {contractsChartDataset.length > 0 ? (
                         <LineChart
                             key={`contracts-${dateRange}-${contractsChartDataset.length}-${chartWidth}`}
                             dataset={contractsChartDataset}
-                            xAxis={[{
-                                dataKey: 'date',
-                                scaleType: 'time',
-                                valueFormatter: (date) => date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { day: 'numeric', month: 'numeric' }),
-                                tickLabelStyle: { fill: labelColor, fontSize: 10, angle: -45, textAnchor: 'end' },
-                            }]}
-                            yAxis={[{
-                                tickLabelStyle: { fill: labelColor, fontSize: 11 },
-                                tickMinStep: 1,
-                                min: 0,
-                            }]}
+                            xAxis={[xAxisConfig]}
+                            yAxis={[yAxisConfig]}
                             series={[{
                                 dataKey: 'analyzed',
                                 area: true,
-                                color: '#10B981',
+                                color: CHART_COLORS[1],
                                 showMark: false,
                             }]}
                             width={chartWidth}
                             height={220}
-                            sx={{
-                                '& .MuiAreaElement-root': { fillOpacity: 0.3 },
-                                '& .MuiChartsAxis-tickLabel': { fill: labelColor },
-                                '& .MuiChartsAxis-line': { stroke: labelColor },
-                                '& .MuiChartsGrid-line': { stroke: gridColor },
-                            }}
+                            sx={chartSx}
                             grid={{ vertical: true, horizontal: true }}
                         />
                     ) : (
@@ -132,64 +114,27 @@ const AdminDashboardCharts = ({
                         <UserPlus size={16} />
                         {t('admin.userRegistrations')}
                     </h3>
-                    <div className="date-range-selector">
-                        <div className="date-range-buttons">
-                            {['7d', '30d', 'month', 'year', 'all'].map(range => (
-                                <button
-                                    key={range}
-                                    className={`range-btn ${userDateRange === range ? 'active' : ''}`}
-                                    onClick={() => setUserDateRange(range)}
-                                >
-                                    {range === '7d' ? `7 ${t('admin.days')}` :
-                                        range === '30d' ? `30 ${t('admin.days')}` :
-                                            range === 'month' ? t('admin.thisMonth') :
-                                                range === 'year' ? t('admin.thisYear') :
-                                                    t('admin.allTime')}
-                                </button>
-                            ))}
-                            <select
-                                className="year-picker"
-                                value={userDateRange.match(/^\d{4}$/) ? userDateRange : ''}
-                                onChange={(e) => e.target.value && setUserDateRange(e.target.value)}
-                            >
-                                <option value="" disabled>{t('admin.selectYear')}</option>
-                                {[2026, 2025].map(year => (
-                                    <option key={year} value={String(year)}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <DateRangeSelector value={userDateRange} onChange={setUserDateRange} />
                 </div>
                 <div className="chart-container line-chart-container" dir="ltr">
                     {userChartDataset.length > 0 ? (
                         <LineChart
                             key={`users-${userDateRange}-${userChartDataset.length}-${chartWidth}`}
                             dataset={userChartDataset}
-                            xAxis={[{
-                                dataKey: 'date',
-                                scaleType: 'time',
-                                valueFormatter: (date) => date.toLocaleDateString(isRTL ? 'he-IL' : 'en-US', { day: 'numeric', month: 'numeric' }),
-                                tickLabelStyle: { fill: labelColor, fontSize: 10, angle: -45, textAnchor: 'end' },
-                            }]}
-                            yAxis={[{
-                                tickLabelStyle: { fill: labelColor, fontSize: 11 },
-                                tickMinStep: 1,
-                                min: 0,
-                            }]}
+                            xAxis={[xAxisConfig]}
+                            yAxis={[yAxisConfig]}
                             series={[{
                                 dataKey: 'count',
                                 area: true,
                                 showMark: false,
-                                color: '#3B82F6',
+                                color: CHART_COLORS[7],
                             }]}
                             grid={{ vertical: true, horizontal: true }}
                             width={chartWidth}
                             height={220}
                             sx={{
+                                ...chartSx,
                                 '& .MuiAreaElement-root': { fillOpacity: 0.25 },
-                                '& .MuiChartsAxis-tickLabel': { fill: labelColor },
-                                '& .MuiChartsAxis-line': { stroke: labelColor },
-                                '& .MuiChartsGrid-line': { stroke: gridColor },
                             }}
                         />
                     ) : (

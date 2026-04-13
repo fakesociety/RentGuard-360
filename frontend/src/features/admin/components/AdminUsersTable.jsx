@@ -3,18 +3,23 @@
  *  AdminUsersTable Component
  *  Data table for user management
  * ============================================
- * 
+ *
  * STRUCTURE:
- * - Table headers
+ * - Table headers with sorting
  * - User rows with actions
- * 
+ * - Load more pagination
+ *
  * DEPENDENCIES:
- * - None
+ * - None (presentational)
  * ============================================
  */
 import React, { useState, useEffect } from 'react';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { Copy, Check, Ban, Trash2 } from 'lucide-react';
 import './AdminUsersTable.css';
+
+const MOBILE_PAGE_SIZE = 5;
+const DESKTOP_PAGE_SIZE = 30;
 
 const AdminUsersTable = ({
     t,
@@ -34,18 +39,19 @@ const AdminUsersTable = ({
     actionLoading,
     onVisibleUsersChange
 }) => {
-    const getInitialCount = () => (typeof window !== 'undefined' && window.innerWidth <= 768 ? 5 : 30);
-    const [visibleCount, setVisibleCount] = useState(getInitialCount());
+    const isMobile = useMediaQuery('(max-width:768px)');
+    const pageSize = isMobile ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE;
+    const [visibleCount, setVisibleCount] = useState(pageSize);
     const [prevUsers, setPrevUsers] = useState(users);
 
     if (users !== prevUsers) {
         setPrevUsers(users);
-        setVisibleCount(getInitialCount());
+        setVisibleCount(pageSize);
     }
 
-    const disableLabel = t('admin.disable') || (isRTL ? 'חסום' : 'Disable');
-    const enableLabel = t('admin.enable') || (isRTL ? 'הפעל' : 'Enable');
-    const deleteLabel = t('admin.delete') || (isRTL ? 'מחק' : 'Delete');
+    const disableLabel = t('admin.disable');
+    const enableLabel = t('admin.enable');
+    const deleteLabel = t('admin.delete');
 
     const displayedUsers = users.slice(0, visibleCount);
     const displayedUsersCount = displayedUsers.length;
@@ -57,7 +63,7 @@ const AdminUsersTable = ({
     }, [displayedUsersCount, onVisibleUsersChange]);
 
     const handleLoadMore = () => {
-        setVisibleCount(prev => prev + getInitialCount());
+        setVisibleCount(prev => prev + pageSize);
     };
 
     return (
@@ -89,8 +95,8 @@ const AdminUsersTable = ({
                                 {getSortIcon('createdAt')}
                             </div>
                         </th>
-                        <th>{t('admin.package') || 'Package'}</th>
-                        <th>{t('admin.authProvider') || 'Provider'}</th>
+                        <th>{t('admin.package')}</th>
+                        <th>{t('admin.authProvider')}</th>
                         <th>{t('admin.actions')}</th>
                     </tr>
                 </thead>
@@ -102,9 +108,11 @@ const AdminUsersTable = ({
                     ) : (
                         displayedUsers.map(user => {
                             const statusPresentation = getUserStatusPresentation(user, t);
+                            const providerMeta = getProviderMeta(user, t);
                             const copyLabel = copiedUsername === user.username
                                 ? t('admin.copied')
                                 : t('admin.copyEmail');
+                            const isLoading = actionLoading === user.username;
                             return (
                                 <tr key={user.username} className={`user-row ${!user.enabled ? 'disabled-user' : ''}`}>
                                     <td className="email-cell" title={user.email || ''} data-label={t('admin.email')}>
@@ -136,13 +144,13 @@ const AdminUsersTable = ({
                                             }
                                         </span>
                                     </td>
-                                      <td data-label={t('admin.package') || 'Package'}><span className="td-value">{getPackageDisplay(user, t)}</span></td>
-                                      <td data-label={t('admin.authProvider') || 'Provider'}>
-                                          <span className="td-value provider-cell-content">
-                                              <span className={`provider-icon-badge ${getProviderMeta(user, t).key}`}>
-                                                  {getProviderMeta(user, t).icon}
-                                              </span>
-                                              <span className="provider-label">{getProviderDisplay(user, t)}</span>
+                                    <td data-label={t('admin.package')}><span className="td-value">{getPackageDisplay(user, t)}</span></td>
+                                    <td data-label={t('admin.authProvider')}>
+                                        <span className="td-value provider-cell-content">
+                                            <span className={`provider-icon-badge ${providerMeta.key}`}>
+                                                {providerMeta.icon}
+                                            </span>
+                                            <span className="provider-label">{providerMeta.label}</span>
                                         </span>
                                     </td>
                                     <td className="actions-cell" data-label={t('admin.actions')}>
@@ -151,11 +159,11 @@ const AdminUsersTable = ({
                                                 <button
                                                     className="action-icon-btn danger with-label"
                                                     onClick={() => handleDisableUser(user.username)}
-                                                    disabled={actionLoading === user.username}
+                                                    disabled={isLoading}
                                                     title={disableLabel}
                                                     aria-label={disableLabel}
                                                 >
-                                                    {actionLoading === user.username ? '...' : (
+                                                    {isLoading ? '...' : (
                                                         <>
                                                             <Ban size={16} />
                                                             <span className="action-btn-label">{disableLabel}</span>
@@ -166,11 +174,11 @@ const AdminUsersTable = ({
                                                 <button
                                                     className="action-icon-btn success with-label"
                                                     onClick={() => handleEnableUser(user.username)}
-                                                    disabled={actionLoading === user.username}
+                                                    disabled={isLoading}
                                                     title={enableLabel}
                                                     aria-label={enableLabel}
                                                 >
-                                                    {actionLoading === user.username ? '...' : (
+                                                    {isLoading ? '...' : (
                                                         <>
                                                             <Check size={16} />
                                                             <span className="action-btn-label">{enableLabel}</span>
@@ -181,11 +189,11 @@ const AdminUsersTable = ({
                                             <button
                                                 className="action-icon-btn danger with-label"
                                                 onClick={() => handleDeleteUser(user.username)}
-                                                disabled={actionLoading === user.username}
+                                                disabled={isLoading}
                                                 title={deleteLabel}
                                                 aria-label={deleteLabel}
                                             >
-                                                {actionLoading === user.username ? '...' : (
+                                                {isLoading ? '...' : (
                                                     <>
                                                         <Trash2 size={16} />
                                                         <span className="action-btn-label">{deleteLabel}</span>
@@ -203,12 +211,12 @@ const AdminUsersTable = ({
             {users.length > visibleCount && (
                 <div className="load-more-container">
                     <button className="load-more-btn" onClick={handleLoadMore}>
-                        {t('admin.loadMoreUsers') || t('admin.loadMore') || (isRTL ? 'טען משתמשים נוספים..' : 'Load more users..')}
+                        {t('admin.loadMoreUsers')}
                     </button>
                 </div>
             )}
         </div>
     );
 };
+
 export default AdminUsersTable;
-// HMR trigger

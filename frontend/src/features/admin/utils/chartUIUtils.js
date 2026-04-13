@@ -48,5 +48,12 @@ export const getRiskColor = (rawScore) => {
     return '#ef4444';
 };
 
+export const getRiskLevelLabel = (score, t) => {
+    if (score >= 86) return t('score.lowRisk');
+    if (score >= 71) return t('score.lowMediumRisk');
+    if (score >= 51) return t('score.mediumRisk');
+    return t('score.highRisk');
+};
+
 export const getLabelColor = (isDark) => isDark ? '#94a3b8' : '#475569';
 export const getGridColor = (isDark) => isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';

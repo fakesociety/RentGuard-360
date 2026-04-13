@@ -9,14 +9,14 @@ import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAdminUsers } from '@/features/admin/hooks/useAdminUsers';
 import Button from '@/components/ui/Button';
-import { Users, AlertTriangle, RefreshCw, Mail } from 'lucide-react';
+import { Users, AlertTriangle, RefreshCw } from 'lucide-react';
 import './AdminDashboardPage.css';
 
 import AdminUsersFilters from '@/features/admin/components/AdminUsersFilters';
 import AdminUsersTable from '@/features/admin/components/AdminUsersTable';
 import AdminUsersModals from '@/features/admin/components/AdminUsersModals';
 import { GlobalSpinner } from '@/components/ui/GlobalSpinner';
-import { getUserStatusPresentation, getPackageDisplay, getProviderMeta, getProviderDisplay } from '@/features/admin/utils/userUIUtils';
+import { getUserStatusPresentation, getPackageDisplay, getProviderMeta, getProviderDisplay } from '@/features/admin/utils/userUtils';
 
 
 const AdminUsers = () => {
@@ -51,9 +51,7 @@ const AdminUsers = () => {
         getUserIdentifier,
         doEnableUser,
         doDisableUser,
-        doDeleteUser,
-        getUserStatusKey,
-        normalizeProviderKey
+        doDeleteUser
     } = useAdminUsers();
 
     const getSortIcon = (columnKey) => {
@@ -70,8 +68,8 @@ const AdminUsers = () => {
             isOpen: true,
             type: 'disable',
             username,
-            title: t('admin.confirmDisableTitle') || 'Disable User',
-            message: `${t('admin.confirmDisable')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
+            title: t('admin.confirmDisableTitle'),
+            message: `${t('admin.confirmDisable')}\n${t('admin.userLabel')}: ${getUserIdentifier(username)}`,
         });
     };
 
@@ -84,8 +82,8 @@ const AdminUsers = () => {
             isOpen: true,
             type: 'delete',
             username,
-            title: t('admin.confirmDeleteTitle') || 'Delete User',
-            message: `${t('admin.confirmDelete')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
+            title: t('admin.confirmDeleteTitle'),
+            message: `${t('admin.confirmDelete')}\n${t('admin.userLabel')}: ${getUserIdentifier(username)}`,
         });
     };
 
@@ -100,8 +98,8 @@ const AdminUsers = () => {
                 isOpen: true,
                 type: 'deleteConfirm',
                 username,
-                title: t('admin.confirmDeleteFinalTitle') || 'Final Confirmation',
-                message: `${t('admin.confirmDeleteFinal')}\n${t('admin.userLabel') || 'User'}: ${getUserIdentifier(username)}`,
+                title: t('admin.confirmDeleteFinalTitle'),
+                message: `${t('admin.confirmDeleteFinal')}\n${t('admin.userLabel')}: ${getUserIdentifier(username)}`,
             });
         } else if (type === 'deleteConfirm') {
             doDeleteUser(username);
@@ -109,9 +107,6 @@ const AdminUsers = () => {
     };
 
     const closeModal = () => setModal({ ...modal, isOpen: false });
-
-
-
 
     const totalUsersCount = users.length;
     const fallbackVisibleCount = Math.min(
@@ -122,14 +117,13 @@ const AdminUsers = () => {
         visibleUsersCount > 0 || totalUsersCount === 0 ? visibleUsersCount : fallbackVisibleCount,
         totalUsersCount
     );
-    
 
     return (
         <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="admin-header">
                 <h1>
                     <Users size={28} style={{ marginInlineEnd: '12px' }} />
-                    {t('admin.usersTab') || 'User Management'}
+                    {t('admin.usersTab')}
                 </h1>
             </header>
 
@@ -203,4 +197,3 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
-

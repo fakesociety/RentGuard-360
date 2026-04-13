@@ -3,17 +3,18 @@
  *  AdminStripeCards Component
  *  Stripe performance metric cards
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Revenue metrics
  * - Subscription counts
- * 
+ *
  * DEPENDENCIES:
- * - None
+ * - formatUtils (formatMoney)
  * ============================================
  */
 import React from 'react';
 import './AdminStripeCards.css';
+import { formatMoney } from '@/utils/formatUtils';
 import {
     DollarSign,
     Landmark,
@@ -29,8 +30,7 @@ export const AdminStripeCards = ({
     successRate,
     displayCurrency,
     locale,
-    t,
-    formatMoney
+    t
 }) => {
     return (
         <section className="stripe-kpi-grid">
@@ -38,7 +38,7 @@ export const AdminStripeCards = ({
                 <div className="kpi-icon"><DollarSign size={20} /></div>
                 <div>
                     <p className="kpi-label">{t('admin.revenue')}</p>
-                    <p className="kpi-value">{formatMoney(sql.totalRevenue, displayCurrency, locale)}</p>
+                    <p className="kpi-value">{formatMoney(sql?.totalRevenue, displayCurrency, locale)}</p>
                 </div>
             </article>
 
@@ -46,7 +46,7 @@ export const AdminStripeCards = ({
                 <div className="kpi-icon"><Landmark size={20} /></div>
                 <div>
                     <p className="kpi-label">{t('admin.availableBalance')}</p>
-                    <p className="kpi-value">{formatMoney(stripe.availableBalance, displayCurrency, locale)}</p>
+                    <p className="kpi-value">{formatMoney(stripe?.availableBalance, displayCurrency, locale)}</p>
                 </div>
             </article>
 
@@ -62,7 +62,7 @@ export const AdminStripeCards = ({
                 <div className="kpi-icon"><CreditCard size={20} /></div>
                 <div>
                     <p className="kpi-label">{t('admin.transactions')}</p>
-                    <p className="kpi-value">{Number(sql.totalTransactions || 0)}</p>
+                    <p className="kpi-value">{Number(sql?.totalTransactions || 0)}</p>
                 </div>
             </article>
 
@@ -70,7 +70,7 @@ export const AdminStripeCards = ({
                 <div className="kpi-icon"><BadgeDollarSign size={20} /></div>
                 <div>
                     <p className="kpi-label">{t('admin.avgOrderValue')}</p>
-                    <p className="kpi-value">{formatMoney(sql.avgOrderValue, displayCurrency, locale)}</p>
+                    <p className="kpi-value">{formatMoney(sql?.avgOrderValue, displayCurrency, locale)}</p>
                 </div>
             </article>
 
@@ -78,7 +78,7 @@ export const AdminStripeCards = ({
                 <div className="kpi-icon"><ShieldAlert size={20} /></div>
                 <div>
                     <p className="kpi-label">{t('admin.disputes30Days')}</p>
-                    <p className="kpi-value">{Number(stripe.disputeCountLast30Days || 0)}</p>
+                    <p className="kpi-value">{Number(stripe?.disputeCountLast30Days || 0)}</p>
                 </div>
             </article>
         </section>

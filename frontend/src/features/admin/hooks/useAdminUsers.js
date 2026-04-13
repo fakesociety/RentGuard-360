@@ -21,15 +21,13 @@ import { emitAppToast } from '@/utils/toast';
 import { copyToClipboard } from '@/features/contracts/utils/browserUtils';
 import { 
     STATUS_FILTER_KEYS, 
-    normalizeProviderKey, 
-    getUserStatusKey,
     applyUserFiltersAndSort
 } from '@/features/admin/utils/userUtils';
 
 const executeUserAction = async (actionFn, t, { titleKey, messageText, failTitleKey, failMessageText, type }, onSuccess, onFinally) => {
     try {
         await actionFn();
-        onSuccess?.();
+        if (onSuccess) onSuccess();
         emitAppToast({ type, title: t(titleKey), message: messageText });
     } catch (err) {
         emitAppToast({
@@ -216,8 +214,6 @@ export const useAdminUsers = () => {
         getUserIdentifier,
         doEnableUser,
         doDisableUser,
-        doDeleteUser,
-        getUserStatusKey,
-        normalizeProviderKey
+        doDeleteUser
     };
 };

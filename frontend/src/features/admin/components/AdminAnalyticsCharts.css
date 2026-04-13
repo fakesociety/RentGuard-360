@@ -1,0 +1,77 @@
+/* ============================================
+   AdminAnalyticsCharts - Bar chart styles
+   ============================================ */
+
+.analytics-card-full {
+    background: var(--admin-card-bg);
+    border: 1px solid var(--admin-card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--admin-card-glow);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+.analytics-card-full h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 16px;
+}
+
+.bar-chart-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.bar-chart-wrapper {
+    overflow-x: auto;
+}
+
+.bar-chart-shaded-bg {
+    fill: rgba(255, 255, 255, 0.04);
+}
+
+.admin-dashboard.light .bar-chart-shaded-bg {
+    fill: rgba(0, 0, 0, 0.03);
+}
+
+.bar-chart-legend {
+    overflow-x: auto;
+}
+
+.bar-chart-legend table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.bar-chart-legend th {
+    text-align: start;
+    color: var(--admin-text-muted);
+    font-weight: 600;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.bar-chart-legend td {
+    padding: 8px 12px;
+    color: var(--admin-text-secondary);
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.code-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #ffffff;
+}

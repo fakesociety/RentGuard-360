@@ -22,3 +22,9 @@ export const localizeBundleName = (key, raw, t) => {
     const trans = t(`admin.package${key}`);
     return trans === `admin.package${key}` ? raw : trans;
 };
+
+export const formatTime = (seconds, t) => {
+    if (!seconds) return '—';
+    if (seconds < 60) return `${Math.round(seconds)} ${t('admin.seconds')}`;
+    return `${Math.round(seconds / 60)} ${t('admin.minutes')}`;
+};

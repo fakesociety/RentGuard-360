@@ -3,13 +3,13 @@
  *  AdminAnalyticsCards Component
  *  Metric cards for the admin analytics dashboard
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Stats grid
  * - Individual stat cards
- * 
+ *
  * DEPENDENCIES:
- * - None
+ * - chartUIUtils (getRiskLevelLabel)
  * ============================================
  */
 import React from 'react';
@@ -19,14 +19,16 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { AlertTriangle } from 'lucide-react';
+import { getRiskLevelLabel } from '@/features/admin/utils/chartUIUtils';
+import './AdminAnalyticsCards.css';
 
 export const AdminAnalyticsCards = ({ pieData, avgRiskScore, riskColor }) => {
     const { t } = useLanguage();
     const { isDark } = useTheme();
     const isMobile = useMediaQuery('(max-width:480px)');
-    
-    // Better dynamic color for gauge text based on theme
-    const valueTextColor = isDark ? '#ffffff' : '#0B0E13';
+
+    const valueTextColor = isDark ? 'var(--color-text-primary, #ffffff)' : 'var(--color-text-primary, #0B0E13)';
+    const riskLabel = getRiskLevelLabel(avgRiskScore, t);
 
     return (
         <div className="analytics-cards-row">
@@ -99,10 +101,7 @@ export const AdminAnalyticsCards = ({ pieData, avgRiskScore, riskColor }) => {
                     />
                     <p className="gauge-label" style={{ color: riskColor }}>
                         <span className="risk-dot" style={{ backgroundColor: riskColor }}></span>
-                        {avgRiskScore >= 86 ? t('score.lowRisk') :
-                            avgRiskScore >= 71 ? t('score.lowMediumRisk') :
-                                avgRiskScore >= 51 ? t('score.mediumRisk') :
-                                    t('score.highRisk')}
+                        {riskLabel}
                     </p>
                 </div>
             </div>

@@ -3,36 +3,35 @@
  *  AdminAnalyticsCharts Component
  *  Deep-dive charts for analytics
  * ============================================
- * 
+ *
  * STRUCTURE:
- * - Usage analytics
- * - User engagement graphs
- * 
+ * - Common issues bar chart
+ * - Legend table
+ *
  * DEPENDENCIES:
- * - chart.js / react-chartjs-2
+ * - CustomChartElements (BarShadedBackground, BarLabelAtBase)
+ * - chartUIUtils (getLabelColor)
  * ============================================
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { useAnimate, useAnimateBar, useDrawingArea } from '@mui/x-charts/hooks';
-import { interpolateObject } from 'd3-interpolate';
-import { styled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { FileText } from 'lucide-react';
+import { getLabelColor } from '@/features/admin/utils/chartUIUtils';
+import { BarShadedBackground, BarLabelAtBase } from '@/features/admin/components/charts/CustomChartElements';
+import './AdminAnalyticsCharts.css';
 
 export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
     const { t } = useLanguage();
     const { isDark } = useTheme();
     const isMobile = useMediaQuery('(max-width:480px)');
-    
+
     const chartContainerRef = useRef(null);
     const [chartWidth, setChartWidth] = useState(500);
-    // Use consistent typography colors using standard hex codes from design-system
-    const labelColor = isDark ? '#E8EBEF' : '#4b5563';
+    const labelColor = getLabelColor(isDark);
 
-    // Responsive chart width
     useEffect(() => {
         const updateWidth = () => {
             if (chartContainerRef.current) {
@@ -46,14 +45,13 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
     }, [loading]);
 
     return (
-            <div className="analytics-card analytics-card-full" ref={chartContainerRef}>
-                <h3>
-                    <FileText size={20} className="icon-filled" />
-                    {t('admin.commonIssues')}
-                </h3>
-                {commonIssues.length > 0 ? (
+        <div className="analytics-card analytics-card-full" ref={chartContainerRef}>
+            <h3>
+                <FileText size={20} className="icon-filled" />
+                {t('admin.commonIssues')}
+            </h3>
+            {commonIssues.length > 0 ? (
                 <div className="bar-chart-section">
-                    {/* Chart with short labels */}
                     <div className="bar-chart-wrapper" dir="ltr">
                         <BarChart
                             layout="horizontal"
@@ -88,7 +86,6 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
                             barLabel={(v) => v.value}
                         />
                     </div>
-                    {/* Legend Table for Hebrew text */}
                     <div className="bar-chart-legend">
                         <table>
                             <thead>
@@ -115,93 +112,10 @@ export const AdminAnalyticsCharts = ({ commonIssues, loading }) => {
                     </div>
                 </div>
             ) : (
-                <div className="no-data" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                <div className="no-data no-data-padded">
                     {t('admin.noIssuesYet')}
                 </div>
             )}
         </div>
     );
 };
-
-// --- Helper Components for Shiny Chart ---
-
-function BarShadedBackground(props) {
-    const {
-        ownerState,
-        dataIndex: _dataIndex,
-        xOrigin: _xOrigin,
-        yOrigin: _yOrigin,
-        skipAnimation: _skipAnimation,
-        ...svgProps
-    } = props;
-
-    const animatedProps = useAnimateBar(props);
-    const {
-        dataIndex: _animatedDataIndex,
-        xOrigin: _animatedXOrigin,
-        yOrigin: _animatedYOrigin,
-        skipAnimation: _animatedSkipAnimation,
-        ...safeAnimatedProps
-    } = animatedProps || {};
-
-    const { width: drawingWidth } = useDrawingArea();
-
-    return (
-        <React.Fragment>
-            <rect
-                {...svgProps}
-                className="bar-chart-shaded-bg"
-                x={svgProps.x}
-                width={drawingWidth}
-                style={{ rx: 4 }}
-            />
-            <rect
-                {...svgProps}
-                filter={ownerState?.isHighlighted ? 'brightness(120%)' : undefined}
-                opacity={ownerState?.isFaded ? 0.3 : 1}
-                style={{ rx: 4 }}
-                {...safeAnimatedProps}
-            />
-        </React.Fragment>
-    );
-}
-
-const Text = styled('text')(({ theme }) => ({
-    ...theme?.typography?.body2,
-    fill: '#ffffff',
-    transition: 'opacity 0.2s ease-in, fill 0.2s ease-in',
-    textAnchor: 'start',
-    dominantBaseline: 'central',
-    pointerEvents: 'none',
-    fontWeight: 600,
-    fontSize: '0.75rem',
-    textShadow: '0px 1px 2px rgba(0,0,0,0.5)'
-}));
-
-function BarLabelAtBase(props) {
-    const {
-        xOrigin,
-        y,
-        height,
-        skipAnimation,
-        dataIndex: _dataIndex,
-        yOrigin: _yOrigin,
-        ...otherProps
-    } = props;
-
-    const animatedProps = useAnimate(
-        { x: xOrigin + 8, y: y + height / 2 },
-        {
-            initialProps: { x: xOrigin, y: y + height / 2 },
-            createInterpolator: interpolateObject,
-            transformProps: (p) => p,
-            applyProps: (element, p) => {
-                element.setAttribute('x', p.x.toString());
-                element.setAttribute('y', p.y.toString());
-            },
-            skip: skipAnimation,
-        },
-    );
-
-    return <Text {...otherProps} {...animatedProps} />;
-}

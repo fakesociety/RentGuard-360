@@ -3,35 +3,37 @@
  *  AdminStripeTable Component
  *  Table view for Stripe transactions
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Transaction history
  * - Status indicators
- * 
+ *
  * DEPENDENCIES:
- * - None
+ * - formatUtils (formatMoney, shortUserId)
  * ============================================
  */
 import React from 'react';
+import { formatMoney, shortUserId } from '@/utils/formatUtils';
+import './AdminStripeTable.css';
 
 export const AdminStripeTable = ({
     data,
     sql,
     derivedCurrencies,
     locale,
-    t,
-    formatMoney,
-    shortUserId
+    t
 }) => {
+    const transactions = sql?.recentTransactions || [];
+
     return (
         <section className="stripe-panel table-panel">
             <div className="table-head">
                 <h3>{t('admin.recentTransactions')}</h3>
-                <span>{t('admin.generatedAt')}: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString(locale) : 'N/A'}</span>
+                <span>{t('admin.generatedAt')}: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString(locale) : '—'}</span>
             </div>
             <div className="currency-summary">
                 <h4>{t('admin.topCurrencies')}</h4>
-                {derivedCurrencies.length > 0 ? (
+                {derivedCurrencies?.length > 0 ? (
                     <div className="currency-summary-list">
                         {derivedCurrencies.slice(0, 6).map((cur) => (
                             <div className="currency-summary-row" key={`currency-${cur.currency}`}>
@@ -57,7 +59,7 @@ export const AdminStripeTable = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {(sql.recentTransactions || []).map((tx, idx) => (
+                        {transactions.map((tx, idx) => (
                             <tr key={`${tx.userId}-${tx.createdAt}-${idx}`}>
                                 <td>{shortUserId(tx.userId)}</td>
                                 <td>{tx.bundleName}</td>
@@ -68,12 +70,12 @@ export const AdminStripeTable = ({
                                         {tx.status}
                                     </span>
                                 </td>
-                                <td>{tx.createdAt ? new Date(tx.createdAt).toLocaleString(locale) : '-'}</td>
+                                <td>{tx.createdAt ? new Date(tx.createdAt).toLocaleString(locale) : '—'}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-                {(!sql.recentTransactions || sql.recentTransactions.length === 0) && (
+                {transactions.length === 0 && (
                     <p className="empty-text">{t('admin.noData')}</p>
                 )}
             </div>

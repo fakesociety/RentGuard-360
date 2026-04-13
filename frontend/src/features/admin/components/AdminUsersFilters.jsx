@@ -3,18 +3,35 @@
  *  AdminUsersFilters Component
  *  Filter and search bar for the users table
  * ============================================
- * 
+ *
  * STRUCTURE:
  * - Search input
- * - Role/Status filters
- * 
+ * - Status/Provider/Package filters (dynamic)
+ *
  * DEPENDENCIES:
- * - None
+ * - ActionMenu
  * ============================================
  */
 import React from 'react';
 import ActionMenu from '@/components/ui/ActionMenu';
 import { Search, Filter, ChevronDown, Mail } from 'lucide-react';
+import './AdminUsersFilters.css';
+
+const STATUS_FILTERS = [
+    { key: 'status_enabled', labelKey: 'admin.activeOnly', indicatorClass: 'active' },
+    { key: 'status_disabled', labelKey: 'admin.disabledOnly', indicatorClass: 'disabled' },
+    { key: 'status_pending', labelKey: 'admin.pendingVerification', indicatorClass: 'pending' },
+];
+
+const PACKAGE_FILTERS = [
+    { key: 'package_free', labelKey: 'admin.packageFree' },
+    { key: 'package_single', labelKey: 'admin.packageSingle' },
+    { key: 'package_basic', labelKey: 'admin.packageBasic' },
+    { key: 'package_pro', labelKey: 'admin.packagePro' },
+    { key: 'package_admin', labelKey: 'admin.packageAdmin' },
+    { key: 'package_none', labelKey: 'admin.packageNone' },
+    { key: 'package_expired', labelKey: 'admin.packageExpired' },
+];
 
 const AdminUsersFilters = ({
     t,
@@ -48,11 +65,11 @@ const AdminUsersFilters = ({
                     onClose={() => setAdvancedFilterOpen(false)}
                     containerClassName="users-advanced-filter-menu"
                     triggerClassName={`filter-btn users-advanced-trigger ${advancedFilterCount > 0 ? 'active' : ''}`}
-                    triggerAriaLabel={t('admin.advancedFilter') || 'Advanced Filter'}
+                    triggerAriaLabel={t('admin.advancedFilter')}
                     triggerContent={
                         <>
                             <Filter size={14} />
-                            <span>{t('admin.advancedFilter') || 'Advanced Filter'}</span>
+                            <span>{t('admin.advancedFilter')}</span>
                             {advancedFilterCount > 0 && <span className="users-filter-pill">{advancedFilterCount}</span>}
                             <ChevronDown size={14} />
                         </>
@@ -60,55 +77,46 @@ const AdminUsersFilters = ({
                     panelClassName="users-filter-dropdown"
                 >
                     <div className="users-filter-dropdown-header">
-                        <span>{t('admin.advancedFilter') || 'Advanced Filter'}</span>
+                        <span>{t('admin.advancedFilter')}</span>
                         <button type="button" className="users-filter-clear" onClick={clearAdvancedFilters}>
-                            {t('common.clearSelections') || 'Clear selections'}
+                            {t('common.clearSelections')}
                         </button>
                     </div>
                     <div className="profile-divider users-filter-divider"></div>
 
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('status_enabled') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('status_enabled')}>
-                        <span className="status-indicator active"></span>{t('admin.activeOnly') || 'Active Only'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('status_disabled') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('status_disabled')}>
-                        <span className="status-indicator disabled"></span>{t('admin.disabledOnly') || 'Disabled Only'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('status_pending') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('status_pending')}>
-                        <span className="status-indicator pending"></span>{t('admin.pendingVerification') || 'Pending verification'}
-                    </button>
+                    {STATUS_FILTERS.map(({ key, labelKey, indicatorClass }) => (
+                        <button
+                            key={key}
+                            type="button"
+                            className={`profile-menu-item users-filter-item ${isAdvancedFilterActive(key) ? 'active' : ''}`}
+                            onClick={() => toggleAdvancedFilter(key)}
+                        >
+                            <span className={`status-indicator ${indicatorClass}`}></span>
+                            {t(labelKey)}
+                        </button>
+                    ))}
 
-                    <div className="users-filter-subtitle">{t('admin.authProvider') || 'Provider'}</div>
+                    <div className="users-filter-subtitle">{t('admin.authProvider')}</div>
                     <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('provider_email') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('provider_email')}>
                         <span className="provider-filter-icon email"><Mail size={14} /></span>
-                        {t('admin.emailPassword') || 'Email'}
+                        {t('admin.emailPassword')}
                     </button>
                     <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('provider_google') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('provider_google')}>
                         <span className="provider-filter-icon google">{getProviderMeta({ authProvider: 'Google' }).icon}</span>
                         Google
                     </button>
 
-                    <div className="users-filter-subtitle">{t('admin.package') || 'Package'}</div>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_free') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_free')}>
-                        {t('admin.packageFree') || 'Free'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_single') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_single')}>
-                        {t('admin.packageSingle') || 'Single'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_basic') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_basic')}>
-                        {t('admin.packageBasic') || 'Basic'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_pro') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_pro')}>
-                        {t('admin.packagePro') || 'Pro'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_admin') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_admin')}>
-                        {t('admin.packageAdmin') || 'Admin'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_none') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_none')}>
-                        {t('admin.packageNone') || 'No package'}
-                    </button>
-                    <button type="button" className={`profile-menu-item users-filter-item ${isAdvancedFilterActive('package_expired') ? 'active' : ''}`} onClick={() => toggleAdvancedFilter('package_expired')}>
-                        {t('admin.packageExpired') || 'Expired package'}
-                    </button>
+                    <div className="users-filter-subtitle">{t('admin.package')}</div>
+                    {PACKAGE_FILTERS.map(({ key, labelKey }) => (
+                        <button
+                            key={key}
+                            type="button"
+                            className={`profile-menu-item users-filter-item ${isAdvancedFilterActive(key) ? 'active' : ''}`}
+                            onClick={() => toggleAdvancedFilter(key)}
+                        >
+                            {t(labelKey)}
+                        </button>
+                    ))}
                 </ActionMenu>
             </div>
         </div>
