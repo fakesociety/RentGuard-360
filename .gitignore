@@ -96,3 +96,4 @@ backend/StripePaymentAPI/out_verify_tmp/
 **/out_verify_tmp/
 # Un-ignore frontend
 !frontend/
+.cache_ggshield

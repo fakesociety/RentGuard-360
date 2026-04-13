@@ -12,16 +12,19 @@
  * 
  * DEPENDENCIES:
  * - useContractChat hook
- * - ActionMenu, ChatMessage, ChatHeader, ChatInputForm
+ * - ChatMessage, ChatHeader, ChatInputForm, ChatContractSelector, ChatClearConfirmDialog, ChatPendingMessage, ChatQuickPrompts
  * ============================================
  */
 import React from 'react';
-import { MessageCircle, X, Bot, ChevronDown } from 'lucide-react';
-import ActionMenu from '@/components/ui/ActionMenu';
+import { MessageCircle, X } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ChatHeader from './ChatHeader';
 import ChatInputForm from './ChatInputForm';
-import { useContractChat } from '@/features/chat/hooks/useContractChat';
+import ChatContractSelector from './ChatContractSelector';
+import ChatPendingMessage from './ChatPendingMessage';
+import ChatQuickPrompts from './ChatQuickPrompts';
+import ChatClearConfirmDialog from './ChatClearConfirmDialog';
+import { useChatWidget } from '@/features/chat/hooks/useChatWidget';
 import './ContractChatWidget.css';
 
 const ContractChatWidget = () => {
@@ -76,8 +79,7 @@ const ContractChatWidget = () => {
 
         copiedMessageKey,
         copyMessageText
-    } = useContractChat();
-
+    } = useChatWidget();
     if (!isAuthenticated) return null;
 
     return (
@@ -91,70 +93,20 @@ const ContractChatWidget = () => {
                 <section className={`chat-widget-panel ${isClosing ? 'closing' : ''}`} aria-label={t('chat.title')}>
                     <ChatHeader t={t} closePanel={closePanel} />
 
-                    <div className="chat-widget-contract-picker">
-                        <label id="chat-contract-select-label">{t('chat.contractLabel')}</label>
-                        <div className="chat-widget-contract-row">
-                            <ActionMenu
-                                isOpen={isContractMenuOpen}
-                                onToggle={() => setIsContractMenuOpen((prev) => !prev)}
-                                onClose={() => setIsContractMenuOpen(false)}
-                                containerClassName="chat-contract-menu"
-                                triggerClassName="chat-contract-trigger"
-                                triggerAriaLabel={t('chat.contractLabel')}
-                                disabled={loadingContracts}
-                                triggerContent={
-                                    <>
-                                        <span
-                                            id="chat-contract-select"
-                                            className={`chat-contract-trigger-label ${selectedContractId ? 'selected' : 'placeholder'}`}
-                                        >
-                                            {selectedContractLabel}
-                                        </span>
-                                        <ChevronDown
-                                            size={15}
-                                            className={`chat-contract-trigger-chevron ${isContractMenuOpen ? 'open' : ''}`}
-                                        />
-                                    </>
-                                }
-                                panelClassName="chat-contract-dropdown"
-                            >
-                                <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => handleContractSelect('')}
-                                    className={`chat-contract-option ${selectedContractId ? '' : 'active'}`}
-                                >
-                                    {loadingContracts ? t('chat.loadingContracts') : t('chat.selectContract')}
-                                </button>
-
-                                {contracts.map((contract) => {
-                                    const isActive = selectedContractId === contract.contractId;
-                                    const label = contract.fileName || contract.contractId;
-                                    return (
-                                        <button
-                                            key={contract.contractId}
-                                            type="button"
-                                            role="menuitem"
-                                            onClick={() => handleContractSelect(contract.contractId)}
-                                            title={label}
-                                            className={`chat-contract-option ${isActive ? 'active' : ''}`}
-                                        >
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </ActionMenu>
-                            <button
-                                type="button"
-                                className="chat-widget-clear"
-                                onClick={clearHistory}
-                                disabled={!selectedContractId || isAsking || isHistoryLoading || messages.length === 0}
-                                title={t('chat.clear')}
-                            >
-                                {t('chat.clearShort')}
-                            </button>
-                        </div>
-                    </div>
+                    <ChatContractSelector 
+                        t={t}
+                        contracts={contracts}
+                        loadingContracts={loadingContracts}
+                        selectedContractId={selectedContractId}
+                        selectedContractLabel={selectedContractLabel}
+                        handleContractSelect={handleContractSelect}
+                        isContractMenuOpen={isContractMenuOpen}
+                        setIsContractMenuOpen={setIsContractMenuOpen}
+                        clearHistory={clearHistory}
+                        isAsking={isAsking}
+                        isHistoryLoading={isHistoryLoading}
+                        messagesCount={messages.length}
+                    />
 
                     <div className="chat-widget-messages" role="log" aria-live="polite" ref={messagesContainerRef}>
                         {selectedContractId && isHistoryLoading && (
@@ -171,18 +123,11 @@ const ContractChatWidget = () => {
                         )}
 
                         {selectedContractId && !isHistoryLoading && messages.length === 0 && (
-                            <div className="chat-widget-quick-prompts" aria-label={t('chat.quickPromptsLabel')}>
-                                {quickPrompts.map((promptText) => (
-                                    <button
-                                        key={promptText}
-                                        type="button"
-                                        className="chat-widget-prompt-chip"
-                                        onClick={() => selectQuickPrompt(promptText)}
-                                    >
-                                        {promptText}
-                                    </button>
-                                ))}
-                            </div>
+                            <ChatQuickPrompts 
+                                t={t} 
+                                quickPrompts={quickPrompts} 
+                                selectQuickPrompt={selectQuickPrompt} 
+                            />
                         )}
 
 {messages.map((msg) => (
@@ -199,24 +144,7 @@ const ContractChatWidget = () => {
                               />
                           ))}
 
-                        {isAsking && (
-                            <div className="chat-msg-row assistant pending">
-                                <div className="chat-msg-avatar assistant" aria-hidden="true">
-                                    <Bot size={14} />
-                                </div>
-                                <article className="chat-msg assistant pending">
-                                    <div className="chat-msg-role">{t('chat.assistant')}</div>
-                                    <p className="chat-typing">
-                                        <span>{t('chat.thinking')}</span>
-                                        <span className="chat-typing-dots" aria-hidden="true">
-                                            <i />
-                                            <i />
-                                            <i />
-                                        </span>
-                                    </p>
-                                </article>
-                            </div>
-                        )}
+                        {isAsking && <ChatPendingMessage t={t} />}
                     </div>
 
                     {responseHintKey && (
@@ -256,28 +184,11 @@ const ContractChatWidget = () => {
                     />
 
                     {isClearConfirmOpen && (
-                        <div className="chat-widget-confirm-overlay" role="dialog" aria-modal="true" aria-label={t('chat.clear')}>
-                            <div className="chat-widget-confirm-card">
-                                <h4>{t('chat.clear')}</h4>
-                                <p>{t('chat.clearConfirm')}</p>
-                                <div className="chat-widget-confirm-actions">
-                                    <button
-                                        type="button"
-                                        className="chat-widget-confirm-cancel"
-                                        onClick={() => setIsClearConfirmOpen(false)}
-                                    >
-                                        {t('common.cancel')}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="chat-widget-confirm-danger"
-                                        onClick={confirmClearHistory}
-                                    >
-                                        {t('chat.clearShort')}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <ChatClearConfirmDialog 
+                            t={t}
+                            confirmClearHistory={confirmClearHistory}
+                            setIsClearConfirmOpen={setIsClearConfirmOpen}
+                        />
                     )}
                 </section>
             )}
