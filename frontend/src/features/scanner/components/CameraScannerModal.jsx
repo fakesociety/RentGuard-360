@@ -15,12 +15,13 @@
  * - useScanPages hook
  * ============================================
  */
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import Webcam from 'react-webcam';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useScanPages } from '@/features/scanner/hooks/useScanPages';
+import { useScannerUIState } from '@/features/scanner/hooks/useScannerUIState';
 import { compressCaptureDataUrl, getCroppedImg } from '@/features/scanner/services/imageProcessing';
 import { buildPdfFileFromPages } from '@/features/scanner/services/pdfBuilder';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
@@ -49,6 +50,29 @@ const CameraScannerModal = ({
     const pendingImageRef = useRef(null);
     const scanTimerRef = useRef(null);
     const {
+        isCapturing,
+        isBuildingPdf,
+        pendingCapture,
+        crop,
+        completedCrop,
+        isAutoScanning,
+        expandedPageId,
+        error,
+        setIsCapturing,
+        setIsBuildingPdf,
+        setIsAutoScanning,
+        setCrop,
+        setCompletedCrop,
+        setExpandedPageId,
+        setErrorMessage,
+        clearError,
+        startCamera,
+        stopCamera,
+        enableCropMode,
+        disableCropMode,
+        resetUI,
+    } = useScannerUIState();
+    const {
         pages,
         activePageId,
         setActivePageId,
@@ -56,15 +80,6 @@ const CameraScannerModal = ({
         removePage,
         clearPages,
     } = useScanPages();
-
-    const [isCapturing, setIsCapturing] = useState(false);
-    const [isBuildingPdf, setIsBuildingPdf] = useState(false);
-    const [pendingCapture, setPendingCapture] = useState(null);
-    const [crop, setCrop] = useState(null);
-    const [completedCrop, setCompletedCrop] = useState(null);
-    const [isAutoScanning, setIsAutoScanning] = useState(false);
-    const [expandedPageId, setExpandedPageId] = useState(null);
-    const [error, setError] = useState('');
 
     const expandedPage = useMemo(
         () => pages.find((item) => item.id === expandedPageId) || null,
@@ -84,39 +99,28 @@ const CameraScannerModal = ({
 
     const handleRetake = () => {
         clearScanTimer();
-        setPendingCapture(null);
-        setCompletedCrop(null);
-        setCrop(null);
-        setIsAutoScanning(false);
+        disableCropMode();
     };
 
     const handleClose = () => {
         clearScanTimer();
-        setError('');
-        setPendingCapture(null);
-        setCompletedCrop(null);
-        setCrop(null);
-        setIsAutoScanning(false);
+        stopCamera();
+        resetUI();
         clearPages();
-        setExpandedPageId(null);
         onClose();
     };
 
     const handleCapture = async () => {
-        setError('');
+        clearError();
 
         const frameDataUrl = webcamRef.current?.getScreenshot();
         if (!frameDataUrl) {
-            setError('Camera frame is not available yet. Please allow camera access and retry.');
+            setErrorMessage('Camera frame is not available yet. Please allow camera access and retry.');
             return;
         }
 
         clearScanTimer();
-
-        setPendingCapture(frameDataUrl);
-        setCrop(null);
-        setCompletedCrop(null);
-        setIsAutoScanning(false);
+        enableCropMode(frameDataUrl);
     };
 
     const handlePendingImageLoad = (event) => {
@@ -141,7 +145,7 @@ const CameraScannerModal = ({
 
     const handleApplyCrop = async () => {
         if (!pendingCapture || !completedCrop || !pendingImageRef.current) {
-            setError('Adjust the crop area before confirming.');
+            setErrorMessage('Adjust the crop area before confirming.');
             return;
         }
 
@@ -171,11 +175,9 @@ const CameraScannerModal = ({
                 quality: 0.84,
             });
             addPage(page);
-            setPendingCapture(null);
-            setCompletedCrop(null);
-            setCrop(null);
+            disableCropMode();
         } catch (captureError) {
-            setError(captureError.message || 'Failed to capture page.');
+            setErrorMessage(captureError.message || 'Failed to capture page.');
         } finally {
             clearScanTimer();
             setIsAutoScanning(false);
@@ -185,11 +187,11 @@ const CameraScannerModal = ({
 
     const handleCreatePdf = async () => {
         if (!pages.length) {
-            setError('Capture at least one page before creating the PDF.');
+            setErrorMessage('Capture at least one page before creating the PDF.');
             return;
         }
 
-        setError('');
+        clearError();
         setIsBuildingPdf(true);
 
         try {
@@ -200,7 +202,7 @@ const CameraScannerModal = ({
             });
 
             if (pdfFile.size > PDF_MAX_BYTES) {
-                setError(
+                setErrorMessage(
                     `Generated PDF is ${formatMb(pdfFile.size)} and exceeds the 5 MB upload limit. Remove a page and try again.`
                 );
                 return;
@@ -209,7 +211,7 @@ const CameraScannerModal = ({
             onComplete(pdfFile);
             handleClose();
         } catch (buildError) {
-            setError(buildError.message || 'Failed to generate PDF from scanned pages.');
+            setErrorMessage(buildError.message || 'Failed to generate PDF from scanned pages.');
         } finally {
             setIsBuildingPdf(false);
         }
@@ -239,15 +241,19 @@ const CameraScannerModal = ({
                             mirrored={false}
                             forceScreenshotSourceSize={true}
                             playsInline={true}
+                            onUserMedia={() => {
+                                startCamera();
+                            }}
                             onUserMediaError={(err) => {
                                 const errMsg = err.message || err.name || '';
                                 if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
-                                    setError(t('upload.cameraAccessError'));
+                                    setErrorMessage(t('upload.cameraAccessError'));
                                 } else if (errMsg.includes('getUserMedia is not implemented')) {
-                                    setError(t('upload.cameraNotSupportedError') || 'המצלמה אינה נתמכת בדפדפן זה הקפד לגלוש בחיבור מאובטח (HTTPS) או לפתוח את האתר בדפדפן הראשי (Chrome/Safari).');
+                                    setErrorMessage(t('upload.cameraNotSupportedError') || 'המצלמה אינה נתמכת בדפדפן זה הקפד לגלוש בחיבור מאובטח (HTTPS) או לפתוח את האתר בדפדפן הראשי (Chrome/Safari).');
                                 } else {
-                                    setError(`${t('upload.cameraErrorPrefix')} ${errMsg || 'Unknown'}`);
+                                    setErrorMessage(`${t('upload.cameraErrorPrefix')} ${errMsg || 'Unknown'}`);
                                 }
+                                stopCamera();
                             }}
                         />
 

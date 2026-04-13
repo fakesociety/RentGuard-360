@@ -2,7 +2,9 @@
    CameraScannerModal.css (Mobile-First, Full-Screen)
    ========================================================= */
 
-/* --- 1. Full Screen Overlay & Modal --- */
+/* =========================================================
+    === 1. MODAL WRAPPER ===
+    ========================================================= */
 .scanner-modal-overlay {
     position: fixed;
     inset: 0;
@@ -25,7 +27,9 @@
     border-radius: 0;
 }
 
-/* --- 2. Header & Close Button --- */
+/* =========================================================
+    === 2. HEADER & CLOSE BUTTON ===
+    ========================================================= */
 .scanner-modal-header {
     position: absolute;
     top: 0;
@@ -53,7 +57,9 @@
     justify-content: center;
 }
 
-/* --- 3. Camera Viewport --- */
+/* =========================================================
+    === 3. CAMERA VIEWPORT ===
+    ========================================================= */
 .scanner-modal-body {
     display: block;
     padding: 0;
@@ -80,7 +86,9 @@
     border-radius: 0;
 }
 
-/* --- 4. Spotlight Overlay & Scanning Guide --- */
+/* =========================================================
+    === 4. SPOTLIGHT OVERLAY & FOCUS GUIDE ===
+    ========================================================= */
 .scanner-spotlight-overlay {
     position: absolute;
     inset: 0;
@@ -147,7 +155,9 @@
 .focus-corners-bottom::before { bottom: -2px; left: -2px; border-right: 0; border-top: 0; border-radius: 0 0 0 16px; }
 .focus-corners-bottom::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-radius: 0 0 16px 0; }
 
-/* --- 5. Bottom Controls & Capture Button --- */
+/* =========================================================
+    === 5. BOTTOM CONTROLS & CAPTURE ACTIONS ===
+    ========================================================= */
 .scanner-controls-wrapper {
     position: absolute;
     bottom: 0;
@@ -203,7 +213,9 @@
     cursor: not-allowed;
 }
 
-/* --- 6. Horizontal Thumbnail Gallery (Carousel) --- */
+/* =========================================================
+    === 6. THUMBNAIL GALLERY ===
+    ========================================================= */
 .scanner-gallery-panel {
     border: none;
     background: transparent;
@@ -269,7 +281,9 @@
     border: none;
 }
 
-/* --- 8. Expanded Image Modal (Full Screen Preview) --- */
+/* =========================================================
+    === 7. EXPANDED IMAGE PREVIEW ===
+    ========================================================= */
 .scanner-expanded-overlay {
     position: fixed;
     inset: 0;
@@ -309,7 +323,9 @@
     z-index: 1201;
 }
 
-/* --- 9. Crop Flow --- */
+/* =========================================================
+    === 8. CROP OVERLAY FLOW ===
+    ========================================================= */
 .scanner-crop-overlay {
     position: absolute;
     inset: 0;
@@ -408,7 +424,10 @@
     opacity: 0.65;
     cursor: not-allowed;
 }
-/* --- 10. Camera Error Overlay --- */
+
+/* =========================================================
+   === 9. CAMERA ERROR OVERLAY ===
+   ========================================================= */
 .scanner-error-overlay {
     position: absolute;
     top: 0;
