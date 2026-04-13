@@ -40,7 +40,6 @@
     overflow-x: hidden;
     /* Prevent sidebar from peeking */
     padding-left: var(--admin-sidebar-width);
-    padding-top: 0 !important; /* Force reset global layout paddings */
     box-sizing: border-box;
 }
 
@@ -92,7 +91,6 @@
     flex: 1;
     min-width: 0;
     min-height: 100vh;
-    padding-top: 0 !important; /* Block CSS global leaks */
     transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -229,7 +227,7 @@
 
     /* Main content takes full width, no margin for sidebar */
     .admin-main {
-        padding-top: 56px !important;
+        padding-top: calc(56px + var(--space-xl, 32px)) !important;
     }
 
     /* Enable overlay display */
@@ -270,7 +268,7 @@
     }
 
     .admin-main {
-        padding-top: 52px !important;
+        padding-top: calc(52px + var(--space-xl, 32px)) !important;
     }
 
     .mobile-logo span {
@@ -285,7 +283,7 @@
     }
 
     .admin-main {
-        padding-top: 48px !important;
+        padding-top: calc(48px + var(--space-xl, 32px)) !important;
     }
 
     .mobile-menu-btn {

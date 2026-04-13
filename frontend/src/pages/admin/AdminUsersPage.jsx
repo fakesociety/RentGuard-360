@@ -119,7 +119,7 @@ const AdminUsers = () => {
     );
 
     return (
-        <div className={`admin-dashboard page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <div dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="admin-header">
                 <h1>
                     <Users size={28} style={{ marginInlineEnd: '12px' }} />

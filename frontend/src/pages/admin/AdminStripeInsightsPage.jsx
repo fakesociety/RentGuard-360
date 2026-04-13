@@ -51,7 +51,7 @@ const AdminStripeInsights = () => {
 
     if (!isAdmin) {
         return (
-            <div className={`stripe-insights-page page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className={`stripe-insights-page`} dir={isRTL ? 'rtl' : 'ltr'}>
                 <div className="stripe-insights-denied">
                     <AlertTriangle size={42} />
                     <h2>{t('admin.accessDenied')}</h2>
@@ -62,7 +62,7 @@ const AdminStripeInsights = () => {
     }
 
     return (
-        <div className={`admin-dashboard stripe-insights-page page-container ${isDark ? 'dark' : 'light'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className={`stripe-insights-page`} dir={isRTL ? 'rtl' : 'ltr'}>
             <header className="admin-header stripe-header-row">
                 <div>
                     <h1>
