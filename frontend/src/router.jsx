@@ -13,12 +13,12 @@ import RouterErrorElement from '@/components/ui/RouterErrorElement';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Lazy loaded pages
-const LandingPage = lazy(() => import('@/pages/public/LandingPage'));
+const LandingPage = lazy(() => import('@/pages/public/Landing/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/core/DashboardPage'));
 const UploadPage = lazy(() => import('@/pages/core/UploadPage'));
 const ContractsPage = lazy(() => import('@/pages/core/ContractsPage'));
 const AnalysisPage = lazy(() => import('@/pages/core/AnalysisPage'));
-const SharedContractView = lazy(() => import('@/pages/core/SharedContractView'));
+const SharedContractPage = lazy(() => import('@/pages/core/SharedContractPage'));
 const SettingsPage = lazy(() => import('@/pages/core/SettingsPage'));
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
 const ContactPublic = lazy(() => import('@/pages/public/ContactPublic'));
@@ -70,7 +70,7 @@ export const router = createHashRouter([
       { path: "pricing", element: <ConditionalPricingRoute /> },
       { path: "checkout/:packageId", element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
       { path: "payment-success", element: <ProtectedRoute><PaymentSuccessPage /></ProtectedRoute> },
-      { path: "shared/:id", element: <SharedContractView /> },
+      { path: "shared/:id", element: <SharedContractPage /> },
       { path: "terms", element: <TermsPage /> },
       { path: "privacy", element: <PrivacyPage /> },
       {
