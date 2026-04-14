@@ -443,6 +443,7 @@ export const en = {
     },
     "scanner": {
         "focus_guidance": "Please align the document within the frame and capture from directly above for best results.",
+        "retake": "Retake",
         "adjustCropArea": "Adjust the crop area before confirming.",
         "applyingCrop": "Applying...",
         "applyCrop": "Apply Crop",

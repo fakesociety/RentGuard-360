@@ -442,7 +442,15 @@ export const he = {
         "serverTemporaryError": "השרת עמוס כרגע. המערכת ניסתה שוב אוטומטית ולא הצליחה. נסו שוב בעוד כמה שניות."
     },
     "scanner": {
-        "focus_guidance": "אנא ישרו את המסמך בתוך המסגרת וצלמו ישירות מלמעלה לקבלת התוצאות הטובות ביותר"
+        "focus_guidance": "אנא ישרו את המסמך בתוך המסגרת וצלמו ישירות מלמעלה לקבלת התוצאות הטובות ביותר",
+        "retake": "צילום מחדש",
+        "adjustCropArea": "התאימו את אזור החיתוך לפני האישור.",
+        "applyingCrop": "מחיל חיתוך...",
+        "applyCrop": "אישור חיתוך",
+        "buildingPdf": "יוצר PDF...",
+        "done": "סיום",
+        "deletePage": "מחיקת עמוד",
+        "scannedPagesGallery": "גלריית עמודים שנסרקו"
     },
     "analysis": {
         "shareExpiryDaysOne": "פג תוקף בעוד יום",

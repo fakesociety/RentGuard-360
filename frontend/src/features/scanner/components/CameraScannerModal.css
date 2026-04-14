@@ -8,16 +8,27 @@
 .scanner-modal-overlay {
     position: fixed;
     inset: 0;
+    width: 100vw;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
     z-index: 1100;
     background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+    touch-action: none;
 }
 
 .scanner-modal {
     width: 100%;
-    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     background: #000;
@@ -25,6 +36,53 @@
     overflow: hidden;
     border: none;
     border-radius: 0;
+    overscroll-behavior: none;
+    touch-action: none;
+}
+
+.scanner-modal-overlay.crop-active,
+.scanner-modal.crop-active {
+    touch-action: auto;
+}
+
+@supports (-webkit-touch-callout: none) {
+    html,
+    body {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+    }
+
+    /* iOS-specific crop layout: keep toolbar in normal flow and reserve space for it. */
+    .scanner-crop-overlay {
+        height: 100dvh;
+        min-height: -webkit-fill-available;
+    }
+
+    .scanner-crop-stage {
+        flex: 0 1 auto;
+        max-height: calc(100dvh - (env(safe-area-inset-bottom, 0px) + 300px));
+        padding: 18px 16px 48px;
+    }
+
+    .scanner-crop-stage .ReactCrop {
+        max-height: 100%;
+        max-width: min(72vw, 550px);
+    }
+
+    .scanner-crop-image {
+        max-height: 100%;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .scanner-crop-toolbar {
+        position: relative;
+        margin-top: auto;
+        flex: 0 0 auto;
+        padding: 14px calc(env(safe-area-inset-right, 0px) + 16px) calc(env(safe-area-inset-bottom, 0px) + 8px) calc(env(safe-area-inset-left, 0px) + 16px);
+    }
 }
 
 /* =========================================================
@@ -38,7 +96,7 @@
     z-index: 50;
     display: flex;
     justify-content: flex-end;
-    padding: 16px 20px;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) calc(env(safe-area-inset-right, 0px) + 20px) 16px calc(env(safe-area-inset-left, 0px) + 20px);
     background: linear-gradient(rgba(0,0,0,0.5), transparent);
     border: none;
 }
@@ -101,9 +159,9 @@
 }
 
 .scanner-focus-box {
-    width: 85%;
-    max-width: 400px;
+    width: min(90vw, 470px);
     aspect-ratio: 3/4;
+    margin-top: -34px;
     border-radius: 16px;
     position: relative;
     background: rgba(255, 255, 255, 0.03);
@@ -112,18 +170,49 @@
 }
 
 .scanner-focus-guidance {
-    margin-top: 14px;
-    max-width: min(88vw, 480px);
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.62);
-    border: 1px solid rgba(255, 255, 255, 0.24);
+    margin: 0;
+    max-width: min(72vw, 420px);
     color: #ffffff;
     font-size: 14px;
-    font-weight: 700;
-    text-align: center;
+    font-weight: 600;
+    text-align: start;
     line-height: 1.45;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.scanner-focus-hint-toast {
+    position: absolute;
+    left: 50%;
+    bottom: max(140px, calc(env(safe-area-inset-bottom, 0px) + 118px));
+    transform: translateX(-50%);
+    width: min(92vw, 540px);
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(16, 16, 16, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+    animation: scanner-hint-fade-in 220ms ease-out;
+}
+
+.scanner-focus-hint-close {
+    border: none;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.16);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .scanner-focus-box::before,
@@ -165,7 +254,7 @@
     width: 100%;
     z-index: 20;
     background: linear-gradient(transparent, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.95));
-    padding: 0 16px 30px;
+    padding: 0 calc(env(safe-area-inset-right, 0px) + 16px) calc(env(safe-area-inset-bottom, 0px) + 30px) calc(env(safe-area-inset-left, 0px) + 16px);
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -201,10 +290,11 @@
     background: var(--accent-primary);
     color: #fff;
     border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 14px;
+    min-height: 52px;
+    padding: 13px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
 }
 
 .finish-scan-btn:disabled {
@@ -333,6 +423,8 @@
     background: rgba(0, 0, 0, 0.95);
     display: flex;
     flex-direction: column;
+    overscroll-behavior: none;
+    touch-action: none;
 }
 
 .scanner-crop-stage {
@@ -341,12 +433,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 12px 0;
+    padding: 24px 18px 12px;
+    touch-action: auto;
+}
+
+.scanner-crop-stage .ReactCrop {
+    width: auto;
+    max-width: min(92vw, 760px);
+    max-height: 100%;
+    touch-action: auto;
+}
+
+.scanner-crop-stage .ReactCrop * {
+    touch-action: auto;
 }
 
 .scanner-crop-image {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: min(90vw, 740px);
+    max-height: calc(100% - 18px);
     object-fit: contain;
     display: block;
     user-select: none;
@@ -384,7 +488,7 @@
 
 .scanner-crop-toolbar {
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.95) 20%);
-    padding: 14px 16px 24px;
+    padding: 16px calc(env(safe-area-inset-right, 0px) + 16px) calc(env(safe-area-inset-bottom, 0px) + 68px) calc(env(safe-area-inset-left, 0px) + 16px);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -403,10 +507,11 @@
 .crop-action-btn {
     flex: 1;
     border: none;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 12px;
+    min-height: 54px;
+    padding: 14px 16px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
 }
 
@@ -469,4 +574,97 @@
     color: #ccc;
     word-break: break-word;
     max-width: 100%;
+}
+
+@keyframes scanner-hint-fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* =========================================================
+   ===  SMALL-HEIGHT CALIBRATION (ANDROID COMPACT VIEWS) ===
+   ========================================================= */
+@media (max-height: 760px) {
+    .scanner-focus-box {
+        width: min(86vw, 390px);
+        margin-top: -56px;
+    }
+
+    .scanner-focus-hint-toast {
+        bottom: max(124px, calc(env(safe-area-inset-bottom, 0px) + 98px));
+        width: min(94vw, 520px);
+        padding: 9px 11px;
+    }
+
+    .scanner-focus-guidance {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .scanner-controls-wrapper {
+        padding: 0 calc(env(safe-area-inset-right, 0px) + 14px) calc(env(safe-area-inset-bottom, 0px) + 24px) calc(env(safe-area-inset-left, 0px) + 14px);
+        gap: 12px;
+    }
+
+    .finish-scan-btn {
+        min-height: 48px;
+        padding: 11px 15px;
+        font-size: 14px;
+    }
+
+    .scanner-crop-toolbar {
+        padding: 14px calc(env(safe-area-inset-right, 0px) + 14px) calc(env(safe-area-inset-bottom, 0px) + 52px) calc(env(safe-area-inset-left, 0px) + 14px);
+    }
+
+    .crop-action-btn {
+        min-height: 50px;
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+}
+
+@media (max-height: 680px) {
+    .scanner-focus-box {
+        width: min(84vw, 350px);
+        margin-top: -72px;
+    }
+
+    .scanner-focus-hint-toast {
+        bottom: max(112px, calc(env(safe-area-inset-bottom, 0px) + 88px));
+        width: min(95vw, 500px);
+    }
+
+    .scanner-controls-wrapper {
+        padding: 0 calc(env(safe-area-inset-right, 0px) + 12px) calc(env(safe-area-inset-bottom, 0px) + 18px) calc(env(safe-area-inset-left, 0px) + 12px);
+    }
+
+    .shutter-button {
+        width: 66px;
+        height: 66px;
+    }
+
+    .shutter-inner {
+        width: 50px;
+        height: 50px;
+    }
+
+    .finish-scan-btn {
+        min-height: 46px;
+        padding: 10px 14px;
+    }
+
+    .scanner-crop-toolbar {
+        padding: 12px calc(env(safe-area-inset-right, 0px) + 12px) calc(env(safe-area-inset-bottom, 0px) + 42px) calc(env(safe-area-inset-left, 0px) + 12px);
+    }
+
+    .crop-action-btn {
+        min-height: 48px;
+        padding: 10px 12px;
+    }
 }

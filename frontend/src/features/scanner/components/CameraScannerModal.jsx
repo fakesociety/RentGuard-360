@@ -15,7 +15,7 @@
  * - useScanPages hook
  * ============================================
  */
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Webcam from 'react-webcam';
 import ReactCrop from 'react-image-crop';
@@ -49,6 +49,9 @@ const CameraScannerModal = ({
     const webcamRef = useRef(null);
     const pendingImageRef = useRef(null);
     const scanTimerRef = useRef(null);
+    const hintTimerRef = useRef(null);
+    const hasSeenHintRef = useRef(false);
+    const [showFocusHint, setShowFocusHint] = useState(true);
     const {
         isCapturing,
         isBuildingPdf,
@@ -87,10 +90,85 @@ const CameraScannerModal = ({
         };
     }, [stopCamera]);
 
+    useEffect(() => {
+        if (!open) {
+            return undefined;
+        }
+
+        const { body, documentElement } = document;
+        const scrollY = window.scrollY;
+
+        const prevBodyOverflow = body.style.overflow;
+        const prevBodyPosition = body.style.position;
+        const prevBodyTop = body.style.top;
+        const prevBodyWidth = body.style.width;
+        const prevBodyOverscrollBehavior = body.style.overscrollBehavior;
+        const prevBodyTouchAction = body.style.touchAction;
+
+        const prevHtmlOverflow = documentElement.style.overflow;
+        const prevHtmlOverscrollBehavior = documentElement.style.overscrollBehavior;
+
+        // Lock background scroll behind the full-screen scanner modal (especially on mobile Safari/Chrome).
+        body.style.overflow = 'hidden';
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.width = '100%';
+        body.style.overscrollBehavior = 'none';
+        body.style.touchAction = 'none';
+
+        documentElement.style.overflow = 'hidden';
+        documentElement.style.overscrollBehavior = 'none';
+
+        return () => {
+            body.style.overflow = prevBodyOverflow;
+            body.style.position = prevBodyPosition;
+            body.style.top = prevBodyTop;
+            body.style.width = prevBodyWidth;
+            body.style.overscrollBehavior = prevBodyOverscrollBehavior;
+            body.style.touchAction = prevBodyTouchAction;
+
+            documentElement.style.overflow = prevHtmlOverflow;
+            documentElement.style.overscrollBehavior = prevHtmlOverscrollBehavior;
+
+            window.scrollTo(0, scrollY);
+        };
+    }, [open]);
+
     const expandedPage = useMemo(
         () => pages.find((item) => item.id === expandedPageId) || null,
         [expandedPageId, pages]
     );
+
+    const clearHintTimer = () => {
+        if (hintTimerRef.current) {
+            clearTimeout(hintTimerRef.current);
+            hintTimerRef.current = null;
+        }
+    };
+
+    useEffect(() => {
+        if (!open || pendingCapture) {
+            clearHintTimer();
+            setShowFocusHint(false);
+            return undefined;
+        }
+
+        if (hasSeenHintRef.current) {
+            setShowFocusHint(false);
+            return undefined;
+        }
+
+        setShowFocusHint(true);
+        hasSeenHintRef.current = true;
+        clearHintTimer();
+        hintTimerRef.current = setTimeout(() => {
+            setShowFocusHint(false);
+        }, 4000);
+
+        return () => {
+            clearHintTimer();
+        };
+    }, [open, pendingCapture]);
 
     if (!open) {
         return null;
@@ -110,6 +188,7 @@ const CameraScannerModal = ({
 
     const handleClose = () => {
         clearScanTimer();
+        clearHintTimer();
         stopCamera();
         resetUI();
         clearPages();
@@ -137,13 +216,20 @@ const CameraScannerModal = ({
     const handlePendingImageLoad = (event) => {
         const image = event.currentTarget;
 
+        const isIOSWebKit = typeof window !== 'undefined'
+            && typeof window.CSS !== 'undefined'
+            && window.CSS.supports?.('(-webkit-touch-callout: none)');
+
+        const insetX = isIOSWebKit ? Math.max(8, Math.round(image.width * 0.02)) : 0;
+        const insetY = isIOSWebKit ? Math.max(8, Math.round(image.height * 0.02)) : 0;
+
         // Render a usable crop box immediately so UI controls never wait on async detection.
         const fallbackCrop = {
             unit: 'px',
-            x: 0,
-            y: 0,
-            width: image.width,
-            height: image.height,
+            x: insetX,
+            y: insetY,
+            width: Math.max(120, image.width - (insetX * 2)),
+            height: Math.max(120, image.height - (insetY * 2)),
         };
 
         setCrop(fallbackCrop);
@@ -239,8 +325,8 @@ const CameraScannerModal = ({
     };
 
     return ReactDOM.createPortal(
-        <div className="scanner-modal-overlay">
-            <div className="scanner-modal" onClick={(e) => e.stopPropagation()}>
+        <div className={`scanner-modal-overlay ${pendingCapture ? 'crop-active' : ''}`}>
+            <div className={`scanner-modal ${pendingCapture ? 'crop-active' : ''}`} onClick={(e) => e.stopPropagation()}>
 
                 {/* ========================================================= */}
                 {/* === 1. HEADER SECTION === */}
@@ -311,9 +397,19 @@ const CameraScannerModal = ({
                         <div className="scanner-focus-box">
                             <div className="focus-corners-bottom"></div>
                         </div>
-                        <div className="scanner-focus-guidance" dir="rtl">
-                            {t('scanner.focus_guidance')}
-                        </div>
+                        {showFocusHint && (
+                            <div className="scanner-focus-hint-toast" dir={isRTL ? 'rtl' : 'ltr'}>
+                                <p className="scanner-focus-guidance">{t('scanner.focus_guidance')}</p>
+                                <button
+                                    type="button"
+                                    className="scanner-focus-hint-close"
+                                    onClick={() => setShowFocusHint(false)}
+                                    aria-label="Dismiss camera guidance"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* ========================================================= */}
@@ -393,7 +489,7 @@ const CameraScannerModal = ({
                                             onClick={handleRetake}
                                             disabled={isCapturing}
                                         >
-                                            Retake
+                                            {t('scanner.retake') || 'Retake'}
                                         </button>
                                         <button
                                             type="button"
