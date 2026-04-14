@@ -93,20 +93,28 @@ def send_disable_notification(sender_email, email, reason):
                 },
                 'Body': {
                     'Html': {
-                        'Data': f'''
+                        'Data': f'''<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background-color:#eef2f7;">
                                                 <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
                                                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
                                                         <tr>
                                                             <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
-                                                                <div style="display:flex; align-items:center; gap:8px;">
-                                                                    <span style="display:inline-flex; width:22px; height:22px; line-height:0;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
-                                                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
-                                                                        </svg>
-                                                                    </span>
-                                                                    <span style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</span>
-                                                                    <span style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px;">RentGuard</span>
-                                                                </div>
+                                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                                    <tr>
+                                                                        <td style="padding-left:8px; line-height:0;">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                                                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                                                            </svg>
+                                                                        </td>
+                                                                        <td style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</td>
+                                                                        <td style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px; padding-left:4px;">RentGuard</td>
+                                                                    </tr>
+                                                                </table>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -132,6 +140,8 @@ def send_disable_notification(sender_email, email, reason):
                                                         </tr>
                                                     </table>
                                                 </div>
+</body>
+</html>
                         ''',
                         'Charset': 'UTF-8'
                     }

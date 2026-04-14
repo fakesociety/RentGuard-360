@@ -65,28 +65,60 @@ def build_admin_email(ticket_id, user_email, category, message_content):
     Returns:
         str: HTML email body
     """
-    return f"""
-    <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
-        <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🛡️ פנייה חדשה</h1>
-        </div>
-        <div style="padding: 30px; text-align: center;">
-            <h2 style="color: #10b981; margin: 0 0 10px 0; font-size: 24px;">היי, התקבלה פנייה חדשה!</h2>
-            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 14px;">מספר פנייה: {ticket_id[:8]}</p>
-            
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; text-align: right; margin-bottom: 20px;">
-                <p style="margin: 8px 0;"><strong>מאת:</strong> {user_email}</p>
-                <p style="margin: 8px 0;"><strong>קטגוריה:</strong> {category}</p>
-                <p style="margin: 8px 0;"><strong>תוכן:</strong></p>
-                <p style="background: #ffffff; padding: 12px; border-radius: 8px; border-right: 3px solid #10b981;">{message_content}</p>
-            </div>
-            
-            <p style="color: #6b7280; font-size: 13px;">לחץ "השב" כדי לענות ללקוח.</p>
-        </div>
-        <div style="text-align: center; padding: 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
-            <p style="color: #9ca3af; margin: 0; font-size: 12px;">RentGuard Systems</p>
-        </div>
+    return f"""<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background-color:#eef2f7;">
+    <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
+            <tr>
+                <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td style="padding-left:8px; line-height:0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                </svg>
+                            </td>
+                            <td style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</td>
+                            <td style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px; padding-left:4px;">RentGuard</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:26px 22px 12px; color:#0f172a;">
+                    <h2 style="margin:0 0 10px; font-size:24px; line-height:1.35; color:#0f172a;">🛡️ פנייה חדשה התקבלה!</h2>
+                    <p style="margin:0; font-size:15px; line-height:1.7; color:#334155;">מספר פנייה: <strong>{ticket_id[:8]}</strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:0 22px 16px;">
+                    <div style="border:1px solid #dbe4ee; border-radius:12px; background:#f8fafc; padding:14px; color:#334155; font-size:14px; line-height:1.7;">
+                        <p style="margin: 8px 0;"><strong>מאת:</strong> {user_email}</p>
+                        <p style="margin: 8px 0;"><strong>קטגוריה:</strong> {category}</p>
+                        <p style="margin: 8px 0;"><strong>תוכן:</strong></p>
+                        <p style="background: #ffffff; padding: 12px; border-radius: 8px; border-right: 3px solid #0f9f6e; margin:0;">{message_content}</p>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:0 22px 12px; color:#334155; font-size:15px; line-height:1.7;">
+                    לחץ "השב" (Reply) כדי לענות ישירות ללקוח.
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:14px 22px 18px; border-top:1px solid #e6edf4; font-size:12px; color:#64748b;">
+                    הודעה זו נשלחה אוטומטית ממערכת RentGuard 360.
+                </td>
+            </tr>
+        </table>
     </div>
+</body>
+</html>
     """
 
 
@@ -102,20 +134,28 @@ def build_user_confirmation_email(ticket_id, category, message_content):
     Returns:
         str: HTML email body
     """
-    return f"""
+    return f"""<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background-color:#eef2f7;">
         <div dir="rtl" style="margin:0; padding:24px 12px; background:#eef2f7; font-family: Arial, Helvetica, sans-serif;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #dbe4ee; border-radius:14px; overflow:hidden;">
                 <tr>
                     <td style="padding:18px 22px; background:#ffffff; border-bottom:1px solid #e6edf4;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="display:inline-flex; width:22px; height:22px; line-height:0;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
-                                </svg>
-                            </span>
-                            <span style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</span>
-                            <span style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px;">RentGuard</span>
-                        </div>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="padding-left:8px; line-height:0;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f9f6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shield">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                    </svg>
+                                </td>
+                                <td style="font-weight:800; font-size:22px; color:#0ea5a4; letter-spacing:0.2px;">360</td>
+                                <td style="font-weight:800; font-size:22px; color:#0f9f6e; letter-spacing:0.2px; padding-left:4px;">RentGuard</td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
                 <tr>
@@ -138,6 +178,8 @@ def build_user_confirmation_email(ticket_id, category, message_content):
                 </tr>
             </table>
         </div>
+</body>
+</html>
     """
 
 # =============================================================================
