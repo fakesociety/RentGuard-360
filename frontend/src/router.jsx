@@ -20,7 +20,7 @@ const ContractsPage = lazy(() => import('@/pages/core/ContractsPage'));
 const AnalysisPage = lazy(() => import('@/pages/core/AnalysisPage'));
 const SharedContractPage = lazy(() => import('@/pages/core/SharedContractPage'));
 const SettingsPage = lazy(() => import('@/pages/core/SettingsPage'));
-const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
+const ContactPage = lazy(() => import('@/pages/core/ContactPage'));
 const ContactPublic = lazy(() => import('@/pages/public/ContactPublic'));
 const PricingPage = lazy(() => import('@/pages/billing/PricingPage'));
 const PricingPublic = lazy(() => import('@/pages/public/PricingPublic'));

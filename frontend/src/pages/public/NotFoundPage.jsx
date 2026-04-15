@@ -11,18 +11,24 @@
  */
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
+import './NotFoundPage.css';
 
 const NotFoundPage = () => {
+  const { t, isRTL } = useLanguage();
+
   return (
-    <div style={{ textAlign: 'center', padding: '100px 20px' }}>
-      <h1>404 - Page Not Found</h1>
-      <p style={{ margin: '20px 0' }}>The page you are looking for does not exist or has been moved.</p>
-      <Link 
-        to="/" 
-        style={{ padding: '10px 20px', background: '#1976d2', color: 'white', textDecoration: 'none', borderRadius: '4px' }}
-      >
-        Return Home
-      </Link>
+    <div className="not-found-container" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="not-found-content">
+        <h1 className="not-found-title">{t('notFound.title')}</h1>
+        <h2 className="not-found-subtitle">{t('notFound.subtitle')}</h2>
+        <p className="not-found-text">
+          {t('notFound.text')}
+        </p>
+        <Link to="/" className="not-found-btn">
+          {t('notFound.button')}
+        </Link>
+      </div>
     </div>
   );
 };

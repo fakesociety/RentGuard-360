@@ -1,7 +1,7 @@
 /** Terms of Service page - wraps LegalDocumentLayout with Hebrew/English terms content. */
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
-import LegalDocumentLayout from '@/components/layout/LegalDocument/LegalDocumentLayout';
+import LegalDocumentLayout from '@/features/legal/LegalDocumentLayout';
 import { Info, Gavel, CreditCard, Shield, AlertTriangle, XCircle } from 'lucide-react';
 
 const TermsPage = () => {

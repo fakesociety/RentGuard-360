@@ -1,8 +1,8 @@
 /** Public (guest) contact page - displays the ContactForm without pre-filled user data. */
 import React from 'react';
-import ContactLayout from '@/components/layout/Contact/ContactLayout';
-import ContactForm from '@/components/layout/Contact/ContactForm';
-import './ContactPage.css';
+import ContactLayout from '@/features/contact/ContactLayout';
+import ContactForm from '@/features/contact/ContactForm';
+import '@/pages/core/ContactPage.css';
 
 const ContactPublic = () => {
     return (
