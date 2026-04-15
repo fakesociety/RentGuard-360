@@ -132,25 +132,10 @@ export const processContractClauses = (clauses) => {
     });
 
     const mergedClauses = [];
-    let pendingNumber = '';
 
     for (let i = 0; i < filtered.length; i++) {
         let current = filtered[i].trim();
-        
-        // If it's a standalone number, accumulate it and merge with the next real clause
-        if (/^\.?\d{1,2}(?:\.\d{1,2}){0,2}\.?$/.test(current)) {
-            pendingNumber = pendingNumber ? `${pendingNumber} ${current}` : current;
-        } else {
-            if (pendingNumber) {
-                current = `${pendingNumber} ${current}`;
-                pendingNumber = '';
-            }
-            mergedClauses.push(current);
-        }
-    }
-
-    if (pendingNumber) {
-        mergedClauses.push(pendingNumber);
+        mergedClauses.push(current);
     }
 
     return mergedClauses.map(clause => fixClauseNumbering(clause.trim()));

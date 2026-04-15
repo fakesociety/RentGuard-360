@@ -76,15 +76,15 @@ PREAMBLE_SPLIT_PATTERN = re.compile(
 )
 
 HEBREW_CHAR_PATTERN = re.compile(r'[\u0590-\u05FF]')
-NUMBERED_PREFIX_PATTERN = re.compile(r'^\d{1,2}(?:\.\d{1,2})*\.?\s+')
+NUMBERED_PREFIX_PATTERN = re.compile(r'^\d{1,2}(?:\s*\.\s*\d{1,2})*\.?\s+')
 LEADING_DOT_NUMBER_PATTERN = re.compile(r'^\.(\d{1,2}(?:\.\d{1,2}){0,2})\s+')
 TRAILING_CLAUSE_NUMBER_PATTERN = re.compile(
     # Match trailing clause numbers only when they include an explicit leading or trailing dot.
     # Prevents moving plain values like "50" or "1.9" to the beginning of a sentence.
-    r'^(?P<body>[\u0590-\u05FF][^\n]{3,}?)\s+(?P<number>\.\d{1,2}(?:\.\d{1,2}){0,2}\.?|\d{1,2}(?:\.\d{1,2}){0,2}\.)\s*$'
+    r'^(?P<body>[\u0590-\u05FF][^\n]{3,}?)\s+(?P<number>\.\d{1,2}(?:\s*\.\s*\d{1,2}){0,2}\.?|\d{1,2}(?:\s*\.\s*\d{1,2}){0,2}\.)\s*$'
 )
 INLINE_SUBCLAUSE_PATTERN = re.compile(
-    r'(?<=\S)\s+(?=(\d{1,2}(?:\.\d{1,2}){1,2}\.)\s*[\u0590-\u05FF])'
+    r'(?<=\S)\s+(?=(\d{1,2}(?:\s*\.\s*\d{1,2}){1,2}\.)\s*[\u0590-\u05FF])'
 )
 FORBIDDEN_TRAILING_WORDS = {
     'של', 'על', 'את', 'מן', 'ביום', 'בסך', 'עם', 'עד', 'ללא', 'עבור'
@@ -273,8 +273,13 @@ def split_to_clauses(text: str) -> list[str]:
     # Regex for clause numbers (not money or dates)
     CLAUSE_NUMBER_PATTERN = re.compile(
         r'(?:^|(?<=\s)|(?<=\n))'
-        r'([0-9]{1,2}(?:\.[0-9]{1,2}){0,2}|[א-י])'
-        r'[.\)]\s+'
+        r'('
+        r'[0-9]{1,2}(?:\s*\.\s*[0-9]{1,2})+(?:\.)?'
+        r'|'
+        r'[0-9]{1,2}[.\)-]'
+        r'|'
+        r'[א-י][.\)-]'
+        r')\s+'
         r'(?![0-9,]+\s*(?:ש[״\']?ח|₪|שקל|אלף))'
         r'(?![0-9]{1,2}[./][0-9])'
     )
@@ -314,7 +319,13 @@ def split_to_clauses(text: str) -> list[str]:
     #   (?=[\u0590-\u05FF])    - MUST be followed by Hebrew letter
     split_pattern = re.compile(
         r'(?<=\S)\s+'
-        r'([0-9]{1,2}(?:\.[0-9]{1,2}){0,2})\.\s+'
+        r'('
+        r'[0-9]{1,2}(?:\s*\.\s*[0-9]{1,2})+(?:\.)?'
+        r'|'
+        r'[0-9]{1,2}[.\)-]'
+        r'|'
+        r'[א-י][.\)-]'
+        r')\s+'
         r'(?![0-9,]+\s*(?:ש[״\']?ח|₪))'
         r'(?![0-9]{1,2}[./][0-9])'
         r'(?=[\u0590-\u05FF])'
