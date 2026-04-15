@@ -670,7 +670,7 @@ export const en = {
     "methodology": {
         "title": "How is the score calculated?",
         "intro1": "The score is 5 categories x 20 pts each (total 100). Points are deducted by severity.",
-        "intro2": "Cap rule: a category cannot drop below 0, so the maximum drop per category is 20 points (therefore total penalties can be higher than the actual score decrease).",
+        "intro2": "Cap rule: a category cannot drop below 0 (maximum 20 points deduction per category). Therefore, total penalties can be higher than the actual score decrease.",
         "high": "High",
         "medium": "Medium",
         "low": "Low",
