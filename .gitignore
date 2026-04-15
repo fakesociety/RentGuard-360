@@ -41,6 +41,8 @@ samconfig.toml
 
 # Local secret configs (never commit)
 infrastructure/*
+backend/aws_audit.ps1
+backend/aws_audit.sh
 frontend/.env
 frontend/.env.*
 
