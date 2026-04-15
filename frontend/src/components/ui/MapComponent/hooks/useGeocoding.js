@@ -13,7 +13,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCoordinatesByAddress } from '../services/geocoding.service';
 
-export function useGeocoding(address, safeLat, safeLng, popupText, notFoundText) {
+export function useGeocoding(address, safeLat, safeLng, popupText, notFoundText, searchErrorText) {
   const [position, setPosition] = useState([safeLat, safeLng]);
   const [currentPopup, setCurrentPopup] = useState(popupText);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +25,7 @@ export function useGeocoding(address, safeLat, safeLng, popupText, notFoundText)
       if (!address) {
         if (isMounted) {
           setPosition([safeLat, safeLng]);
-          setCurrentPopup(popupText || 'הכתובת לא נמצאה');
+          setCurrentPopup(popupText || notFoundText);
         }
         return;
       }
@@ -42,7 +42,7 @@ export function useGeocoding(address, safeLat, safeLng, popupText, notFoundText)
         console.error('Geocoding error:', err);
         if (isMounted) {
           setPosition([safeLat, safeLng]);
-          setCurrentPopup(notFoundText || 'שגיאה בחיפוש הכתובת / Error finding address');
+          setCurrentPopup(searchErrorText || notFoundText);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -54,7 +54,7 @@ export function useGeocoding(address, safeLat, safeLng, popupText, notFoundText)
     return () => {
       isMounted = false;
     };
-  }, [address, safeLat, safeLng, popupText, notFoundText]);
+  }, [address, safeLat, safeLng, popupText, notFoundText, searchErrorText]);
 
   return { position, currentPopup, isLoading };
 }

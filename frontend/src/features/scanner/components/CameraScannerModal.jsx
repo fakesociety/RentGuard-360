@@ -25,7 +25,6 @@ import { useScannerUIState } from '@/features/scanner/hooks/useScannerUIState';
 import { compressCaptureDataUrl, getCroppedImg } from '@/features/scanner/services/imageProcessing';
 import { buildPdfFileFromPages } from '@/features/scanner/services/pdfBuilder';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
-import { useBodyScrollLock } from '@/utils/useBodyScrollLock';
 import ScannerThumbnailGallery from './ScannerThumbnailGallery';
 import './CameraScannerModal.css';
 
@@ -46,7 +45,6 @@ const CameraScannerModal = ({
     onComplete,
     initialFileName = 'scanned-contract',
 }) => {
-    useBodyScrollLock(open);
     const { t, isRTL } = useLanguage();
     const webcamRef = useRef(null);
     const pendingImageRef = useRef(null);
@@ -172,6 +170,12 @@ const CameraScannerModal = ({
         };
     }, [open, pendingCapture]);
 
+    useEffect(() => {
+        if (!open) {
+            hasSeenHintRef.current = false;
+        }
+    }, [open]);
+
     if (!open) {
         return null;
     }
@@ -222,16 +226,26 @@ const CameraScannerModal = ({
             && typeof window.CSS !== 'undefined'
             && window.CSS.supports?.('(-webkit-touch-callout: none)');
 
-        const insetX = isIOSWebKit ? Math.max(8, Math.round(image.width * 0.02)) : 0;
-        const insetY = isIOSWebKit ? Math.max(8, Math.round(image.height * 0.02)) : 0;
+        const insetX = isIOSWebKit ? Math.max(12, Math.round(image.width * 0.04)) : 0;
+        const insetY = isIOSWebKit ? Math.max(14, Math.round(image.height * 0.06)) : 0;
+
+        const availableWidth = Math.max(120, image.width - (insetX * 2));
+        const availableHeight = Math.max(120, image.height - (insetY * 2));
+
+        const initialWidth = isIOSWebKit ? Math.max(120, Math.round(availableWidth * 0.9)) : availableWidth;
+        const initialHeight = isIOSWebKit ? Math.max(120, Math.round(availableHeight * 0.88)) : availableHeight;
+
+        const yOffset = isIOSWebKit ? 40 : 0;
+        const centeredX = Math.max(0, insetX + Math.round((availableWidth - initialWidth) / 2));
+        const centeredY = Math.max(0, insetY + Math.round((availableHeight - initialHeight) / 2) - yOffset);
 
         // Render a usable crop box immediately so UI controls never wait on async detection.
         const fallbackCrop = {
             unit: 'px',
-            x: insetX,
-            y: insetY,
-            width: Math.max(120, image.width - (insetX * 2)),
-            height: Math.max(120, image.height - (insetY * 2)),
+            x: centeredX,
+            y: centeredY,
+            width: initialWidth,
+            height: initialHeight,
         };
 
         setCrop(fallbackCrop);

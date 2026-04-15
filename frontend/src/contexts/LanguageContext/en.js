@@ -15,6 +15,12 @@
  * * ============================================
  */
 export const en = {
+    "map": {
+        "addressNotFound": "Address not found",
+        "searchError": "Error searching for address",
+        "loading": "Loading map...",
+        "defaultLocation": "RentGuard-360 HQ"
+    },
     "notFound": {
         "title": "404",
         "subtitle": "Oops! Page Not Found",
