@@ -9,10 +9,10 @@ import Navigation from '@/components/layout/Navigation/Navigation';
 import AuthModal from '@/features/auth/components/AuthModal';
 import RegisterPromptModal from '@/features/auth/components/RegisterPromptModal';
 
-import HeroSection from './components/HeroSection';
-import BenefitsCarousel from './components/BenefitsCarousel';
-import LiveDemoSection from './components/LiveDemoSection';
-import FeatureSection from './components/FeatureSection';
+import HeroSection from './components/HeroSection.jsx';
+import BenefitsCarousel from './components/BenefitsCarousel.jsx';
+import LiveDemoSection from './components/LiveDemoSection.jsx';
+import FeatureSection from './components/FeatureSection.jsx';
 import './LandingPage.css';
 
 const LandingPage = () => {

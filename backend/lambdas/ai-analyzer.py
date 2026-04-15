@@ -441,6 +441,7 @@ def lambda_handler(event, context):
       "risk_level": "High/Medium/Low",
       "penalty_points": <מספר 2-10>,
       "legal_basis": "<סעיף חוק בעברית>",
+      "short_summary": "<משפט אחד קצר שמסכם את הבעיה>",
       "explanation": "<הסבר בעברית>",
       "suggested_fix": "<נוסח מתוקן - לא הוראה!>"
     }}

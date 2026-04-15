@@ -36,19 +36,6 @@ const getCachedStats = () => {
     }
 };
 
-const withTimeout = (promise, timeoutMs = 9000) => new Promise((resolve, reject) => {
-    const id = setTimeout(() => reject(new Error('Request timeout')), timeoutMs);
-    promise
-        .then((value) => {
-            clearTimeout(id);
-            resolve(value);
-        })
-        .catch((error) => {
-            clearTimeout(id);
-            reject(error);
-        });
-});
-
 const normalizeAdminStatsError = (err, t) => {
     const msg = String(err?.message || '').toLowerCase();
     if (msg.includes('504')) return t('admin.stripeError504');
@@ -77,7 +64,7 @@ export const useAdminStripeInsights = () => {
         setError('');
 
         try {
-            const result = await withTimeout(getAdminStripeStats(), 9000);
+            const result = await getAdminStripeStats();
             setData(result);
             try {
                 sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));

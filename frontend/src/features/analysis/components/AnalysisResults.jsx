@@ -13,7 +13,7 @@
  * ============================================
  */
 import React from 'react';
-import { ChevronDown, AlertTriangle, Wand2, Copy, Check, Lightbulb, Quote } from 'lucide-react';
+import { ChevronDown, AlertTriangle, Wand2, Copy, Check, Lightbulb, Quote, Scale } from 'lucide-react';
 import ContractView from '@/features/analysis/components/ContractView';
 import './AnalysisResults.css';
 
@@ -91,6 +91,10 @@ const AnalysisResults = ({
                         issue.description,
                         issue.details
                     );
+                    const clauseLegalBasis = pickInlineText(
+                        issue.legal_basis,
+                        issue.legalBasis
+                    );
                     const clauseFix = pickBlockText(
                         issue.suggested_fix,
                         issue.recommendation,
@@ -99,8 +103,11 @@ const AnalysisResults = ({
                         issue.fix
                     );
                     const clauseTip = pickBlockText(issue.negotiation_tip, issue.tip, issue.negotiationTip);
+                    
+                    const clauseShortSummary = pickInlineText(issue.short_summary, issue.shortSummary);
                     const clausePreview =
-                        pickInlineText(clauseExplanation, clauseOriginal) ||
+                        clauseShortSummary ||
+                        (clauseExplanation ? clauseExplanation.substring(0, 120) + (clauseExplanation.length > 120 ? '...' : '') : '') ||
                         t('analysis.noDetailedContent') ||
                         'No detailed analysis available yet.';
 
@@ -157,6 +164,18 @@ const AnalysisResults = ({
                                             <Quote size={20} className="lf-quote-icon start-quote" />
                                             <p dir="rtl">{clauseOriginal}</p>
                                             <Quote size={20} className="lf-quote-icon end-quote" />
+                                        </div>
+                                    )}
+
+                                    {clauseLegalBasis && (
+                                        <div className="lf-legal-basis-banner" dir="rtl">
+                                            <div className="lf-legal-basis-header">
+                                                <Scale size={18} className="lf-legal-icon" />
+                                                <strong>{t('analysis.legalBasis') || 'בסיס משפטי'}:</strong> 
+                                            </div>
+                                            <div className="lf-legal-basis-text">
+                                                {clauseLegalBasis}
+                                            </div>
                                         </div>
                                     )}
 
