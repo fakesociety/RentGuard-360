@@ -14,9 +14,12 @@
  */
 import React from 'react';
 import { X } from 'lucide-react';
+import { useChatContext } from '@/features/chat/contexts/ChatContext';
 import './ChatHeader.css';
 
-const ChatHeader = ({ t, closePanel }) => {
+const ChatHeader = () => {
+    const { t, closePanel } = useChatContext();
+
     return (
         <header className="chat-widget-header">
             <div>

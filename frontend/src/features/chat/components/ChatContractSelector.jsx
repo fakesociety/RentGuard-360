@@ -2,22 +2,27 @@
 import React from 'react';
 import ActionMenu from '@/components/ui/ActionMenu/ActionMenu';
 import { ChevronDown } from 'lucide-react';
+import { useChatContext } from '@/features/chat/contexts/ChatContext';
 import './ChatContractSelector.css';
 
-const ChatContractSelector = ({
-    t,
-    contracts,
-    loadingContracts,
-    selectedContractId,
-    selectedContractLabel,
-    handleContractSelect,
-    isContractMenuOpen,
-    setIsContractMenuOpen,
-    clearHistory,
-    isAsking,
-    isHistoryLoading,
-    messagesCount
-}) => {
+const ChatContractSelector = () => {
+    const {
+        t,
+        contracts,
+        loadingContracts,
+        selectedContractId,
+        selectedContractLabel,
+        handleContractSelect,
+        isContractMenuOpen,
+        setIsContractMenuOpen,
+        clearHistory,
+        isAsking,
+        isHistoryLoading,
+        messages
+    } = useChatContext();
+
+    const messagesCount = messages.length;
+
     return (
         <div className="chat-widget-contract-picker">
             <label id="chat-contract-select-label">{t('chat.contractLabel')}</label>

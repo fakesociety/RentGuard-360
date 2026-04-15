@@ -14,7 +14,6 @@ export function useChatUI(locationPathname, layoutMetrics = { footerHeight: 0, n
 
     const widgetRef = useRef(null);
     const closeTimerRef = useRef(null);
-    const messagesContainerRef = useRef(null);
 
     // Apply scroll lock when mobile chat panel is fully open
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -152,17 +151,6 @@ export function useChatUI(locationPathname, layoutMetrics = { footerHeight: 0, n
         };
     }, []);
 
-    const scrollMessagesToBottom = useCallback((behavior = 'smooth') => {
-        const container = messagesContainerRef.current;
-        if (!container) return;
-
-        const maxScrollTop = container.scrollHeight - container.clientHeight;
-        container.scrollTo({
-            top: Math.max(0, maxScrollTop),
-            behavior,
-        });
-    }, []);
-
     const fallbackCopyText = (text) => {
         const textarea = document.createElement('textarea');
         textarea.value = text;
@@ -213,8 +201,6 @@ export function useChatUI(locationPathname, layoutMetrics = { footerHeight: 0, n
         openPanel,
         closePanel,
         widgetRef,
-        messagesContainerRef,
-        scrollMessagesToBottom,
         footerOffset,
         useWhyPalette,
         copiedMessageKey,

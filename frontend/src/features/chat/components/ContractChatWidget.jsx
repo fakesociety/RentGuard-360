@@ -16,7 +16,7 @@
  * ============================================
  */
 import React from 'react';
-import { MessageCircle, X } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ChatHeader from './ChatHeader';
 import ChatInputForm from './ChatInputForm';
@@ -26,79 +26,41 @@ import ChatQuickPrompts from './ChatQuickPrompts';
 import ChatClearConfirmDialog from './ChatClearConfirmDialog';
 import ChatHintBanner from './ChatHintBanner';
 import ChatErrorBanner from './ChatErrorBanner';
-import { useChatWidget } from '@/features/chat/hooks/useChatWidget';
+import { ChatProvider, useChatContext } from '@/features/chat/contexts/ChatContext';
+import { useChatScroll } from '@/features/chat/hooks/useChatScroll';
 import './ContractChatWidget.css';
 
-const ContractChatWidget = () => {
+const ChatWidgetContent = () => {
     const {
         isAuthenticated,
         t,
         isRTL,
-        locale,
-        userInitial,
-        userLabel,
         
         open,
         isClosing,
         showPanel,
         openPanel,
-        closePanel,
         widgetRef,
         footerOffset,
         useWhyPalette,
 
-        contracts,
-        loadingContracts,
         selectedContractId,
-        selectedContractLabel,
-        handleContractSelect,
-        isContractMenuOpen,
-        setIsContractMenuOpen,
 
         messages,
         isHistoryLoading,
-        messagesContainerRef,
 
-        question,
-        setQuestion,
         isAsking,
-        inputRef,
-        onSubmit,
-        onInputKeyDown,
-
-        errorKey,
-        responseHintKey,
-        setResponseHintKey,
-        rateLimitSecondsLeft,
-
-        quickPrompts,
-        selectQuickPrompt,
-
         isClearConfirmOpen,
-        setIsClearConfirmOpen,
-        clearHistory,
-        confirmClearHistory,
+    } = useChatContext();
 
-        copiedMessageKey,
-        copyMessageText,
-        scrollMessagesToBottom
-    } = useChatWidget();
-
-    React.useEffect(() => {
-        if (!open) return;
-        const rafId = window.requestAnimationFrame(() => {
-            scrollMessagesToBottom('auto');
-        });
-        return () => window.cancelAnimationFrame(rafId);
-    }, [open, selectedContractId, isHistoryLoading, scrollMessagesToBottom]);
-
-    React.useEffect(() => {
-        if (!open) return;
-        const rafId = window.requestAnimationFrame(() => {
-            scrollMessagesToBottom('smooth');
-        });
-        return () => window.cancelAnimationFrame(rafId);
-    }, [open, messages.length, isAsking, scrollMessagesToBottom]);
+    // Side effect for automatically scrolling chat messages to the bottom
+    const { messagesContainerRef } = useChatScroll({
+        open,
+        selectedContractId,
+        isHistoryLoading,
+        messagesLength: messages.length,
+        isAsking
+    });
 
     if (!isAuthenticated) return null;
 
@@ -111,22 +73,9 @@ const ContractChatWidget = () => {
         >
             {showPanel && (
                 <section className={`chat-widget-panel ${isClosing ? 'closing' : ''}`} aria-label={t('chat.title')}>
-                    <ChatHeader t={t} closePanel={closePanel} />
+                    <ChatHeader />
 
-                    <ChatContractSelector 
-                        t={t}
-                        contracts={contracts}
-                        loadingContracts={loadingContracts}
-                        selectedContractId={selectedContractId}
-                        selectedContractLabel={selectedContractLabel}
-                        handleContractSelect={handleContractSelect}
-                        isContractMenuOpen={isContractMenuOpen}
-                        setIsContractMenuOpen={setIsContractMenuOpen}
-                        clearHistory={clearHistory}
-                        isAsking={isAsking}
-                        isHistoryLoading={isHistoryLoading}
-                        messagesCount={messages.length}
-                    />
+                    <ChatContractSelector />
 
                     <div className="chat-widget-messages" role="log" aria-live="polite" ref={messagesContainerRef}>
                         {selectedContractId && isHistoryLoading && (
@@ -143,59 +92,27 @@ const ContractChatWidget = () => {
                         )}
 
                         {selectedContractId && !isHistoryLoading && messages.length === 0 && (
-                            <ChatQuickPrompts 
-                                t={t} 
-                                quickPrompts={quickPrompts} 
-                                selectQuickPrompt={selectQuickPrompt} 
-                            />
+                            <ChatQuickPrompts />
                         )}
 
-{messages.map((msg) => (
-                              <ChatMessage
-                                  key={`${msg.ts}-${msg.role}`}
-                                  msg={msg}
-                                  isRTL={isRTL}
-                                  t={t}
-                                  userInitial={userInitial}
-                                  userLabel={userLabel}
-                                  copyMessageText={copyMessageText}
-                                  copiedMessageKey={copiedMessageKey}
-                                  locale={locale}
-                              />
-                          ))}
+                        {messages.map((msg) => (
+                            <ChatMessage
+                                key={`${msg.ts}-${msg.role}`}
+                                msg={msg}
+                            />
+                        ))}
 
-                        {isAsking && <ChatPendingMessage t={t} />}
+                        {isAsking && <ChatPendingMessage />}
                     </div>
 
-                    <ChatHintBanner 
-                        t={t}
-                        responseHintKey={responseHintKey}
-                        rateLimitSecondsLeft={rateLimitSecondsLeft}
-                        setResponseHintKey={setResponseHintKey}
-                    />
+                    <ChatHintBanner />
 
-                    <ChatErrorBanner 
-                        t={t}
-                        errorKey={errorKey}
-                    />
+                    <ChatErrorBanner />
 
-                    <ChatInputForm 
-                        t={t}
-                        question={question}
-                        setQuestion={setQuestion}
-                        onSubmit={onSubmit}
-                        onInputKeyDown={onInputKeyDown}
-                        inputRef={inputRef}
-                        isAsking={isAsking}
-                        isDisabled={isAsking || Boolean(errorKey) || rateLimitSecondsLeft > 0}
-                    />
+                    <ChatInputForm />
 
                     {isClearConfirmOpen && (
-                        <ChatClearConfirmDialog 
-                            t={t}
-                            confirmClearHistory={confirmClearHistory}
-                            setIsClearConfirmOpen={setIsClearConfirmOpen}
-                        />
+                        <ChatClearConfirmDialog />
                     )}
                 </section>
             )}
@@ -212,6 +129,14 @@ const ContractChatWidget = () => {
                 </button>
             )}
         </div>
+    );
+};
+
+const ContractChatWidget = () => {
+    return (
+        <ChatProvider>
+            <ChatWidgetContent />
+        </ChatProvider>
     );
 };
 

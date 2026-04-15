@@ -14,17 +14,23 @@
  */
 import React from 'react';
 import { Send } from 'lucide-react';
+import { useChatContext } from '@/features/chat/contexts/ChatContext';
 import './ChatInputForm.css';
 
-const ChatInputForm = ({
-    t,
-    question,
-    setQuestion,
-    onSubmit,
-    onInputKeyDown,
-    inputRef,
-    isDisabled
-}) => {
+const ChatInputForm = () => {
+    const {
+        t,
+        question,
+        setQuestion,
+        onSubmit,
+        onInputKeyDown,
+        inputRef,
+        isAsking,
+        errorKey,
+        rateLimitSecondsLeft
+    } = useChatContext();
+
+    const isDisabled = isAsking || Boolean(errorKey) || rateLimitSecondsLeft > 0;
 
     return (
         <form onSubmit={onSubmit} className="chat-widget-input-row">

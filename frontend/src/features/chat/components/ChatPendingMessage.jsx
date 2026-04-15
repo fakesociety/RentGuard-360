@@ -1,9 +1,12 @@
 /** Animated typing indicator shown while waiting for the AI response in the chat. */
 import React from 'react';
 import { Bot } from 'lucide-react';
+import { useChatContext } from '@/features/chat/contexts/ChatContext';
 import './ChatPendingMessage.css';
 
-const ChatPendingMessage = ({ t }) => {
+const ChatPendingMessage = () => {
+    const { t } = useChatContext();
+
     return (
         <div className="chat-msg-row assistant pending">
             <div className="chat-msg-avatar assistant" aria-hidden="true">
