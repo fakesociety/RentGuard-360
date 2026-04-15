@@ -15,6 +15,12 @@
  * * ============================================
  */
 export const he = {
+    "map": {
+        "addressNotFound": "הכתובת לא נמצאה",
+        "searchError": "שגיאה בחיפוש הכתובת",
+        "loading": "טוען מפה...",
+        "defaultLocation": "משרדי רנטגארד-360"
+    },
     "notFound": {
         "title": "404",
         "subtitle": "אופס! הדף לא נמצא",

@@ -1,4 +1,14 @@
-/** Fixes Leaflet default marker icon paths which break when bundled with Vite. */
+/**
+ * ============================================
+ *  setupLeafletIcons Function
+ *  Map component leaflet fix
+ * ============================================
+ * 
+ * PURPOSE:
+ * - Fixes Leaflet default marker icon paths which break when bundled with Vite.
+ * 
+ * ============================================
+ */
 import L from 'leaflet';
 
 export function setupLeafletIcons() {

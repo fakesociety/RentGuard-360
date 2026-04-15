@@ -1,3 +1,15 @@
+/**
+ * ============================================
+ *  getBestMatch Function
+ *  Map geolocator function
+ * ============================================
+ * 
+ * PURPOSE:
+ * - Gets the best match for the provided address
+ * - Returns the best match for the provided address
+ * 
+ * ============================================
+ */
 export function getBestMatch(data, originalQuery) {
   if (!data || data.length === 0) return null;
 
