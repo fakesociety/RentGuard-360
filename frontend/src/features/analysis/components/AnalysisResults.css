@@ -133,14 +133,6 @@
     cursor: text;
 }
 
-.lf-clause-card.expanded .lf-clause-preview {
-    display: block;
-    line-clamp: unset;
-    -webkit-line-clamp: unset;
-    max-height: none;
-    overflow: visible;
-}
-
 .lf-expand-btn {
     background: transparent;
     border: none;
@@ -166,6 +158,42 @@
     user-select: text;
     -webkit-user-select: text;
     cursor: text;
+}
+
+/* Legal Basis Banner */
+.lf-legal-basis-banner {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    line-height: 1.5;
+}
+
+.lf-legal-basis-header {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-primary);
+}
+
+.lf-legal-icon {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+.lf-legal-basis-header strong {
+    font-weight: 600;
+}
+
+.lf-legal-basis-text {
+    flex: 1 1 100%;
 }
 
 /* Quote Box */

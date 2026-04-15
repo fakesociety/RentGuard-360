@@ -381,22 +381,25 @@
     line-height: 1;}
 
 .profile-info {
-    flex: 1;
+    flex: 1 1 0%;
     min-width: 0;
+    max-width: calc(100% - 60px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
+    overflow: hidden;
 }
 
 .profile-name {
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
-    margin: 0;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 2px 0;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: keep-all !important;
+    max-width: 100%;
 }
 
 .profile-email {
@@ -404,10 +407,12 @@
     color: var(--text-secondary);
     margin: 0;
     unicode-bidi: isolate;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: keep-all !important;
     direction: ltr;
+    max-width: 100%;
 }
 
 .profile-divider {
