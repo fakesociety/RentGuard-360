@@ -75,8 +75,9 @@ SELECT COUNT(*) AS ActiveSubscribers FROM UserSubscriptions;";
 
                 string bundlesSql = @"
 SELECT p.Name, COUNT(*) AS SubscriberCount
-FROM UserSubscriptions s
-JOIN Packages p ON p.Id = s.PackageId
+FROM Transactions t
+JOIN Packages p ON p.Id = t.PackageId
+WHERE t.Status = 'succeeded'
 GROUP BY p.Name
 ORDER BY SubscriberCount DESC;";
                 using (SqlCommand cmdBundles = new SqlCommand(bundlesSql, connection))
