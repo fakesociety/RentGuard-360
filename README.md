@@ -37,7 +37,7 @@
 - [Backend Architecture](#backend-architecture)
   - [Serverless Lambdas (Python)](#serverless-lambdas-python)
   - [C# .NET 8 Payment API](#c-net-8-payment-api-stripepaymentapi)
-- [Infrastructure as Code](#infrastructure-as-code)
+
 - [Getting Started](#getting-started)
 - [Configuration Reference](#configuration-reference)
 - [API Reference](#api-reference)
@@ -512,26 +512,6 @@ StripePaymentAPI/
 
 ---
 
-## Infrastructure as Code
-
-The entire AWS infrastructure is defined in a **single CloudFormation template** (`infrastructure/cloudformation.yaml`, ~78KB, ~1,500 lines). One command deploys the complete stack:
-
-| Resource Category | Services Provisioned |
-|:---|:---|
-| Authentication | Cognito User Pool, App Client, Admins Group |
-| API | API Gateway (REST), 28 Lambda function mappings |
-| Compute | 28 Python Lambdas, Step Functions state machine |
-| Storage | DynamoDB (contracts, analysis, chat), S3 (PDFs), S3 (SPA assets) |
-| CDN and Security | CloudFront distribution, WAF v2 (SQLi, XSS, rate limiting) |
-| Messaging | SES (email notifications), EventBridge (scheduled tasks) |
-| IAM | Scoped execution roles for each Lambda function |
-
-**Multi-stack support**: The `NAME_SUFFIX` parameter allows deploying isolated test environments in the same AWS account (e.g., `RentGuard360-test`).
-
-For the full deployment walkthrough, see [DEPLOYMENT_INSTRUCTIONS.md](DEPLOYMENT_INSTRUCTIONS.md).
-
----
-
 ## Getting Started
 
 ### Prerequisites
@@ -539,7 +519,7 @@ For the full deployment walkthrough, see [DEPLOYMENT_INSTRUCTIONS.md](DEPLOYMENT
 - Node.js 18+
 - AWS CLI (configured with credentials)
 - .NET 8 SDK (for the Payment API)
-- A deployed RentGuard 360 AWS stack (see [DEPLOYMENT_INSTRUCTIONS.md](DEPLOYMENT_INSTRUCTIONS.md))
+- A deployed RentGuard 360 AWS stack
 
 > [!WARNING]
 > The frontend requires a deployed AWS stack to function. The application cannot run in a fully offline mode — API Gateway, Cognito, S3, and DynamoDB are runtime dependencies.
@@ -550,7 +530,7 @@ For the full deployment walkthrough, see [DEPLOYMENT_INSTRUCTIONS.md](DEPLOYMENT
 git clone https://github.com/RonPiece/RentGuard-360.git
 cd RentGuard-360/frontend
 cp .env.template .env
-# Fill in the values from your CloudFormation stack outputs
+# Fill in the values from your deployed stack outputs
 npm install
 npm run dev
 ```
@@ -574,29 +554,18 @@ dotnet run
 
 | Variable | Source | Required | Description |
 |:---|:---|:---:|:---|
-| `VITE_API_ENDPOINT` | CloudFormation `ApiUrl` output | Yes | Base URL for the API Gateway (REST) |
-| `VITE_CHECK_USER_API_KEY` | CloudFormation / API Gateway | Yes | API key for the public `check-user` endpoint |
-| `VITE_USER_POOL_ID` | CloudFormation `UserPoolId` output | Yes | Cognito User Pool identifier |
-| `VITE_USER_POOL_CLIENT_ID` | CloudFormation `UserPoolClientId` output | Yes | Cognito App Client identifier |
+| `VITE_API_ENDPOINT` | Stack `ApiUrl` output | Yes | Base URL for the API Gateway (REST) |
+| `VITE_CHECK_USER_API_KEY` | API Gateway Console | Yes | API key for the public `check-user` endpoint |
+| `VITE_USER_POOL_ID` | Stack `UserPoolId` output | Yes | Cognito User Pool identifier |
+| `VITE_USER_POOL_CLIENT_ID` | Stack `UserPoolClientId` output | Yes | Cognito App Client identifier |
 | `VITE_COGNITO_DOMAIN` | Cognito Console | No | OAuth domain for social login flows |
 | `VITE_OAUTH_REDIRECT_URI` | CloudFront domain | No | OAuth sign-in redirect (defaults to current origin) |
 | `VITE_OAUTH_REDIRECT_OUT_URI` | CloudFront domain | No | OAuth sign-out redirect (defaults to current origin) |
 | `VITE_AWS_REGION` | -- | Yes | AWS region (typically `us-east-1`) |
-| `VITE_S3_BUCKET` | CloudFormation `ContractsBucketName` output | Yes | S3 bucket for contract PDF storage |
+| `VITE_S3_BUCKET` | Stack `ContractsBucketName` output | Yes | S3 bucket for contract PDF storage |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard | Yes | Stripe publishable key for client-side Checkout |
 | `VITE_STRIPE_API_URL` | Payment API deployment | Yes | Base URL of the C# Stripe Payment API |
 
-### Infrastructure Environment Variables (`infrastructure/config.env`)
-
-| Variable | Description |
-|:---|:---|
-| `AZURE_DOC_ENDPOINT` | Azure Document Intelligence endpoint URL |
-| `AZURE_DOC_KEY` | Azure Document Intelligence API key |
-| `SENDER_EMAIL` | SES-verified sender email for notifications |
-| `STACK_NAME` | CloudFormation stack name (e.g., `RentGuard360`) |
-| `NAME_SUFFIX` | Environment suffix for multi-stack isolation (e.g., `-test`) |
-| `STRIPE_API_URL` | Payment API base URL for server-side calls |
-| `PAYMENT_INTERNAL_API_KEY` | Shared secret for Lambda-to-Payment-API authentication |
 
 ---
 
@@ -672,58 +641,58 @@ All endpoints are served through API Gateway. Authentication is handled via Cogn
 <details>
 <summary><strong>Landing Page</strong></summary>
 
-<!-- Screenshot: Landing Page -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/dashboard.png" alt="Landing Page" width="800" />
+</p>
 
 </details>
 
 <details>
 <summary><strong>Upload Flow</strong></summary>
 
-<!-- Screenshot: Upload Flow -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/uplodepage.png" alt="Upload Flow" width="800" />
+</p>
 
 </details>
 
 <details>
 <summary><strong>Analysis Dashboard</strong></summary>
 
-<!-- Screenshot: Analysis Dashboard -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/ContractAnalyze.png" alt="Analysis Dashboard" width="800" />
+</p>
 
 </details>
 
 <details>
 <summary><strong>Contract Chat</strong></summary>
 
-<!-- Screenshot: Contract Chat -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/chat.png" alt="Contract Chat" width="400" />
+</p>
 
 </details>
 
 <details>
 <summary><strong>Admin Panel</strong></summary>
 
-<!-- Screenshot: Admin Panel -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/admin.png" alt="Admin Panel" width="800" />
+</p>
 
 </details>
 
 <details>
 <summary><strong>Dark Mode</strong></summary>
 
-<!-- Screenshot: Dark Mode -->
-*Screenshot will be added here.*
+<p align="center">
+  <img src="frontend/public/Screenshots/darkmode.png" alt="Dark Mode" width="800" />
+</p>
 
 </details>
 
-<details>
-<summary><strong>Mobile Responsive</strong></summary>
 
-<!-- Screenshot: Mobile Responsive -->
-*Screenshot will be added here.*
-
-</details>
 
 ---
 
@@ -735,4 +704,4 @@ All endpoints are served through API Gateway. Authentication is handled via Cogn
 
 **License**: Academic project. Contact for usage inquiries.
 
-For the complete deployment guide, see [DEPLOYMENT_INSTRUCTIONS.md](DEPLOYMENT_INSTRUCTIONS.md).
+
