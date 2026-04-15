@@ -17,11 +17,13 @@
    PaymentSuccessPage Styles
    ============================================ */
 
-.payment-success-page {
+.payment-success-page.page-container {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
+    min-height: 65vh;
+    margin-top: 5vh;
 }
 
 .success-band {
@@ -42,7 +44,7 @@
 .success-content-shell {
     align-items: center;
     width: 100%;
-    max-width: 480px;
+    max-width: 580px;
     padding: 32px;
 }
 
