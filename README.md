@@ -73,6 +73,7 @@ RentGuard 360 is a full-stack, serverless AI platform that transforms an opaque 
 
 | Feature | Description | Stack |
 |:---|:---|:---|
+| Authentication | Secure credential-based login and seamless Google OAuth SSO integration | AWS Cognito, Google Auth |
 | Contract Upload | Drag-and-drop PDF ingestion with presigned S3 URLs and server-side scan deduction | React, S3, API Gateway |
 | Camera Scanner | Mobile-native document scanning with crop, rotation, and multi-page capture | React Webcam, Canvas API, jsPDF |
 | AI Risk Analysis | Clause-by-clause scoring (0--100) grounded in Israeli rental law | Bedrock (Claude 4.5 Haiku), Step Functions |
@@ -114,7 +115,7 @@ flowchart TD
     end
 
     subgraph Auth["Authentication"]
-        Cognito["Cognito User Pool"]
+        Cognito["Cognito User Pool (Email & Google OAuth)"]
     end
 
     subgraph Serverless_Core["Serverless Core (Python Lambdas)"]
@@ -227,6 +228,7 @@ This section provides an in-depth breakdown of the React architecture — the co
 | Icons | Lucide React | 0.556 |
 | UI Components | MUI (Admin panels) | 7.x |
 | Auth SDK | AWS Amplify | 6.15 |
+| Social Login | Google OAuth | -- |
 | Payment SDK | Stripe React | 5.6 |
 | Charts | MUI X Charts | 8.x |
 | Maps | React Leaflet | 5.0 |
@@ -589,7 +591,7 @@ All endpoints are served through API Gateway. Authentication is handled via Cogn
 
 | Layer | Implementation |
 |:---|:---|
-| Authentication | AWS Cognito User Pool with JWT-based session management |
+| Authentication | AWS Cognito User Pool with JWT-based session management and Google OAuth |
 | Authorization | Group-based RBAC — `Admins` Cognito group gates admin endpoints |
 | Edge Protection | CloudFront + WAF v2 rules for SQL injection, XSS, and configurable rate limiting |
 | Encryption at Rest | S3 server-side encryption (AES-256) for all stored PDFs |
