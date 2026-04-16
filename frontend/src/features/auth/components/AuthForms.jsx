@@ -115,12 +115,6 @@ export const RegisterForm = ({ state }) => {
             />
             
             {error && <p className="auth-error">{error}</p>}
-            {userExistsStatus === 'EXISTS' && (
-                <div className="auth-guidance">
-                    <Button variant="outline" fullWidth onClick={() => { switchAuthView('login'); setEmail(email); }}>{t('auth.loginButton')}</Button>
-                    <Button variant="ghost" fullWidth onClick={() => { switchAuthView('forgotPassword'); setEmail(email); }}>{t('auth.forgotPasswordShort')}</Button>
-                </div>
-            )}
             <Button variant="primary" fullWidth loading={loading} type="submit" disabled={userExistsStatus === 'EXISTS'}>{t('auth.registerButton')}</Button>
             <p className="auth-switch">{t('auth.hasAccount')} <button type="button" onClick={() => toggleAuth('login')}>{t('auth.login')}</button></p>
         </form>

@@ -1,45 +1,30 @@
-/*
+/**
  * ============================================
- * LandingPage.css - Sub-stylesheet
+ * LandingPage.css
+ * Styling for the public-facing landing page.
+ * Includes animations, responsive layouts, and mockup components 
+ * (Dashboard, Contract Viewer) used for marketing.
  * ============================================
  *
  * TABLE OF CONTENTS
  * ============================================
- * 1. Page Container & Dark Mode
- * 2. Auth Modal
- * 3. Hero Section (.lr-hero)
- * 4. Dashboard Mockup
- * 5. Benefits Carousel
- * 6. Contracts Grid Section
- * 7. Card Components (gauge, badges, actions)
- * 8. Feature Section (.lr-feature)
- * 9. Contract Viewer Mockup
- * 10. Mock Paper & Clauses
- * 11. Register Prompt Modal
- * 12. Media Queries
+ * 1. Base Structure & Globals
+ * 2. Hero Section
+ * 3. Marketing Mockups (Dashboard)
+ * 4. Benefits Carousel
+ * 5. Wave Separators
+ * 6. Contracts Grid Section & Mockups
+ * 7. Feature Section
+ * 8. Contract Viewer Mockups (Clauses & Explanations)
+ * 9. Shared UI Elements (Buttons, Badges)
+ * 10. Hover & Interaction States
+ * 11. Media Queries (Responsive)
  * ============================================
  */
 
-/* 
- * LandingPage.css - Landing Page Styles
- * Public landing page with auth, hero, and mockups
- * 
- * STRUCTURE:
- * 1. Page Container & Dark Mode
- * 2. Auth Modal
- * 3. Hero Section (.lr-hero)
- * 4. Dashboard Mockup (.mockup-dashboard-real)
- * 5. Benefits Carousel (.benefits-carousel)
- * 6. Contracts Grid Section (.lr-contracts)
- * 7. Card Components (gauge, badges, actions)
- * 8. Feature Section (.lr-feature)
- * 9. Contract Viewer Mockup (.mockup-viewer-real)
- * 10. Mock Paper & Clauses
- * 11. Register Prompt Modal
- * 12. Media Queries (1024px, 900px, 768px, 600px, 480px)
- */
-
-/* Using the app's CSS variables from design-system.css */
+/* =========================================
+   1. Base Structure & Globals
+   ========================================= */
 
 .landing-real {
     min-height: 100vh;
@@ -48,117 +33,36 @@
     font-family: 'Calibri', var(--font-sans);
 }
 
-/* Dark mode: use deep black for page background */
 [data-theme="dark"] .landing-real {
     background-color: #0B0E13;
 }
-
-/* Landing-only CTA styles (do not style shared navbar classes here) */
-.landing-cta-btn {
-    padding: 0.5rem 1.25rem;
-    border-radius: var(--radius-full);
-    border: none;
-    background: linear-gradient(120deg, #059669 0%, #0d9488 55%, #16a34a 100%);
-    background-size: 220% 100%;
-    background-position: 0% 50%;
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-position 0.45s ease, filter 0.3s ease;
-    text-decoration: none;
-}
-
-.landing-cta-btn-large {
-    padding: 0.875rem 2rem;
-    font-size: 1rem;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
-    font-weight: 700;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.forgot-password-link {
-    background: none;
-    border: none;
-    color: var(--primary);
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-top: -0.5rem;
-    margin-bottom: 0.5rem;
-    text-decoration: underline;
-}
-
-.forgot-password-link-ltr {
-    align-self: flex-end;
-}
-
-.forgot-password-link-rtl {
-    align-self: flex-start;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @keyframes fadeIn {
     from {
         opacity: 0;
         transform: translateY(-5px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-
-
-
-
-.confirm-msg {
-    text-align: center;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-/* ===== HERO SECTION ===== */
+/* =========================================
+   2. Hero Section
+   ========================================= */
+
 .lr-hero {
     min-height: auto;
     display: grid;
@@ -200,25 +104,14 @@
     align-items: flex-end;
 }
 
-.cta-note {
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-}
-
-.cta-note.highlight {
-    color: var(--accent-primary);
-    font-weight: 600;
-    background: var(--gradient-subtle);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(5, 150, 105, 0.2);
-}
-
 .hero-visual {
     perspective: 1000px;
 }
 
-/* ===== DASHBOARD MOCKUP ===== */
+/* =========================================
+   3. Marketing Mockups (Dashboard)
+   ========================================= */
+
 .mockup-dashboard-real {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.4);
@@ -379,7 +272,10 @@
     color: var(--accent-warning);
 }
 
-/* ===== BENEFITS CAROUSEL ===== */
+/* =========================================
+   4. Benefits Carousel
+   ========================================= */
+
 .lr-carousel {
     padding: 0 2rem 1.5rem;
     max-width: 1200px;
@@ -452,7 +348,6 @@
         opacity: 0;
         transform: translateY(10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -511,7 +406,10 @@
     border-radius: var(--radius-full);
 }
 
-/* ===== WAVE SEPARATORS ===== */
+/* =========================================
+   5. Wave Separators
+   ========================================= */
+
 .lp-wave-separator {
     position: relative;
     width: 100%;
@@ -562,7 +460,10 @@
     fill: #0B0E13; 
 }
 
-/* ===== CONTRACTS GRID SECTION ===== */
+/* =========================================
+   6. Contracts Grid Section & Mockups
+   ========================================= */
+
 .lr-contracts {
     padding: 5rem 2rem;
     background: var(--bg-card);
@@ -593,7 +494,6 @@
     line-height: 1.6;
 }
 
-/* Contracts Grid Mockup */
 .mockup-contracts-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -621,7 +521,7 @@
     background: var(--glass-bg);
 }
 
-/* Light mode: expanding glow line at bottom */
+/* Expanding glow line at bottom (Light Mode) */
 .mock-contract-card::after {
     content: '';
     position: absolute;
@@ -639,7 +539,7 @@
     display: none;
 }
 
-/* Dark mode: glass sheen sweep */
+/* Glass sheen sweep (Dark Mode) */
 [data-theme="dark"] .mock-contract-card::before {
     content: '';
     position: absolute;
@@ -721,6 +621,10 @@
     color: var(--accent-danger);
 }
 
+.card-gauge.warning span {
+    color: var(--accent-warning);
+}
+
 /* Card Badge */
 .card-badge {
     display: inline-flex;
@@ -735,11 +639,7 @@
     margin-bottom: 0.75rem;
 }
 
-.card-badge.low {
-    background: rgba(16, 185, 129, 0.15);
-    color: var(--accent-success);
-}
-
+.card-badge.low,
 .card-badge.excellent {
     background: rgba(16, 185, 129, 0.15);
     color: var(--accent-success);
@@ -776,11 +676,6 @@
 
 .meta-value {
     color: var(--text-primary);
-}
-
-/* Warning gauge */
-.card-gauge.warning span {
-    color: var(--accent-warning);
 }
 
 /* Card Actions */
@@ -823,7 +718,10 @@
     background: transparent;
 }
 
-/* ===== FEATURE SECTION ===== */
+/* =========================================
+   7. Feature Section
+   ========================================= */
+
 .lr-feature {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
@@ -834,11 +732,6 @@
     padding: 5rem 2rem;
 }
 
-/* ===== LANDING FOOTER ===== */
-.landing-real .app-footer {
-    margin-top: 0;
-}
-
 .feature-text h2 {
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 800;
@@ -847,7 +740,7 @@
     letter-spacing: -0.02em;
 }
 
-.feature-text>p {
+.feature-text > p {
     font-size: 1.0625rem;
     color: var(--text-secondary);
     line-height: 1.7;
@@ -874,7 +767,10 @@
     flex-shrink: 0;
 }
 
-/* ===== CONTRACT VIEWER MOCKUP ===== */
+/* =========================================
+   8. Contract Viewer Mockups (Clauses & Explanations)
+   ========================================= */
+
 .mockup-viewer-real {
     display: grid !important;
     grid-template-columns: 140px 1fr !important;
@@ -1115,7 +1011,7 @@
     color: var(--accent-warning);
 }
 
-.ai-explanation>p {
+.ai-explanation > p {
     font-size: 0.625rem;
     line-height: 1.5;
     color: #374151;
@@ -1141,20 +1037,70 @@
     font-style: italic;
 }
 
+/* =========================================
+   9. Shared UI Elements (Buttons, Badges)
+   ========================================= */
 
+.landing-cta-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-full);
+    border: none;
+    background: linear-gradient(120deg, #059669 0%, #0d9488 55%, #16a34a 100%);
+    background-size: 220% 100%;
+    background-position: 0% 50%;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-position 0.45s ease, filter 0.3s ease;
+    text-decoration: none;
+}
 
+.landing-cta-btn-large {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+    font-weight: 700;
+}
 
+.forgot-password-link {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+    text-decoration: underline;
+}
 
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
+.forgot-password-link-ltr {
+    align-self: flex-end;
+}
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+.forgot-password-link-rtl {
+    align-self: flex-start;
+}
+
+.confirm-msg {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.cta-note {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+}
+
+.cta-note.highlight {
+    color: var(--accent-primary);
+    font-weight: 600;
+    background: var(--gradient-subtle);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 .modal-close-btn {
@@ -1186,312 +1132,15 @@
     color: var(--accent-primary);
 }
 
-
-
-
-
-
-
-/* ===== SVG SCORE CIRCLE ===== */
-.mock-score-circle-svg {
-    width: 90px;
-    height: 90px;
-    position: relative;
-    transition: transform var(--transition-fast);
+.landing-real .app-footer {
+    margin-top: 0;
 }
 
-.mock-score-circle-svg .circular-progress {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-}
-
-.mock-score-circle-svg .score-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.mock-score-circle-svg .mock-score-value {
-    font-size: 1.75rem !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-    color: var(--accent-warning) !important;
-}
-
-.mock-score-circle-svg .mock-score-label {
-    font-size: 0.75rem !important;
-    color: var(--text-tertiary) !important;
-    font-weight: 700 !important;
-}
-
-/* ===== RESPONSIVE ===== */
-
-/* iPad Pro / Small laptop */
-@media (max-width: 1024px) {
-    .lr-hero {
-        gap: 2rem;
-        padding: 4.5rem 1.5rem 1rem;
-    }
-
-    .mockup-contracts-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .benefits-carousel {
-        padding: 2.5rem 2rem;
-        min-height: 220px;
-    }
-}
-
-/* Tablet transition (between iPad Pro and smaller tablets) */
-@media (max-width: 900px) {
-    .lr-hero {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-        text-align: center;
-        padding-top: 8rem;
-    }
-
-    .hero-cta {
-        align-items: center !important;
-    }
-
-    /* .hero-visual { order: -1; } REMOVED to keep Text First */
-
-    .mockup-dashboard-real {
-        transform: none;
-    }
-
-    .mockup-contracts-grid {
-        grid-template-columns: 1fr;
-        max-width: 400px;
-        margin: 0 auto;
-    }
-
-    .lr-feature {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .feature-visual {
-        order: 0;
-    }
-
-    .feature-text {
-        order: -1;
-    }
-
-    .mockup-viewer-real {
-        grid-template-columns: 1fr;
-    }
-
-    .mock-sidebar {
-        flex-direction: row;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .mock-breakdown {
-        flex-direction: row;
-        width: auto;
-        gap: 1rem;
-    }
-}
-
-/* Tablet (iPad Mini/Air) */
-@media (max-width: 768px) {
-    .hero-text h1 {
-        font-size: clamp(1.75rem, 4vw, 2.5rem);
-    }
-
-    .hero-desc {
-        font-size: 1rem;
-    }
-
-    .benefits-carousel {
-        flex-direction: row;
-        align-items: center;
-        padding: 2rem 1rem;
-        min-height: auto;
-        gap: 1rem;
-    }
-
-    .carousel-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .carousel-arrow {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        flex-shrink: 0;
-    }
-
-    .lr-contracts,
-    .lr-feature {
-        padding: 3rem 1.5rem;
-    }
-
-    .section-header h2 {
-        font-size: 1.5rem;
-    }
-
-    
-}
-
-/* Mobile (iPhone Pro) */
-@media (max-width: 600px) {
-
-    
-
-    
-
-    .landing-cta-btn-large {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.875rem;
-    }
-}
-
-/* Small Mobile (iPhone SE, iPhone 12 Pro - 390px) */
-@media (max-width: 480px) {
-
-    .lr-hero {
-        padding-top: max(18rem, 25vh);
-    }
-
-    .hero-visual {
-        order: 0;
-        margin-top: 2rem;
-    }
-
-    .hero-text h1 {
-        font-size: 1.5rem;
-        text-align: center;
-    }
-
-    .hero-desc {
-        text-align: center;
-    }
-
-    .hero-cta {
-        align-items: center !important;
-        width: 100%;
-    }
-
-    .cta-note.highlight {
-        font-size: 0.75rem;
-        padding: 0.375rem 0.75rem;
-    }
-
-    .benefits-carousel {
-        flex-direction: row;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1.5rem 0.75rem;
-    }
-
-    .carousel-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .carousel-arrow {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-        flex-shrink: 0;
-    }
-
-    .carousel-content h4 {
-        font-size: 1rem;
-    }
-
-    .carousel-content p {
-        font-size: 0.875rem;
-    }
-
-    .carousel-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 2rem;
-        margin: 0 auto;
-    }
-
-    .carousel-content {
-        text-align: center;
-    }
-
-    .carousel-content h4 {
-        font-size: 1.125rem;
-    }
-
-    .carousel-content p {
-        font-size: 0.875rem;
-    }
-
-    .carousel-nav {
-        justify-content: center;
-    }
-
-    .section-header {
-        text-align: center;
-    }
-
-    .mockup-dashboard-real,
-    .mockup-viewer-real {
-        grid-template-columns: 1fr !important;
-        margin: 0 auto;
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .mockup-viewer-real .mock-risk-badge {
-        font-size: 0.65rem;
-        padding: 0.25rem 0.5rem;
-        gap: 0.5rem;
-        white-space: normal;
-        height: auto;
-        max-width: 100%;
-    }
-
-    .mockup-viewer-real .mock-sidebar {
-        padding: 1rem;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.5rem;
-        border-bottom: 1px solid var(--border-subtle);
-        border-right: none;
-        width: 100%;
-    }
-
-    /* Adjust sidebar items for horizontal layout */
-    .mockup-viewer-real .mock-sidebar-item {
-        width: auto;
-        flex: 1 1 auto;
-        min-width: 80px;
-        padding: 0.5rem;
-        text-align: center;
-        margin-bottom: 0;
-    }
-
-    .section-header h2 {
-        font-size: 1.25rem;
-    }
-
-    .section-header p {
-        font-size: 0.875rem;
-    }
-}
+/* =========================================
+   10. Hover & Interaction States (Desktop Only)
+   ========================================= */
 
 @media (hover: hover) and (pointer: fine) {
-
-
     .landing-cta-btn:hover {
         background-position: 100% 50%;
         filter: saturate(1.08);
@@ -1503,10 +1152,6 @@
         box-shadow: 0 12px 28px rgba(5, 150, 105, 0.35);
         transform: translateY(-3px);
     }
-
-    
-
-    
 
     .mockup-dashboard-real:hover {
         transform: rotateY(0deg) rotateX(0deg);
@@ -1596,7 +1241,243 @@
     .mock-score-circle-svg:hover {
         transform: scale(1.05);
     }
-
-
 }
 
+/* =========================================
+   11. Media Queries (Responsive)
+   ========================================= */
+
+/* iPad Pro / Small laptop */
+@media (max-width: 1024px) {
+    .lr-hero {
+        gap: 2rem;
+        padding: 4.5rem 1.5rem 1rem;
+    }
+
+    .mockup-contracts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .benefits-carousel {
+        padding: 2.5rem 2rem;
+        min-height: 220px;
+    }
+}
+
+/* Tablet transition (between iPad Pro and smaller tablets) */
+@media (max-width: 900px) {
+    .lr-hero {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+        padding-top: 8rem;
+    }
+
+    .hero-cta {
+        align-items: center !important;
+    }
+
+    .mockup-dashboard-real {
+        transform: none;
+    }
+
+    .mockup-contracts-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .lr-feature {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .feature-visual {
+        order: 0;
+    }
+
+    .feature-text {
+        order: -1;
+    }
+
+    .mockup-viewer-real {
+        grid-template-columns: 1fr;
+    }
+
+    .mock-sidebar {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .mock-breakdown {
+        flex-direction: row;
+        width: auto;
+        gap: 1rem;
+    }
+}
+
+/* Tablet (iPad Mini/Air) */
+@media (max-width: 768px) {
+    .hero-text h1 {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+    }
+
+    .hero-desc {
+        font-size: 1rem;
+    }
+
+    .benefits-carousel {
+        flex-direction: row;
+        align-items: center;
+        padding: 2rem 1rem;
+        min-height: auto;
+        gap: 1rem;
+    }
+
+    .carousel-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .carousel-arrow {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        flex-shrink: 0;
+    }
+
+    .lr-contracts,
+    .lr-feature {
+        padding: 3rem 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile (iPhone Pro) */
+@media (max-width: 600px) {
+    .landing-cta-btn-large {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Small Mobile (iPhone SE, iPhone 12 Pro - 390px) */
+@media (max-width: 480px) {
+    .lr-hero {
+        padding-top: max(18rem, 25vh);
+    }
+
+    .hero-visual {
+        order: 0;
+        margin-top: 2rem;
+    }
+
+    .hero-text h1 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .hero-desc {
+        text-align: center;
+    }
+
+    .hero-cta {
+        align-items: center !important;
+        width: 100%;
+    }
+
+    .cta-note.highlight {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .benefits-carousel {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.5rem 0.75rem;
+    }
+
+    .carousel-arrow {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .carousel-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+        margin: 0 auto;
+    }
+
+    .carousel-content {
+        text-align: center;
+    }
+
+    .carousel-content h4 {
+        font-size: 1.125rem;
+    }
+
+    .carousel-content p {
+        font-size: 0.875rem;
+    }
+
+    .carousel-nav {
+        justify-content: center;
+    }
+
+    .section-header {
+        text-align: center;
+    }
+
+    .mockup-dashboard-real,
+    .mockup-viewer-real {
+        grid-template-columns: 1fr !important;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .mockup-viewer-real .mock-risk-badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+        gap: 0.5rem;
+        white-space: normal;
+        height: auto;
+        max-width: 100%;
+    }
+
+    .mockup-viewer-real .mock-sidebar {
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+        border-right: none;
+        width: 100%;
+    }
+
+    /* Adjust sidebar items for horizontal layout */
+    .mockup-viewer-real .mock-sidebar-item {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 80px;
+        padding: 0.5rem;
+        text-align: center;
+        margin-bottom: 0;
+    }
+
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .section-header p {
+        font-size: 0.875rem;
+    }
+}
