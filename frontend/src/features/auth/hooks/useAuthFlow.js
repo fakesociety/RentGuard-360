@@ -5,9 +5,30 @@
  * Stores pending verification emails in localStorage so users can resume after refresh.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Hub } from 'aws-amplify/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext/LanguageContext';
 import { translateError } from '@/features/auth/utils/errorMapper';
+
+const OAUTH_IN_FLIGHT_KEY = 'rentguard_oauth_in_flight';
+
+const isOAuthFailureEvent = (event) => {
+    if (!event) return false;
+    return [
+        'cognitoHostedUI_failure',
+        'signInWithRedirect_failure',
+        'customOAuthState_failure',
+    ].includes(event);
+};
+
+const isOAuthSuccessEvent = (event) => {
+    if (!event) return false;
+    return [
+        'cognitoHostedUI',
+        'signInWithRedirect',
+        'signedIn',
+    ].includes(event);
+};
 
 export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) => {
     const { login, socialLogin, register, confirmRegistration, isAuthenticated, resendCode, forgotPassword, resetUserPassword, checkUserStatus } = useAuth();
@@ -32,6 +53,7 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
     const dropdownRef = useRef(null);
     const wasOpenRef = useRef(Boolean(view));
     const lastViewedRef = useRef(view || null);
+    const oauthInFlightRef = useRef(false);
 
     const [resetCode, setResetCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -104,18 +126,50 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [onClose]);
 
+    useEffect(() => {
+        oauthInFlightRef.current = sessionStorage.getItem(OAUTH_IN_FLIGHT_KEY) === '1';
+
+        const stopListening = Hub.listen('auth', ({ payload }) => {
+            const event = payload?.event;
+            if (!event) return;
+
+            if (isOAuthFailureEvent(event)) {
+                const fallbackError = t('auth.socialLoginCanceledOrFailed');
+                const eventError = payload?.data?.message || payload?.data?.error || payload?.message;
+
+                setLoading(false);
+                setError(translateError(eventError || fallbackError, t, isRTL));
+                oauthInFlightRef.current = false;
+                sessionStorage.removeItem(OAUTH_IN_FLIGHT_KEY);
+            }
+
+            if (isOAuthSuccessEvent(event)) {
+                setLoading(false);
+                oauthInFlightRef.current = false;
+                sessionStorage.removeItem(OAUTH_IN_FLIGHT_KEY);
+            }
+        });
+
+        return () => {
+            stopListening();
+        };
+    }, [isRTL, t]);
+
 // Effect to intercept OAuth parameters returned natively by Cognito after social login fails (e.g. from Google cancel)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const oauthError = params.get('error');
         const oauthErrorDescription = params.get('error_description');
 
-        if (oauthError && view) {
+        if (oauthError) {
             const message = decodeURIComponent(
                 oauthErrorDescription || oauthError || t('auth.socialLoginCanceledOrFailed')
             );
             // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLoading(false);
             setError(message);
+            oauthInFlightRef.current = false;
+            sessionStorage.removeItem(OAUTH_IN_FLIGHT_KEY);
 
             switchAuthView('login');
 
@@ -152,11 +206,15 @@ export const useAuthFlow = ({ view, onChangeView, onClose, initialEmail = '' }) 
     const handleSocialLogin = async (provider) => {
         setError('');
         setLoading(true);
+        oauthInFlightRef.current = true;
+        sessionStorage.setItem(OAUTH_IN_FLIGHT_KEY, '1');
 
         const result = await socialLogin(provider);
         if (!result?.success) {
             setError(translateError(result?.error || t('auth.socialLoginFailed'), t, isRTL));
             setLoading(false);
+            oauthInFlightRef.current = false;
+            sessionStorage.removeItem(OAUTH_IN_FLIGHT_KEY);
         }
     };
 
