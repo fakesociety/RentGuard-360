@@ -107,19 +107,21 @@
   right: 0;
   left: auto;
   width: 100%;
-  max-height: 220px;
+  max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  transform: translateZ(0);
   z-index: 120;
   background: color-mix(in oklab, var(--chat-bg-card) 92%, #f8fafc 8%);
   border: 1px solid color-mix(in oklab, var(--chat-select-border) 72%, #ffffff 28%);
   border-radius: 12px;
-  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   padding: 6px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: block;
 }
 
 [dir="rtl"] .chat-contract-dropdown {
@@ -128,20 +130,28 @@
 }
 
 .chat-contract-option {
+  display: block;
   width: 100%;
   text-align: left;
   border: none;
   background: transparent;
   color: var(--chat-field-text);
-  border-radius: 10px;
-  padding: 9px 10px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background 0.15s ease;
 }
+
+.chat-contract-option:last-child {
+  margin-bottom: 0;
+}
+
 
 [dir="rtl"] .chat-contract-option {
   text-align: right;
