@@ -439,7 +439,7 @@ export const he = {
         "goToContracts": "עבור לחוזים שלי",
         "contractDetails": "פרטי החוזה (אופציונלי)",
         "propertyAddress": "כתובת הנכס",
-        "addressPlaceholder": "רחוב ראשי 123, עיר",
+        "addressPlaceholder": "עיר, רחוב ראשי, מספר",
         "landlordName": "שם המשכיר",
         "landlordPlaceholder": "ישראל ישראלי",
         "contractName": "שם החוזה",

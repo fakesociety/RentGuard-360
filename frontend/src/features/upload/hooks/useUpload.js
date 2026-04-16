@@ -328,6 +328,7 @@ export const useUpload = () => {
                 });
                 setFile(null);
                 setTermsAccepted(false);
+                setCustomFileName('');
                 setMetadata({
                     propertyAddress: '',
                     landlordName: '',

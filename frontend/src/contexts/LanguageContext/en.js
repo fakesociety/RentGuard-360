@@ -439,7 +439,7 @@ export const en = {
         "goToContracts": "Go to My Contracts",
         "contractDetails": "Contract Details (Optional)",
         "propertyAddress": "Property Address",
-        "addressPlaceholder": "123 Main Street, City",
+        "addressPlaceholder": "City, Street, Number",
         "landlordName": "Landlord Name",
         "landlordPlaceholder": "John Smith",
         "contractName": "Contract Name",

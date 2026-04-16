@@ -68,11 +68,11 @@ const UploadMetadataForm = ({
                     />
                     <span id="terms-text" className="terms-text">
                         {t('upload.termsLabel')}
-                        <Link to="/terms" className="terms-link">
+                        <Link to="/terms" target="_blank" rel="noopener noreferrer" className="terms-link">
                             {t('upload.termsLinkTerms')}
                         </Link>
                         {t('upload.termsLinkAnd')}
-                        <Link to="/privacy" className="terms-link">
+                        <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="terms-link">
                             {t('upload.termsLinkPrivacy')}
                         </Link>
                     </span>
