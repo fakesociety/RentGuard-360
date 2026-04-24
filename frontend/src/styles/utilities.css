@@ -1,5 +1,0 @@
-/* Global Utilities */
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-.flex-column { display: flex; flex-direction: column; }
-.card-shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
