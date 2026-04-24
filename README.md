@@ -661,10 +661,6 @@ All endpoints are served through API Gateway. Authentication is handled via Cogn
 
 <br />
 
-<p align="center">
-  <a href="https://drvamywirfzyv.cloudfront.net/"><strong>View Live Demo</strong></a>
-</p>
-
 ---
 
 ## Team and License
